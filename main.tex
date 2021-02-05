@@ -1,0 +1,75 @@
+% \documentclass[pdftex,10pt,a4paper,oneside]{book}
+%Can change the pt, papersize etc.
+\documentclass[oneside]{book}
+\usepackage{blindtext}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% \usepackage{algorithm}
+% \usepackage{algorithmic} %Algorithm styles, need to be nested for the example shown
+\usepackage{fancyhdr} %For our headers
+\usepackage{graphicx} %Inserting images
+\usepackage{lipsum}  %Blank text fill, delete me when finished
+\usepackage{setspace} %Spacing on the front page for crest and titles
+\usepackage[]{fncychap} % Styles can be Sonny, Lenny, Glenn, Conny, Rejne, Bjarne and Bjornstrup
+\usepackage[hyphens]{url} %Deals with hyphens in urls to make them clickable
+\usepackage{xcolor} %Great if you want coloured text
+\usepackage{tabularx}
+\usepackage{appendix} %Take a wild guess slick
+
+%KEEP THIS ONE LAST it's quite buggy, it allows you to click on links within the pdf and web links without changing the colour. The mouse cursor simply changes its icon to indicate to the user. Great tool - still awkward
+\usepackage[hidelinks]{hyperref}
+
+
+%This will tell the compiler to do the header style, page and spacing between the header and text
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.2pt}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+
+\usepackage{float} 
+\usepackage{import}
+\graphicspath{ {figures/} }
+\usepackage{array}
+\usepackage{xcolor,colortbl}
+\definecolor{Gray}{gray}{0.85}
+
+
+\usepackage{tabularx}
+    \newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\usepackage[utf8]{inputenc}
+\usepackage{fourier} 
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{array,multirow}
+
+\renewcommand\theadalign{bc}
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadgape{\Gape[4pt]}
+\renewcommand\cellgape{\Gape[4pt]}
+ 
+
+\newtheorem{defn}{Definition}[section]
+\title{PCIe}
+\author{Prepared by Design Team }
+\date{January 2021}
+% Specification
+% for \\ PCIe Physical Layer\\
+
+\begin{document}
+
+
+\include{base/base}
+\pagenumbering{arabic}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\include{base/history}
+\pagebreak
+
+\include{chapters/ch1}
+\include{chapters/ch2}
+\include{chapters/ch3}
+\include{chapters/ch4}
+\include{chapters/ch5}
+\end{document}

@@ -1,0 +1,746 @@
+
+\chapter{Signal Interface}
+\clearpage
+\section{PIPE Interface}
+
+\label{sec:1}
+\begin{table}[H]
+    \caption{TX and Related signals}
+    \label{tab:p1}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+TxData[7:0] 
+& 
+N/A
+&
+Parallel data input bus. \\
+\hline
+
+TxDataValid
+& 
+N/A
+&
+This signal allows the MAC to instruct the PHY to ignore the data interface \newline
+for one clock cycle. A value of one \newline
+indicates the phy will use the data, a \newline
+value of zero indicates the phy will not \newline
+use the data. \\
+\hline
+
+TxElecIdle
+& 
+High
+&
+Forces Tx output to electrical idle when asserted
+except in loopback.\newline \newline
+Note: The MAC must always have TxDataValid
+asserted when TxElecIdle transitions to either
+asserted or deasserted; TxDataValid is a qualifier
+for TxElecIdle sampling.
+\\
+\hline
+
+
+TxDataK
+& 
+N/A
+&
+A value of zero indicates a
+data byte, a value of 1 indicates a
+control byte.\\
+\hline
+
+
+TxStartBlock
+& 
+N/A
+&
+This signals allow the MAC to tell
+the PHY the starting byte for a 128b
+block when value is 1. The starting byte for a 128b
+block must always start with byte 0 of
+the data interface. \\
+\hline
+
+
+
+TxSyncHeader[1:0]
+& 
+N/A
+&
+
+Provides the sync header for
+the PHY to use in the next 130b block.
+\newline \newline
+$ 01 \longrightarrow $control byte \newline
+$ 10 \longrightarrow $data byte
+
+\\
+\hline
+
+
+TxDetectRx/ \newline Loopback
+& 
+High
+&
+Used to tell the PHY to begin a receiver detection
+operation or to begin loopback \\
+\hline
+
+
+
+\end{tabular}
+
+\end{table}
+
+
+% Rx and related signal
+\begin{table}[H]
+    \caption{RX and Related signals}
+    \label{tab:p2}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+RxData[7:0] 
+& 
+N/A
+&
+Parallel data output bus. \\
+\hline
+
+RxDataValid
+& 
+N/A
+&
+This signal allows the PHY to instruct the MAC to ignore the data interface \newline
+for one clock cycle. A value of one \newline
+indicates the mac will use the data, a \newline
+value of zero indicates the mac will not \newline
+use the data. \\
+\hline
+
+RxElecIdle
+& 
+High
+&
+Indicates receiver detection of an
+electrical idle. While deasserted
+with the PHY in P2 (PCI Express
+mode).
+\\
+\hline
+
+
+RxDataK
+& 
+N/A
+&
+A value of zero indicates a
+data byte, a value of 1 indicates a
+control byte.\\
+\hline
+
+
+RxStartBlock
+& 
+N/A
+&
+This signals allow the PHY to tell
+the MAC the starting byte for a 128b
+block when value is 1. The starting byte for a 128b
+block must always start with byte 0 of
+the data interface. \\
+\hline
+
+
+
+RxSyncHeader[1:0]
+& 
+N/A
+&
+
+Provides the sync header for
+the MAC to use in the next 130b block.
+\newline \newline
+$ 01 \longrightarrow $control byte \newline
+$ 10 \longrightarrow $data byte
+
+\\
+\hline
+
+
+RxValid
+& 
+High
+&
+Indicates symbol lock and valid
+data on RxData and RxDataK and
+further qualifies RxDataValid
+when used.\\
+\hline
+
+
+RxStatus[2:0]
+& 
+N/A
+&
+Encodes receiver status and error
+codes for the received data
+stream when receiving data.\newline
+\begin{tabular}{|m{2mm}|m{2mm}|m{2mm}|m{30mm}| }
+ \hline
+[0]&[1]&[2]& Description \\
+     \hline
+0 & 0 & 0 & Received data OK \\
+     \hline
+0 & 0 & 1 & 1 SKP added \\
+     \hline
+0 & 1 & 0 & 1 SKP removed \\
+     \hline
+0 & 1 & 1 & Receiver detected\\
+     \hline
+1 & 0 & 0 & Both $8B/10B$  $(128B/130B 6 )$ decode 
+error and (optionally) 
+Receive Disparity error \\
+     \hline
+1 & 0 & 1 & Elastic Buffer overflow \\
+     \hline
+
+1 & 1 & 0 & Elastic Buffer
+underflow. \\
+     \hline
+1 & 1 & 1 & Receive disparity error
+(Reserved if Receive
+Disparity error is
+reported with code
+0b100)\\
+     \hline
+
+\end{tabular}
+
+\\
+\hline
+
+
+\end{tabular}
+
+
+\end{table}
+\begin{table}[H]
+
+    \centering
+  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \hline
+
+RxStandby & Low & Controls whether the PHY RX is active when the
+PHY is in P0 or P0s. \newline \newline
+$0 \longrightarrow Active$ \newline
+$1 \longrightarrow Standby$
+\newline
+ \\
+     \hline
+ RxStandbyStatus & Low &  The PHY uses this signal to indicate its
+RxStandby state.
+ \newline \newline
+$0 \longrightarrow Active$ \newline
+$1 \longrightarrow Standby$
+\newline
+\\
+     \hline
+
+\end{tabular}
+\end{table}
+
+
+
+
+\begin{table}[H]
+    \caption{Clk and reset}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+ Reset\# & Low & Resets the transmitter and receiver. This signal
+is asynchronous. \\
+\hline
+
+ CLK & Edge & This differential Input is used to generate
+the bit-rate clock for the PHY transmitter
+and receiver.\\
+\hline
+ PCLK & Rising Edge & All data movement across the parallel
+interface is synchronized to this clock.\\
+\hline
+
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+    \caption{Commands and Status signals}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+ 
+PowerDown[3:0] M2P  & N/A & Power up or down the transceiver. Power states
+PCI Express Mode: \newline
+\begin{tabular}{|m{2mm}|m{2mm}|m{2mm}|m{2mm}|m{30mm}|}
+ \hline
+[0]&[1]&[2]&[3]& Description \\
+     \hline
+     
+0& 0 & 0 & 0 & P0, normal operation \\
+     \hline
+0& 0 & 0 & 1 & P0s, low recovery time
+latency, power saving state \\
+     \hline
+
+0& 0 & 1 & 0 & P2, lowest power state\\
+     \hline
+
+\end{tabular}
+
+\\
+\hline
+
+ 
+Rate[3:0] \newline M2P
+ & N/A & 
+ Control the link signaling rate.
+ 
+ \begin{tabular}{|c|c|}
+    \hline
+     Value & Description  \\ \hline
+     0  & Use 2.5 GT/s signaling rate \\ \hline
+     1 & Use 5 GT/s signaling rate \\ \hline
+     2 & Use 8 GT/s signaling rate\\ \hline
+     3 & Use 16 GT/s signaling rate\\ \hline
+     4 & Use 32 GT/s signaling rate\\ \hline
+ \end{tabular}
+\\
+\hline
+ PHY Mode[3:0] \newline M2P & N/A & PHYMode[1:0]
+ \newline \newline
+ $0 \longrightarrow PCI Express $
+ \newline
+ \\
+\hline
+
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+
+    \centering
+  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  
+\hline
+ PhyStatus \newline P2M & High & Used to communicate completion
+of several PHY functions including
+stable PCLK and/or Max PCLK
+(depending on clocking mode)
+after Reset\# deassertion, power
+management state transitions,
+rate change, and receiver
+detection.\\
+\hline
+
+Width[1:0] & N/A &Controls the PIPE data path width. \newline 
+\begin{tabular}{|c|c|}
+\hline
+    Value  & Datapath Width  \\ \hline
+    0 &  8 bits \\ \hline
+    1 & 16 bits \\ \hline
+    2 & 32 bits \\ \hline
+\end{tabular}
+\\
+\hline
+PCLK Rate[4:0] & N/A & Control the PIPE PCLK rate. \newline
+\begin{tabular}{|c|c|}
+\hline
+    Value  & clk rate  \\ \hline
+    0 & 32.25 Mhz
+    1 &  62.5 Mhz \\ \hline
+    2 & 125 Mhz \\ \hline
+    3 & 250 Mhz \\ \hline
+    4 & 500 Mhz \\ \hline
+    5 & 1000 Mhz \\ \hline
+    6 & 2000 Mhz \\ \hline
+    7 & 4000 Mhz \\ \hline
+    
+    
+\end{tabular}
+\\
+\hline
+
+PclkChangeAck \newline M2P & High & 
+Only used when PCLK is a PHY input.
+Asserted by the MAC when a PCLK rate
+change or rate change or, if required,
+width change is complete and stable. \newline 
+
+After the MAC asserts PclkChangeAck
+the PHY responds by asserting
+PhyStatus for one cyle and de-asserts
+PclkChangeOk at the same time as
+PhyStatus. The controller shall deassert
+PclkChangeAck when PclkChangeOk is
+sampled low.
+
+\\
+\hline
+PclkChangeOk \newline P2M & High &
+Only used when PCLK is a PHY
+input. Asserted by the PHY when
+it is ready for the MAC to change
+the PCLK rate or Rate.
+\\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[H]
+    \caption{Message Bus Interface Signals}
+    \centering
+  \begin{tabular}{ |m{30mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Direction}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+
+M2P\_MessageBus[7:0] & Input & The MAC multiplexes command, any
+required address, and any required data
+for sending read and write requests to
+access PHY PIPE registers and for
+sending read completion responses and
+write ack responses to PHY initiated
+requests.  \\ \hline 
+P2M\_MessageBus[7:0] & Output & The PHY multiplexes command, any
+required address, and any required data
+for sending read and write requests to
+access MAC PIPE registers and for
+sending read completion responses and
+write ack responses to MAC initiated
+requests.  \\ \hline 
+
+\end{tabular}
+\end{table}
+
+
+
+\section{LPIF Inteface}
+\label{sec:2}
+\begin{table}[H]
+\label{tab:l1}
+    \caption{LPIF Interface Signals}
+    \centering
+  \begin{tabular}{ |P{26mm}|P{10mm} | m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+
+& \multicolumn{1}{|c|}{\textbf{Active Level}}
+& \multicolumn{1}{|c|}{\textbf{Description}}
+\\
+\hline
+lclk & High &Link Clock: The clock frequency the LPIF interface operates at.
+The Link Clock is an input to signal to both the Link Layer as well as the Logical PHY.\\ \hline
+
+pl\_trdy & High & LIndicates Physical Layer is ready to accept data. Data is accepted when pl\_trdy, lp\_valid, and lp\_irdy are asserted together.\\ \hline
+
+
+lp\_irdy & High & Link Layer to Physical Layer indicating Link Layer is ready to transfer data. lp\_irdy must not be presented by the upper layers when pl\_state\_sts is RESET.\\ \hline
+
+
+lp\_valid [LP\_NVLD-1:0] & High & Link Layer to Physical Layer indicates data valid on the corresponding lp\_data bytes.
+‘LP\_NVLD’ equals the number of valid bits. The bytes of lp\_data associated with a
+specific bit of lp\_valid is implementation specific. When lp\_irdy is asserted, at least one
+of the bits of lp\_valid must be asserted.\\ \hline
+pl\_data [NBYTES-1:0][7:0] & N/A &
+Physical Layer to Link Layer Data, where ‘NBYTES’ equals number of bytes determined
+by the supported data bus for the LPIF interface. \\ \hline
+pl\_valid [PL\_NVLD-1:0] & High &
+Physical Layer to Link Layer indicates data valid on pl\_data. ‘PL\_NVLD’ equals the
+number of valid bits. The bytes of pl\_data associated with a specific bit of pl\_valid is
+implementation specific.\\ \hline
+pl\_stallreq & High & Physical Layer request to Link Layer to flush all packets for state transition \\ \hline
+lp\_data [NBYTES-1:0][7:0] & N/A & Link Layer to Physical Layer Data, where ‘NBYTES’ equals number of bytes determined
+by the data width for the LPIF instance.
+\\ \hline
+
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+
+    \centering
+  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \hline
+
+\hline
+lp\_stallack & High & Link Layer to Physical layer indicates that the packets are aligned (if pl\_stallreq was
+asserted) and logPHY may begin state transitions. \\ \hline 
+lp\_state\_req[3:0] & N/A & 
+Link Layer Request to Logical Physical Layer to request state change.
+Encodings as follows: \newline
+0000: NOP \newline 
+0001: Active \newline 
+0010: Active.L0s \newline 
+0011: Deepest Allowable PM State [L1 Substates only] \newline 
+0100: L1.1 \newline 
+0101: L1.2 \newline 
+0110: L1.3 \newline 
+0111: L1.4 \newline 
+1000: L2 \newline 
+1001: LinkReset \newline 
+1010: Reserved \newline 
+1011: Retrain \newline 
+1100: Disable \newline 
+\\ \hline
+pl_state_sts[3:0] & N/A &
+Physical Layer to Link Layer Status indication of the Interface.
+Encodings as follows:
+\newline
+0000: NOP \newline 
+0001: Active \newline 
+0010: Active.L0s \newline 
+0011: Deepest Allowable PM State [L1 Substates only] \newline 
+0100: L1.1 \newline 
+0101: L1.2 \newline 
+0110: L1.3 \newline 
+0111: L1.4 \newline 
+1000: L2 \newline 
+1001: LinkReset \newline 
+1010: Reserved \newline 
+1011: Retrain \newline 
+1100: Disable \newline
+\\ \hline
+pl\_lnk\_cfg[2:0] & N/A &
+Width of the Port: This bit field indicates the width of the port as determined by the Link
+initialization: \newline
+000 – x1 \newline
+001 – x2 \newline
+010 – x4 \newline
+011 – x8 \newline
+100 – x12 \newline 
+101 – x16 \newline
+110 – x32 \newline
+
+\\ \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+
+    \centering
+  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \hline
+pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
+When asserted, receiver framing error logging/escalation should be masked off in the
+Link Layer. logPHY asserts this based on link state and data path alignment to make
+sure false errors are not logged by the Link Layer.
+\\ \hline
+pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
+(3’b000=Gen1,3’b001=Gen2,3’b010=Gen3, 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
+Link Layer should only consider this to be relevant when pl\_state\_sts=RETRAIN or
+ACTIVE. \\ \hline
+pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
+pl\_protocol[2:0] & N/A & logPHY indication to upper layers about which protocol was detected during training. It
+has the following encodings: \newline
+000b – PCIe \\ \hline
+pl\_protocol\_vld & High & 
+Indication that pl\_protocol has valid information. This is a level signal, asserted when
+the logPHY has discovered the appropriate protocol, but can de-assert again after
+subsequent transitions to RESET state depending on the link state machine transitions. \\ \hline
+lp\_force\_detect & High & This is a level signal. It forces logPHY to shut down the receiver, drive and keep the
+physical LTSSM in Detect. \\ \hline
+pl\_phyinrecenter & High & Physical Layer to Link Layer indication that the Physical Layer is in Recovery (Retrain)
+state. Please note that pl\_state\_sts indicates the status of the transmitter (training
+sequence sent by logPHY for example) whereas this signal is asserted when the receiver
+detects recovery entry (training sequences received by the logPHY for example) \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+    
+    \caption{Error signals}
+    \centering
+  \label{tab:l2}
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+pl\_error & High &  
+Indicates that the Physical layer detected an encoding or framing related error. This
+signal shall be asserted by the Logical PHY when non training related errors are
+detected.
+Please note that non-training errors are logical PHY specific.
+The logging of errors must be determined by the upper level protocols. \\ \hline
+pl\_trainerror & High &
+Indicates that Physical layer training. Please note that training errors are logical PHY
+specific.
+The logging of errors must be determined by the upper level protocols. Logical PHY
+may use this signal to indicate other uncorrectable errors as well (such as internal parity
+errors) and transition to LinkError state as a result.
+\\ \hline
+pl\_cerror & High  & Indicates that Physical Layer received an error which was corrected by Physical Layer.
+The logging of errors must be determined by upper layer protocols. \\ \hline 
+lp\_linkerror & High &  
+Link Layer to Physical Layer indication that an uncorrectable error has occurred and
+Physical Layer must move to LinkError State when it samples this signal. \\ \hline 
+
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \caption{Clock Gating Interface from logPHY}
+    \label{tab:l3}
+
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+pl\_exit\_cg\_req & High & When asserted, requests upper layers to exit clock gated state as soon as possible. \\ \hline
+lp\_exit\_cg\_ack & High & When asserted, indicates that upper layers are not in clock gated state and are ready to
+receive packets from the Physical Layer. \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \caption{Configuration Interface}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+pl\_cfg[NC-1:0] & N/A & This is the configuration interface from Logical PHY to the Link Layer. \\ \hline
+pl\_cfg\_vld & High & When asserted, indicates that pl\_cfg has valid information that should be
+consumed by the Link Layer.
+receive packets from the Physical Layer. \\ \hline
+lp\_cfg[NC-1:0] & N/A & This is the configuration interface from Link Layer to Logical PHY.\\ \hline
+lp\_cfg\_vld & High &When asserted, indicates that lp\_cfg has valid information that should be
+consumed by the Logical PHY. \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \caption{Signals for PCIe}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{Active Level}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+pl\_nbstallreq& High &Physical Layer request to Link Layer to align packets at LPIF width boundary \\ \hline 
+lp\_nbstallack& High & Link Layer acknowledge to pl\_nbstallreq.\\ \hline 
+
+pl\_block\_dl\_init &High & Indication from the logPHY to the LL to block initialization of DLLPs.\\ \hline 
+lp\_dl\_active &High & Indication from the LL that Data Link Control and Management State Machine is in
+DL\_Active state (as defined in the PCIe spec)\\ \hline 
+lp\_good\_dllp &High & ndication from Link Layer that a Data Link Layer Packet (DLLP) was received without errors. Used by upstream ports to block DLLP transmission until a good DLLP is received\\ \hline 
+pl\_in\_rxl0s & N/A& Indication from logPHY that Receiver is in L0s\\ \hline 
+pl\_byte\_err[(n-1):0] &N/A & \\ \hline 
+&N/A & Corresponding byte of data has an error. In Gen1/2 framing, it denotes k-char error detected by logPHY. LL uses this to log an error. It may assert in higher data rates, but it
+is not logged by the Link Layer for Gen3 and above speeds.
+\\ \hline 
+pl\_kchar[(n-1):0] &N/A & k-char indication from logPHY. When asserted, the corresponding data byte must be
+interpreted at the LL as a k-char.\\ \hline 
+
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+
+    \centering
+  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \hline
+
+pl\_dlpstart[w-1] &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
+bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline 
+pl\_dlpend[w-1] &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
+bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline
+pl\_tlpstart[w-1] &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
+(STP). \\ \hline
+pl\_tlpend[w-1] &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
+(END).\\ \hline
+pl\_tlpedb[w-1] &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
+pl\_rx\_flush &N/A & Request from logPHY to Link Layer to flush its receiver pipeline. This typically occurs for
+framing errors in Gen3\\ \hline
+
+\end{tabular}
+\end{table}
+
+
+% \begin{table}[H]
+
+%     \centering
+%   \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+%   \hline
+% pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
+% When asserted, receiver framing error logging/escalation should be masked off in the
+% Link Layer. logPHY asserts this based on link state and data path alignment to make
+% sure false errors are not logged by the Link Layer.
+% \\ \hline
+% pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
+% (3’b000=Gen1,3’b001=Gen2,3’b010=Gen3, 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
+% Link Layer should only consider this to be relevant when pl_state_sts=RETRAIN or
+% ACTIVE. \\ \hline
+% pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
+% pl\_protocol[2:0] & N/A & logPHY indication to upper layers about which protocol was detected during training. It
+% has the following encodings: \newline
+% 000b – PCIe
+% \end{tabular}
+% \end{table}
+
+% \begin{table}[H]
+%     \caption{TX and Related signals}
+%     \centering
+%   \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+% \hline
+% \rowcolor{Gray}
+% \multicolumn{1}{|c|}{\textbf{Name} } 
+% & \multicolumn{1}{|c|}{\textbf{Active Level}} 
+% & \multicolumn{1}{|c|}{\textbf{Description}}\\
+% \hline
+
+
+
+% \end{tabular}
+% \end{table}
