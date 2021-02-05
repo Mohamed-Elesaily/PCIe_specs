@@ -706,28 +706,27 @@ framing errors in Gen3\\ \hline
 
 \end{tabular}
 \end{table}
+\section{Interal Signals}
 
-
-% \begin{table}[H]
-
-%     \centering
-%   \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
-%   \hline
-% pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
-% When asserted, receiver framing error logging/escalation should be masked off in the
-% Link Layer. logPHY asserts this based on link state and data path alignment to make
-% sure false errors are not logged by the Link Layer.
-% \\ \hline
-% pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
-% (3’b000=Gen1,3’b001=Gen2,3’b010=Gen3, 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
-% Link Layer should only consider this to be relevant when pl_state_sts=RETRAIN or
-% ACTIVE. \\ \hline
-% pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
-% pl\_protocol[2:0] & N/A & logPHY indication to upper layers about which protocol was detected during training. It
-% has the following encodings: \newline
-% 000b – PCIe
-% \end{tabular}
-% \end{table}
+\begin{table}[H]
+    \caption{LTSSM(out) and Packet Generator(in) Inteface}
+    \centering
+  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{In/Out}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+a & b & c \newline d \newline h  \\ \hline
+a & b & c \newline d \newline h  \\ \hline
+a & b & c \newline d \newline h  \\ \hline
+a & b & c \newline d \newline h  \\ \hline
+a & b & c \newline d \newline h  \\ \hline
+a & b & c \newline d \newline h  \\ \hline
+a & b & c \newline d \newline h  \\ \hline
+\end{tabular}
+\end{table}
 
 % \begin{table}[H]
 %     \caption{TX and Related signals}
