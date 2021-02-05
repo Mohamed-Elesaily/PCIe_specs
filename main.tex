@@ -1,4 +1,4 @@
-% \documentclass[pdftex,10pt,a4paper,oneside]{book}
+%documentclass[pdftex,10pt,a4paper,oneside]{book}
 %Can change the pt, papersize etc.
 \documentclass[oneside]{book}
 \usepackage{blindtext}
@@ -37,7 +37,6 @@
     \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
 \usepackage[utf8]{inputenc}
-\usepackage{fourier} 
 \usepackage{array}
 \usepackage{makecell}
 \usepackage{array,multirow}
@@ -53,6 +52,12 @@
 \author{Prepared by Design Team }
 \date{January 2021}
 % Specification
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{array,multirow}
+
+\renewcommand\theadalign{bc}
 % for \\ PCIe Physical Layer\\
 
 \begin{document}
@@ -66,7 +71,6 @@
 \listoftables
 \include{base/history}
 \pagebreak
-
 \include{chapters/ch1}
 \include{chapters/ch2}
 \include{chapters/ch3}
