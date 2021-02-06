@@ -424,7 +424,7 @@ the PCLK rate or Rate.
 \begin{table}[H]
     \caption{Message Bus Interface Signals}
     \centering
-  \begin{tabular}{ |m{30mm}|m{10mm}|m{60mm}|  }
+  \begin{tabular}{ |P{30mm}|P{10mm}|m{60mm}|  }
 \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
@@ -432,14 +432,14 @@ the PCLK rate or Rate.
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
 
-M2P\_MessageBus[7:0] & Input & The MAC multiplexes command, any
+M2P\_MessageBus\newline[7:0] & Input & The MAC multiplexes command, any
 required address, and any required data
 for sending read and write requests to
 access PHY PIPE registers and for
 sending read completion responses and
 write ack responses to PHY initiated
 requests.  \\ \hline 
-P2M\_MessageBus[7:0] & Output & The PHY multiplexes command, any
+P2M\_MessageBus\newline[7:0] & Output & The PHY multiplexes command, any
 required address, and any required data
 for sending read and write requests to
 access MAC PIPE registers and for
@@ -558,7 +558,7 @@ initialization: \newline
 \begin{table}[H]
 
     \centering
-  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \begin{tabular}{ |P{30mm}|P{18mm}|m{63mm}|  }
   \hline
 pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
 When asserted, receiver framing error logging/escalation should be masked off in the
@@ -566,7 +566,7 @@ Link Layer. logPHY asserts this based on link state and data path alignment to m
 sure false errors are not logged by the Link Layer.
 \\ \hline
 pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
-(3’b000=Gen1,3’b001=Gen2,3’b010=Gen3, 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
+(3’b000=Gen1,3’b001=Gen2,3’b010=Gen3,\newline 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
 Link Layer should only consider this to be relevant when pl\_state\_sts=RETRAIN or
 ACTIVE. \\ \hline
 pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
@@ -676,7 +676,9 @@ lp\_dl\_active &High & Indication from the LL that Data Link Control and Managem
 DL\_Active state (as defined in the PCIe spec)\\ \hline 
 lp\_good\_dllp &High & ndication from Link Layer that a Data Link Layer Packet (DLLP) was received without errors. Used by upstream ports to block DLLP transmission until a good DLLP is received\\ \hline 
 pl\_in\_rxl0s & N/A& Indication from logPHY that Receiver is in L0s\\ \hline 
-pl\_byte\_err[(n-1):0] &N/A & \\ \hline 
+pl\_byte\_err[(n-1):0] &N/A & Corresponding byte of data has an error. In Gen1/2 framing, it denotes k-char error 
+detected by logPHY. LL uses this to log an error. It may assert in higher data rates, but it
+is not logged by the Link Layer for Gen3 and above speeds.\\ \hline 
 &N/A & Corresponding byte of data has an error. In Gen1/2 framing, it denotes k-char error detected by logPHY. LL uses this to log an error. It may assert in higher data rates, but it
 is not logged by the Link Layer for Gen3 and above speeds.
 \\ \hline 
