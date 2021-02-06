@@ -708,7 +708,7 @@ framing errors in Gen3\\ \hline
 
 \end{tabular}
 \end{table}
-\section{Interal Signals}
+\section{Internal Signals}
 
 \begin{table}[H]
     \caption{LTSSM(out/in) and Packet Generator Inteface}
@@ -721,12 +721,24 @@ framing errors in Gen3\\ \hline
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
 ordered\_set\_type\newline[3:0] & b & c \newline d \newline h  \\ \hline
-Gen\_type & out & c \newline d \newline h  \\ \hline
-lane\_numbers\newline[3:0] & out & c \newline d \newline h  \\ \hline
-link\_numbers & out & c \newline d \newline h  \\ \hline
-data\_rate\newline[2:0] & out & c \newline d \newline h  \\ \hline
+Gen\_type & out & c \newline d \newline h \\ \hline
+link\_number & out & Link Number
+\newline -For PAD assign it to 0.
+\newline -For default link number assign it to 1.
+\\ \hline
+N\_FTS [7:0] & out & Number of FTS Ordered Sets required by receiver to achieve L0 when exiting L0s.\\ \hline
+lane\_number\newline[3:0] & out & Lane Number 
+\newline -Lane number values from 0 to 7. 
+\newline -For PAD assign it to 8. 
+\newline -From 9 to 15 is Reserved.\\ \hline
+rate\_identifier\newline[7:0] & out & Data Rate Identifier: 
+\newline -Bit 1: 2.5 GT/s supported (must be set to 1b).
+\newline -Bit 2: 5.0 GT/s supported (must be set if bit 3 is set).
+\newline -Bit 3: 8.0 GT/s supported.
+\newline -Bit 6: Autonomous Change/Selectable De-emphasis.
+\newline -Bit 7: Speed change. This can only be set to one in the Recovery.RcvrLock LTSSM state.
+\newline -Bits (0,5,4) are Reserved\\ \hline
 Auto\_change & out & c \newline d \newline h  \\ \hline
-speed\_change & out & c \newline d \newline h  \\ \hline
 \end{tabular}
 \end{table}
 
