@@ -720,8 +720,19 @@ framing errors in Gen3\\ \hline
 & \multicolumn{1}{|c|}{\textbf{In/Out}} 
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
-ordered\_set\_type\newline[3:0] & b & c \newline d \newline h  \\ \hline
-Gen\_type & out & c \newline d \newline h \\ \hline
+ordered\_set\_type\newline[3:0] & out & 
+
+0000 : SOS   \newline 
+0001 : EIOS  \newline
+0010 : EIEOS  \newline 
+0011 : TS1 \newline   
+0100 : TS2 \newline 
+0101 : FTS \newline
+0110 : SDS \newline
+0111 : COM \newline
+ \\ \hline
+Gen\_type & out & Gen $1 \longleftrightarrow 2$:0 
+\newline  Gen $3 \longleftrightarrow 5$:1  \\ \hline
 link\_number & out & Link Number
 \newline -For PAD assign it to 0.
 \newline -For default link number assign it to 1.
@@ -738,9 +749,35 @@ rate\_identifier\newline[7:0] & out & Data Rate Identifier:
 \newline -Bit 6: Autonomous Change/Selectable De-emphasis.
 \newline -Bit 7: Speed change. This can only be set to one in the Recovery.RcvrLock LTSSM state.
 \newline -Bits (0,5,4) are Reserved\\ \hline
-Auto\_change & out & c \newline d \newline h  \\ \hline
+
 \end{tabular}
 \end{table}
+
+
+% \begin{table}[H]
+
+%     \centering
+%   \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+%   \hline
+% pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
+% When asserted, receiver framing error logging/escalation should be masked off in the
+% Link Layer. logPHY asserts this based on link state and data path alignment to make
+% sure false errors are not logged by the Link Layer.
+% \\ \hline
+% pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
+% (3’b000=Gen1,3’b001=Gen2,3’b010=Gen3, 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
+% Link Layer should only consider this to be relevant when pl_state_sts=RETRAIN or
+% ACTIVE. \\ \hline
+% pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
+% pl\_protocol[2:0] & N/A & logPHY indication to upper layers about which protocol was detected during training. It
+% has the following encodings: \newline
+% 000b – PCIe
+% \end{tabular}
+% \end{table}
+
+
+% \end{tabular}
+% \end{table}
 
 % \begin{table}[H]
 %     \caption{TX and Related signals}
