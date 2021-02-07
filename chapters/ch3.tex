@@ -293,6 +293,7 @@ interface is synchronized to this clock.\\
 
 \begin{table}[H]
     \caption{Commands and Status signals}
+    \label{tab:command}
     \centering
   \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
 \hline
@@ -679,9 +680,7 @@ pl\_in\_rxl0s & N/A& Indication from logPHY that Receiver is in L0s\\ \hline
 pl\_byte\_err[(n-1):0] &N/A & Corresponding byte of data has an error. In Gen1/2 framing, it denotes k-char error 
 detected by logPHY. LL uses this to log an error. It may assert in higher data rates, but it
 is not logged by the Link Layer for Gen3 and above speeds.\\ \hline 
-&N/A & Corresponding byte of data has an error. In Gen1/2 framing, it denotes k-char error detected by logPHY. LL uses this to log an error. It may assert in higher data rates, but it
-is not logged by the Link Layer for Gen3 and above speeds.
-\\ \hline 
+
 pl\_kchar[(n-1):0] &N/A & k-char indication from logPHY. When asserted, the corresponding data byte must be
 interpreted at the LL as a k-char.\\ \hline 
 
@@ -737,7 +736,8 @@ link\_number & out & Link Number
 \newline -For PAD assign it to 0.
 \newline -For default link number assign it to 1.
 \\ \hline
-N\_FTS [7:0] & out & Number of FTS Ordered Sets required by receiver to achieve L0 when exiting L0s.\\ \hline
+Eq\_info[7:0] & out & equalization info is needded by 
+TS1 and TS2  \\ \hline
 lane\_number\newline[3:0] & out & Lane Number 
 \newline -Lane number values from 0 to 7. 
 \newline -For PAD assign it to 8. 
@@ -750,6 +750,29 @@ rate\_identifier\newline[7:0] & out & Data Rate Identifier:
 \newline -Bit 7: Speed change. This can only be set to one in the Recovery.RcvrLock LTSSM state.
 \newline -Bits (0,5,4) are Reserved\\ \hline
 
+\end{tabular}
+\label{or}
+\end{table}
+\begin{table}[H]
+  \caption{LTSSM(in/out) and ordered set decoder}
+  \centering
+\begin{tabular}{ |P{50mm}|P{10mm}|m{40mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{In/Out}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+
+ordered\_set\_type\_Detector[3:0]  \newline \newline
+ Gen\_type\_Detector \newline \newline
+link\_number\_Detector \newline  \newline
+Eq\_info\_Detector[7:0] \newline \newline
+lane\_number\_Detector[3:0] \newline \newline
+rete\_identifier\_Detector[7:0] 
+&in
+& Decode the information get from ordered set in table \ref{or}
+\\ \hline
 \end{tabular}
 \end{table}
 
@@ -773,14 +796,14 @@ get\_eq\_info [21:0] & in & Reads the current equalization values of the transmi
 
 send\_eq\_info [21:0] & out & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
 \newline -[3:0] TX preset
-\newline -[9:4] FS value when EC = 01b,Otherwise Pre-Cursor Coefficient 
-\newline -[15:10] LF value when EC = 01b,Otherwise Cursor Coefficient
+\newline -[9:4] FS value when $EC = 01b$,Otherwise Pre-Cursor Coefficient 
+\newline -[15:10] LF value when $EC = 01b$,Otherwise Cursor Coefficient
 \newline -[21:16] Post-Cursor Coefficient\\
 \hline
 
 read\_eq & out & read request from the PIPE for equalization values \\ \hline
 
-evaluate\_eq & b & request the PIPE to evaluate the received equalization values. \\ \hline
+evaluate\_eq & in & request the PIPE to evaluate the received equalization values. \\ \hline
 
 EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
 \hline
@@ -788,9 +811,9 @@ EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq
 
 RxDetectReq & out & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
 
-DetectedLanes \newline [7:0] & IN & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
+DetectedLanes \newline [7:0] & in & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
 
-RXElecIdle[7:0] & IN & Status signal from PIPE interface indicate if lanes is in ElecIdle or not by setting the bit corresponding to the lane \\ \hline
+RXElecIdle[7:0] & in & Status signal from PIPE interface indicate if lanes is in ElecIdle or not by setting the bit corresponding to the lane \\ \hline
 \end{tabular}
 \end{table}
 
@@ -813,7 +836,7 @@ a & b & c \newline d \\ \hline
 \begin{table}[H]
   \caption{LTSSM(in/out) and clock management}
   \centering
-\begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+\begin{tabular}{ |P{30mm}|P{10mm}|m{60mm}|  }
 \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
@@ -821,9 +844,10 @@ a & b & c \newline d \\ \hline
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
 
-a & b & c \newline d \\ \hline
-a & b & c \newline d \\ \hline
-
+PclkChangeAckM2P & in & acknowlede LTSSM that finish changing rate. \newline
+for more information see table \ref{tab:command} \\ \hline
+PCLK Rate[4:0]  & out & change pclk rate. \newline
+for more information see table \ref{tab:command}  \\ \hline
 \end{tabular}
 \end{table}
 
@@ -840,15 +864,15 @@ a & b & c \newline d \\ \hline
 \\
 \hline
 
-set\_timer[2:0] & OUT & Set the timer interval to value predefined 
+set\_timer[2:0] & out & Set the timer interval to value predefined 
 \newline       001 mean 12 ms
 \newline       010 mean 24 ms 
 \\ \hline
 
-start\_timer & OUT & Signal to turn the timer ON
+start\_timer & out & Signal to turn the timer ON
 \\ \hline
 
-time\_out\_flag & IN & Signal to indicate the time interval specified earlier has finished
+time\_out\_flag & in & Signal to indicate the time interval specified earlier has finished
 \\ \hline
 
 
@@ -856,6 +880,26 @@ time\_out\_flag & IN & Signal to indicate the time interval specified earlier ha
 \end{tabular}
 \end{table}
 
+\begin{table}[H]
+  \caption{PIPE interface(in/out) and PIPE register}
+  \centering
+\begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{In/Out}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}
+\\
+\hline
+
+write\_reg[7:0]] & out & write registers in PIPE Register
+\\ \hline
+
+read\_reg[7:0] & out & read registers in PIPE Register
+\\ \hline
+
+\end{tabular}
+\end{table}
 % \begin{table}[H]
 
 %     \centering
