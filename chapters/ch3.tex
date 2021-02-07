@@ -764,7 +764,26 @@ rate\_identifier\newline[7:0] & out & Data Rate Identifier:
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
 
-a & b & c \newline d \\ \hline
+get\_eq\_info [21:0] & in & Reads the current equalization values of the transmitter port
+\newline -[3:0] TX preset
+\newline -[9:4] FS value when EC = 01b,Otherwise Pre-Cursor Coefficient 
+\newline -[15:10] LF value when EC = 01b,Otherwise Cursor Coefficient
+\newline -[21:16] Post-Cursor Coefficient\\
+\hline
+
+send\_eq\_info [21:0] & out & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
+\newline -[3:0] TX preset
+\newline -[9:4] FS value when EC = 01b,Otherwise Pre-Cursor Coefficient 
+\newline -[15:10] LF value when EC = 01b,Otherwise Cursor Coefficient
+\newline -[21:16] Post-Cursor Coefficient\\
+\hline
+
+read\_eq & out & read request from the PIPE for equalization values \\ \hline
+
+evaluate\_eq & b & request the PIPE to evaluate the received equalization values. \\ \hline
+
+EC & out & Defining the phase of equalization for PIPE as some fields of "get\_eq\_info" and "send\_eq\_info"  depend on the phase number \\
+\hline
 
 \end{tabular}
 \end{table}
