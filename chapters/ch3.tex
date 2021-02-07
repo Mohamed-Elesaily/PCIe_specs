@@ -785,6 +785,12 @@ evaluate\_eq & b & request the PIPE to evaluate the received equalization values
 EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
 \hline
 
+
+RxDetectReq & out & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
+
+DetectedLanes \newline [7:0] & IN & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
+
+RXElecIdle[7:0] & IN & Status signal from PIPE interface indicate if lanes is in ElecIdle or not by setting the bit corresponding to the lane \\ \hline
 \end{tabular}
 \end{table}
 
@@ -830,8 +836,21 @@ a & b & c \newline d \\ \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
 & \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
+& \multicolumn{1}{|c|}{\textbf{Description}}
+\\
 \hline
+
+set\_timer[2:0] & OUT & Set the timer interval to value predefined 
+\newline       001 mean 12 ms
+\newline       010 mean 24 ms 
+\\ \hline
+
+start\_timer & OUT & Signal to turn the timer ON
+\\ \hline
+
+time\_out\_flag & IN & Signal to indicate the time interval specified earlier has finished
+\\ \hline
+
 
 a & b & c \newline d \\ \hline
 
