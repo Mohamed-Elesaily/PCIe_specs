@@ -105,22 +105,28 @@
 \end{figure}
 
 
-\begin{table}[H]
-    \caption{Input signals for ordered set module}
-    \centering
-  \begin{tabular}{ |m{26mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
- set\_type  &  choose ordered set type (SOS, EIEOS, ....) \\ \hline 
-  Gen & choose generation of the packet gen 1$\longrightarrow $2 or gen 3$\longrightarrow$5 \\ 
- \hline 
- pop & It pops the packet to the bus (data\_out) symbol by symbol until finish \\
- \hline 
+% \begin{table}[H]
+%     \caption{Input signals for ordered set module}
+%     \centering
+%   \begin{tabular}{ |m{26mm}|m{60mm}|  }
+% \hline
+% \rowcolor{Gray}
+% \multicolumn{1}{|c|}{\textbf{Name} } 
+% & \multicolumn{1}{|c|}{\textbf{Description}}\\
+% \hline
+%  set\_type  &  choose ordered set type (SOS, EIEOS, ....) \\ \hline 
+%   Gen & choose generation of the packet gen 1$\longrightarrow $2 or gen 3$\longrightarrow$5 \\ 
+%  \hline 
+%  pop & It pops the packet to the bus (data\_out) symbol by symbol until finish \\
+%  \hline 
 
 
-\end{tabular}
-\end{table}
+% \end{tabular}
+% \end{table}
 
+\subsection{Detailed Design}
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=100mm,width=100mm]{images/design-internal_signal.png}
+  \caption{LTSSM interfaces with other modules}
+\end{figure}
