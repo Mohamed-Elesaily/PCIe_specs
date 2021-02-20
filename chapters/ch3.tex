@@ -452,6 +452,56 @@ requests.  \\ \hline
 \end{table}
 
 
+\begin{table}[H]
+  \caption{MAC Interface(in/out) Equalization signals}
+  \centering
+\begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+\hline
+\rowcolor{Gray}
+\multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{In/Out}} 
+& \multicolumn{1}{|c|}{\textbf{Description}}\\
+\hline
+
+get\_eq\_info [21:0] & in & Reads the current equalization values of the transmitter port
+\newline -[3:0] TX preset
+\newline -[9:4] FS value when EC = 01b,Otherwise Pre-Cursor Coefficient 
+\newline -[15:10] LF value when EC = 01b,Otherwise Cursor Coefficient
+\newline -[21:16] Post-Cursor Coefficient\\
+\hline
+
+send\_eq\_info [21:0] & out & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
+\newline -[3:0] TX preset
+\newline -[9:4] FS value when $EC = 01b$,Otherwise Pre-Cursor Coefficient 
+\newline -[15:10] LF value when $EC = 01b$,Otherwise Cursor Coefficient
+\newline -[21:16] Post-Cursor Coefficient\\
+\hline
+
+use\_preset & in & This value is used in phase 2 and 3 during correcting the equalization values of the link partener  \\ \hline
+
+valid\_coeff & in & this signal is used in phase 2 for downstream and in phase 3 for upstream. It defines if the requested values for equalization from the link partener are in the valid range or not\\ \hline
+
+evaluation\_complete & in & This signal is used by the PHY to tell the MAC that the correction operation of the link partner preset values is finished and ready to be sent.  \\ \hline
+
+read\_eq & out & read request from the PIPE for equalization values \\ \hline
+
+evaluate\_eq & out & request the PIPE to evaluate the received equalization values. \\ \hline
+
+write\_eq & out & request the PIPE to store the received equalization values. \\ \hline
+
+EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
+\hline
+
+
+
+RxDetectReq & out & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
+
+DetectedLanes \newline [7:0] & in & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
+
+RXElecIdle[7:0] & in & Status signal from PIPE interface indicate if lanes is in ElecIdle or not by setting the bit corresponding to the lane \\ \hline
+\end{tabular}
+\end{table}
+
 
 \section{LPIF Inteface}
 \label{sec:2}
@@ -773,56 +823,6 @@ rete\_identifier\_Detector[7:0]
 &in
 & Decode the information get from ordered set in table \ref{or}
 \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-    \caption{LTSSM(in/out) and PIPE Inteface}
-    \centering
-  \begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-
-get\_eq\_info [21:0] & in & Reads the current equalization values of the transmitter port
-\newline -[3:0] TX preset
-\newline -[9:4] FS value when EC = 01b,Otherwise Pre-Cursor Coefficient 
-\newline -[15:10] LF value when EC = 01b,Otherwise Cursor Coefficient
-\newline -[21:16] Post-Cursor Coefficient\\
-\hline
-
-send\_eq\_info [21:0] & out & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
-\newline -[3:0] TX preset
-\newline -[9:4] FS value when $EC = 01b$,Otherwise Pre-Cursor Coefficient 
-\newline -[15:10] LF value when $EC = 01b$,Otherwise Cursor Coefficient
-\newline -[21:16] Post-Cursor Coefficient\\
-\hline
-
-use\_preset & in & This value is used in phase 2 and 3 during correcting the equalization values of the link partener  \\ \hline
-
-valid\_coeff & in & this signal is used in phase 2 for downstream and in phase 3 for upstream. It defines if the requested values for equalization from the link partener are in the valid range or not\\ \hline
-
-evaluation\_complete & in & This signal is used by the PHY to tell the MAC that the correction operation of the link partner preset values is finished and ready to be sent.  \\ \hline
-
-read\_eq & out & read request from the PIPE for equalization values \\ \hline
-
-evaluate\_eq & out & request the PIPE to evaluate the received equalization values. \\ \hline
-
-write\_eq & out & request the PIPE to store the received equalization values. \\ \hline
-
-EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
-\hline
-
-
-
-RxDetectReq & out & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
-
-DetectedLanes \newline [7:0] & in & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
-
-RXElecIdle[7:0] & in & Status signal from PIPE interface indicate if lanes is in ElecIdle or not by setting the bit corresponding to the lane \\ \hline
 \end{tabular}
 \end{table}
 
