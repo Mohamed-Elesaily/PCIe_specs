@@ -1,110 +1,70 @@
-module PCIe(CLK,PCLK, reset, phy_reset,
-TxData,TxDataValid,TxElecIdle,TxDataK,TxSyncHeader,TxDetectRx_Loopback
-,RxData,RxDataValid,RxDataK,RxStartBlock,RxSyncHeader,RxValid,RxStatus
-
-///????????????????////
-,RxStandby,RxStandbyStatus
-////???????????////////
-
-PowerDown,Rate,PHYMode,PhyStatus,Width
-
-//////????????????///
-PCLKRate,PclkChangeAck,PclkChangeOk,
-///////??????????????//////
-
-lclk,pl_trdy,lp_irdy,lp_data,lp_valid,pl_data,pl_valid,pl_stallreq,lp_stallack,lp_state_req,pl_state_sts,pl_lnk_cfg,pl_rxframe_errmask,pl_speedmode,pl_setlabs
-,pl_protocol,pl_protocol_vld,lp_force_detect,pl_phyinrecenter,pl_error,pl_trainerror,pl_cerror,pl_exit_cg_req,lp_exit_cg_ack,
-
-pl_nbstallreq,lp_nbstallack,pl_block_dl_init,lp_dl_active,lp_good_dllp,pl_in_rxl0s,pl_byte_err,pl_kchar, pl_dlpstart,pl_dlpend,pl_tlpstart,pl_tlpend,pl_tlpedb
-,pl_rxflush
-);
-
-  
-////?????????????????///
-input CLK;
-output PCLK;
-input reset;
-output phy_reset;
-//////????????????/////
-
+module PCIe
+#(
+	parameter NBYTES    = 64,
+	parameter PIPEWIDTH = 32,
+	parameter DEVICETYPE = 0, //0 for downstream 1 for upstream
+	parameter LANESNUMBER =16			
+)
+(
+//clk and reset 
+input CLK,
+output PCLK,
+input reset,
+output phy_reset,
 //TX_signals
-output [??????????:0]TxData;
-output TxDataValid;
-output TxElecIdle;
-output [????????:0]TxDataK;
-output [1:0]TxSyncHeader ;
-output	TxDetectRx_Loopback;
-
+output [PIPEWIDTH-1:0]TxData,
+output TxDataValid,
+output TxElecIdle,
+output TxStartBlock,
+output [PIPEWIDTH/8-1:0]TxDataK,
+output [1:0]TxSyncHeader,
+output	TxDetectRx_Loopback,
 //RX_signals
-input [??????????:0]RxData;
-input RxDataValid;
-input	[????????:0]RxDataK;
-input	RxStartBlock;
-input	[1:0]RxSyncHeader;
-input	RxValid;
-input	[2:0]RxStatus;
-
-/////////////??????????///////
-output RxStandby;
-input	RxStandbyStatus;
-//////////////????????????/////	
-
+input  [PIPEWIDTH-1:0]RxData,
+input   RxDataValid,
+input	[PIPEWIDTH/8-1:0]RxDataK,
+input	RxStartBlock,
+input	[1:0]RxSyncHeader,
+input	RxValid,
+input	[2:0]RxStatus,
 //commands and status signals
-output [3:0]PowerDown; 
-output  [3:0]Rate;
-output [3:0]PHYMode;////????????????????????????/////
-input PhyStatus;
-output [1:0]Width;
-
-/////////?????????????///
-output [4:0]PCLKRate;
-output PclkChangeAck;
-input  PclkChangeOk;
-
+output [3:0]PowerDown,
+output  [3:0]Rate,
+input PhyStatus,
+output [1:0]Width,
+//pclkcontrolsignal
+output [4:0]PCLKRate,
+output PclkChangeAck,
+input  PclkChangeOk,
+//eq_signals
+input [21:0]get_eq_info,
+output [21:0]send_eq_info,
+input use_preset,
+input valid_coeff,
+input evaluation_complete,
+output read_eq,
+output evaluate_eq,
+output write_eq,
+output EC,
 //LPIF 
-input lclk;
-output pl_trdy;
-input lp_irdy;
-input [NBYTES-1??????????????:0][7:0]lp_data;
-input [LP_NVLD-1??????????????????:0]lp_valid;
-output [NBYTES-1???????????:0][7:0]pl_data;
-output [PL_NVLD-1?????????????????:0] pl_valid ;
-output pl_stallreq;
-input lp_stallack;
-input  [3:0]lp_state_req;
-output [3:0]pl_state_sts;
-output [2:0] pl_lnk_cfg;
-output pl_rxframe_errmask;/////////////////////////////////
-output [2:0]pl_speedmode;
-output pl_setlabs;
-output [2:0]pl_protocol;
-output pl_protocol_vld;
-input lp_force_detect;
-output pl_phyinrecenter;
-output pl_error;
-output pl_trainerror;
-output pl_cerror;
-input lp_linkerror;
-output pl_exit_cg_req;
-input lp_exit_cg_ack;   
-////lpif pcie signals
-output pl_nbstallreq;
-input lp_nbstallack;
-output pl_block_dl_init
-input lp_dl_active;
-input lp_good_dllp;
-output pl_in_rxl0s,
-output [(n-1)????????????:0]pl_byte_err
-output [(n-1):0??????????]pl_kchar
-output [w-1?????????????????????]pl_dlpstart
-output [w-1?????????????????]pl_dlpend
-output [w-1??????]pl_tlpstart;
-output [w-1????????]pl_tlpend;
-output [w-1????????]pl_tlpedb;
-output pl_rx_flush
-
-
-endmodule 
-
-
-
+output pl_trdy,
+input  lp_irdy,
+input  [NBYTES-1:0][7:0]lp_data,
+input  [NBYTES-1:0]lp_valid,
+output [NBYTES-1:0][7:0]pl_data,
+output [NBYTES-1:0] pl_valid,
+input  [3:0]lp_state_req,
+output [3:0]pl_state_sts,
+output [2:0]pl_speedmode,
+input lp_force_detect,
+////lPIF start & end of TLP DLLP
+input [NBYTES-1:0]lp_dlpstart,
+input [NBYTES-1:0]lp_dlpend,
+input [NBYTES-1:0]lp_tlpstart,
+input [NBYTES-1:0]lp_tlpend,
+output [NBYTES-1:0]pl_dlpstart,
+output [NBYTES-1:0]pl_dlpend,
+output [NBYTES-1:0]pl_tlpstart,
+output [NBYTES-1:0]pl_tlpend
+);
+endmodule
