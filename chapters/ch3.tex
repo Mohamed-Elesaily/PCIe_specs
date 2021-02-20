@@ -801,12 +801,21 @@ send\_eq\_info [21:0] & out & Send the received equalization values from the lin
 \newline -[21:16] Post-Cursor Coefficient\\
 \hline
 
+use\_preset & in & This value is used in phase 2 and 3 during correcting the equalization values of the link partener  \\ \hline
+
+valid\_coeff & in & this signal is used in phase 2 for downstream and in phase 3 for upstream. It defines if the requested values for equalization from the link partener are in the valid range or not\\ \hline
+
+evaluation\_complete & in & This signal is used by the PHY to tell the MAC that the correction operation of the link partner preset values is finished and ready to be sent.  \\ \hline
+
 read\_eq & out & read request from the PIPE for equalization values \\ \hline
 
-evaluate\_eq & in & request the PIPE to evaluate the received equalization values. \\ \hline
+evaluate\_eq & out & request the PIPE to evaluate the received equalization values. \\ \hline
+
+write\_eq & out & request the PIPE to store the received equalization values. \\ \hline
 
 EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
 \hline
+
 
 
 RxDetectReq & out & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
