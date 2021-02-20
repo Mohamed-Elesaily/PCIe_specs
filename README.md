@@ -23,6 +23,5 @@
 
 
 # Configuration State 
-![](state_machines/configuration.jpeg.jpeg)
-
+![](state_machines/configuration.jpeg)
 
