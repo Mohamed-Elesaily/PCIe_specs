@@ -20,8 +20,3 @@
 
 ## Recovery idle transitions
 ![](state_machines/rec_idle.jpeg)
-
-
-# Configuration State 
-![](state_machines/configuration.jpeg)
-
