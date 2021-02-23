@@ -1,5 +1,8 @@
 # PCIe_specs
 
+## Detect
+<img src=images/Detect.png width = 700>
+
 ## Configuration
 <img src=images/Configuration.png width = 700>
 
