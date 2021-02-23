@@ -1,0 +1,12 @@
+1- Received data from PIPE interface with width (number of lanes * pipe width).
+2- PIPE Rx Data module checks dataValid is asserted and 
+detects start of the block by detect startblock signal
+which will know the data is packet or ordered sets by check 2 bit sync header.
+3- In descrambler module Tx LTSSM will choose descramble width depending on PIPE width(8, 16, 32, ...), 
+and then descramble data and ignore reserved symbols.
+4- LMC un-strips data bytes.
+5- Packet identifier will take the output of LMC
+by checking 2 bit sync header(10 -> data block).
+It will remove STP and END and set SOP and EOP.
+6- LPIF Rx Ctrl & DF module Forwards data to LPIF in 512 bit width.
+ 
