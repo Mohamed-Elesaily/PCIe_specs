@@ -1,9 +1,30 @@
 module PCIe
 #(
-	parameter NBYTES    = 64,
-	parameter PIPEWIDTH = 32,
+	
+	parameter NDWORD  =16
+	parameter MAXPIPEWIDTH = 32,
 	parameter DEVICETYPE = 0, //0 for downstream 1 for upstream
-	parameter LANESNUMBER =16			
+	parameter LANESNUMBER =16
+	
+	parameter GEN1_PIPEWIDTH = 8 	// 8bit  : 250 M
+	parameter GEN1_PCLCk     = 250  // 16bit : 125 M
+									// 32bit : 62.5M
+	
+	parameter GEN2_PIPEWIDTH = 8 	// 8bit  : 500 M
+	parameter GEN2_PCLCk     = 500  // 16bit : 250 M
+									// 32bit : 125 M
+	
+	parameter GEN3_PIPEWIDTH = 8 	// 8bit  : 1   G
+	parameter GEN3_PCLCk     = 1000 // 16bit : 500 M
+									// 32bit : 250 M
+									
+	parameter GEN4_PIPEWIDTH = 8 	// 8bit  : 2   G
+	parameter GEN4_PCLCk     = 2000 // 16bit : 1   G
+									// 32bit : 250 M
+
+	parameter GEN5_PIPEWIDTH = 8 	// 8bit  : 4 G
+	parameter GEN5_PCLCk     = 4000 // 16bit : 2 G
+									// 32bit : 1 G
 )
 (
 //clk and reset 
@@ -11,18 +32,20 @@ input CLK,
 output PCLK,
 input reset,
 output phy_reset,
+//PIPE interface width
+output [1:0] width,
 //TX_signals
-output [PIPEWIDTH-1:0]TxData,
+output [MAXPIPEWIDTH-1:0][LANESNUMBER-1:0]TxData,
 output TxDataValid,
 output TxElecIdle,
 output TxStartBlock,
-output [PIPEWIDTH/8-1:0]TxDataK,
+output [MAXPIPEWIDTH/8-1:0][LANESNUMBER-1:0]TxDataK,
 output [1:0]TxSyncHeader,
 output	TxDetectRx_Loopback,
 //RX_signals
-input  [PIPEWIDTH-1:0]RxData,
+input  [MAXPIPEWIDTH-1:0][LANESNUMBER-1:0]RxData,
 input   RxDataValid,
-input	[PIPEWIDTH/8-1:0]RxDataK,
+input	[MAXPIPEWIDTH/8-1:0][LANESNUMBER-1:0]RxDataK,
 input	RxStartBlock,
 input	[1:0]RxSyncHeader,
 input	RxValid,
@@ -49,22 +72,26 @@ output EC,
 //LPIF 
 output pl_trdy,
 input  lp_irdy,
-input  [NBYTES-1:0][7:0]lp_data,
-input  [NBYTES-1:0]lp_valid,
-output [NBYTES-1:0][7:0]pl_data,
-output [NBYTES-1:0] pl_valid,
+input  [NDWORD-1:0][31:0]lp_data,
+input  [NDWORD-1:0]lp_valid,
+output [NDWORD-1:0][31:0]pl_data,
+output [NDWORD-1:0] pl_valid,
 input  [3:0]lp_state_req,
 output [3:0]pl_state_sts,
 output [2:0]pl_speedmode,
 input lp_force_detect,
 ////lPIF start & end of TLP DLLP
-input [NBYTES-1:0]lp_dlpstart,
-input [NBYTES-1:0]lp_dlpend,
-input [NBYTES-1:0]lp_tlpstart,
-input [NBYTES-1:0]lp_tlpend,
-output [NBYTES-1:0]pl_dlpstart,
-output [NBYTES-1:0]pl_dlpend,
-output [NBYTES-1:0]pl_tlpstart,
-output [NBYTES-1:0]pl_tlpend
+input [NDWORD-1:0]lp_dlpstart,
+input [NDWORD-1:0]lp_dlpend,
+input [NDWORD-1:0]lp_tlpstart,
+input [NDWORD-1:0]lp_tlpend,
+output [NDWORD-1:0]pl_dlpstart,
+output [NDWORD-1:0]pl_dlpend,
+output [NDWORD-1:0]pl_tlpstart,
+output [NDWORD-1:0]pl_tlpend
+//optional Message bus
+output [7:0] M2P_MessageBus
+input  [7:0] P2M_MessageBus
+
 );
 endmodule
