@@ -60,6 +60,19 @@ output [4:0]PCLKRate,
 output PclkChangeAck,
 input  PclkChangeOk,
 //eq_signals
+input LocalTxPresetCoefficients[17:0]
+output TxDeemph[17:0]
+input LocalFS[5:0]
+input LocalLF[5:0]
+output LocalPresetIndex[3:0]
+output GetLocalPresetCoeffcients
+input LocalTxCoefficientsValid
+output LF[5:0]
+output RxEqEval
+output InvalidRequest
+input LinkEvaluationFeedbackDirectionChange[5:0]
+/*
+//The old equalization signals 
 input [21:0]get_eq_info,
 output [21:0]send_eq_info,
 input use_preset,
@@ -69,6 +82,7 @@ output read_eq,
 output evaluate_eq,
 output write_eq,
 output EC,
+*/
 //LPIF 
 output pl_trdy,
 input  lp_irdy,
