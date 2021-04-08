@@ -753,15 +753,6 @@ Encodings as follows:
 1011: Retrain \newline 
 1100: Disable \newline
 \\ \hline
-\end{tabular}
-\end{table}
-
-
-\begin{table}[H]
-
-    \centering
-  \begin{tabular}{ |P{26mm}|P{5mm}|P{10mm} | m{60mm}|  }
-  \hline
 pl\_speedmode[2:0] & OUT & N/A & Current Link Speed as negotiated by the logPHY
 (3’b000=Gen1,3’b001=Gen2,3’b010=Gen3,\newline 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
 Link Layer should only consider this to be relevant when pl\_state\_sts=RETRAIN or
@@ -770,6 +761,7 @@ lp\_force\_detect & IN & High & This is a level signal. It forces logPHY to shut
 physical LTSSM in Detect. \\ \hline
 \end{tabular}
 \end{table}
+
 
 
 \begin{table}[H]
@@ -788,15 +780,16 @@ pl\_tlpend[64-1]& IN &N/A & logPHY indicating the end of a Transaction Layer pac
 (END).\\ \hline
 pl\_tlpedb[64-1]& IN &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
 
-lp\_dlpstart[64-1] & OUT &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
-bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline 
-lp\_dlpend[64-1]& OUT &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
-bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline
-lp\_tlpstart[64-1]& OUT &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
-(STP). \\ \hline
-lp\_tlpend[64-1]& OUT &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
-(END).\\ \hline
-lp\_tlpedb[64-1]& OUT &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
+lp\_dlpstart[64-1] & OUT &N/A & 
+Indicates from Link Layer start of dlp\\ \hline 
+lp\_dlpend[64-1]& OUT &N/A & 
+Indicates from Link Layer end of dlp\\ \hline
+lp\_tlpstart[64-1]& OUT &N/A &
+Indicates from Link Layer start of tlp \\ \hline
+lp\_tlpend[64-1]& OUT &N/A & 
+Indicates from Link Layer end of tlp\\ \hline
+lp\_tlpedb[64-1]& OUT &N/A & 
+Indicates from Link Layer end o of bad tlp\\ \hline
 
 \end{tabular}
 \end{table}
