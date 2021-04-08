@@ -5,25 +5,30 @@
 
 \label{sec:1}
 \begin{table}[H]
-    \caption{TX and Related signals}
+    \caption{TX Related signals}
     \label{tab:p1}
     \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+  \begin{tabular}{ |m{50mm}|P{5mm}|P{5mm}|m{60mm}|  }
 \hline
 \rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
+\multicolumn{1}{|c|}{\textbf{Name} }
+&\multicolumn{1}{|c|}{\textbf{I/O} }  
 & \multicolumn{1}{|c|}{\textbf{Active Level}} 
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
-TxData[7:0] 
+TxData [MAXPIPEWIDTH* \newline LANESNUMBER-1:0]
 & 
+OUT
+&
 N/A
 &
 Parallel data input bus. \\
 \hline
 
-TxDataValid
-& 
+TxDataValid [LANESNUMBER-1:0]
+&
+OUT 
+&
 N/A
 &
 This signal allows the MAC to instruct the PHY to ignore the data interface \newline
@@ -33,7 +38,9 @@ value of zero indicates the phy will not \newline
 use the data. \\
 \hline
 
-TxElecIdle
+TxElecIdle[LANESNUMBER-1:0]
+&
+OUT
 & 
 High
 &
@@ -47,7 +54,9 @@ for TxElecIdle sampling.
 \hline
 
 
-TxDataK
+TxDataK \newline[(MAXPIPEWIDTH/8)* \newline LANESNUMBER-1:0]
+&
+OUT
 & 
 N/A
 &
@@ -57,7 +66,9 @@ control byte.\\
 \hline
 
 
-TxStartBlock
+TxStartBlock \newline [LANESNUMBER-1:0]
+&
+OUT
 & 
 N/A
 &
@@ -70,7 +81,9 @@ the data interface. \\
 
 
 
-TxSyncHeader[1:0]
+TxSyncHeader \newline [2*LANESNUMBER -1:0]
+&
+OUT
 & 
 N/A
 &
@@ -85,7 +98,9 @@ $ 10 \longrightarrow $data byte
 \hline
 
 
-TxDetectRx/ \newline Loopback
+TxDetectRx/ \newline Loopback [LANESNUMBER-1:0]
+&
+OUT
 & 
 High
 &
@@ -102,24 +117,29 @@ operation or to begin loopback \\
 
 % Rx and related signal
 \begin{table}[H]
-    \caption{RX and Related signals}
+    \caption{RX Related signals}
     \label{tab:p2}
     \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
-\hline
+    \begin{tabular}{ |m{50mm}|P{5mm}|P{5mm}|m{60mm}|  }
+      \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{I/O} } 
 & \multicolumn{1}{|c|}{\textbf{Active Level}} 
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
-RxData[7:0] 
-& 
+RxData \newline [MAXPIPEWIDTH* \newline LANESNUMBER-1:0]
+&
+IN 
+&
 N/A
 &
 Parallel data output bus. \\
 \hline
 
-RxDataValid
+RxDataValid \newline [LANESNUMBER-1:0]
+&
+IN
 & 
 N/A
 &
@@ -130,19 +150,11 @@ value of zero indicates the mac will not \newline
 use the data. \\
 \hline
 
-RxElecIdle
-& 
-High
+
+
+RxDataK \newline[(MAXPIPEWIDTH/8)* \newline LANESNUMBER-1:0]
 &
-Indicates receiver detection of an
-electrical idle. While deasserted
-with the PHY in P2 (PCI Express
-mode).
-\\
-\hline
-
-
-RxDataK
+IN
 & 
 N/A
 &
@@ -152,7 +164,9 @@ control byte.\\
 \hline
 
 
-RxStartBlock
+RxStartBlock \newline [LANESNUMBER-1:0]
+&
+IN
 & 
 N/A
 &
@@ -165,7 +179,9 @@ the data interface. \\
 
 
 
-RxSyncHeader[1:0]
+RxSyncHeader \newline [2*LANESNUMBER -1:0]
+&
+IN
 & 
 N/A
 &
@@ -180,7 +196,9 @@ $ 10 \longrightarrow $data byte
 \hline
 
 
-RxValid
+RxValid \newline [LANESNUMBER-1:0]
+&
+IN
 & 
 High
 &
@@ -191,7 +209,9 @@ when used.\\
 \hline
 
 
-RxStatus[2:0]
+RxStatus \newline [3*LANESNUMBER -1:0]
+&
+IN
 & 
 N/A
 &
@@ -237,55 +257,32 @@ reported with code
 
 
 \end{table}
-\begin{table}[H]
-
-    \centering
-  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
-  \hline
-
-RxStandby & Low & Controls whether the PHY RX is active when the
-PHY is in P0 or P0s. \newline \newline
-$0 \longrightarrow Active$ \newline
-$1 \longrightarrow Standby$
-\newline
- \\
-     \hline
- RxStandbyStatus & Low &  The PHY uses this signal to indicate its
-RxStandby state.
- \newline \newline
-$0 \longrightarrow Active$ \newline
-$1 \longrightarrow Standby$
-\newline
-\\
-     \hline
-
-\end{tabular}
-\end{table}
-
 
 
 
 \begin{table}[H]
     \caption{Clk and reset}
     \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+  \begin{tabular}{ |m{26mm}|P{10mm}|P{10mm}|m{60mm}|  }
 \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{I/O} } 
 & \multicolumn{1}{|c|}{\textbf{Active Level}} 
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
- Reset\# & Low & Resets the transmitter and receiver. This signal
+ Reset\# & IN & Low & Resets the transmitter and receiver. This signal
 is asynchronous. \\
 \hline
 
- CLK & Edge & This differential Input is used to generate
+ CLK & IN & Edge & This differential Input is used to generate
 the bit-rate clock for the PHY transmitter
 and receiver.\\
 \hline
- PCLK & Rising Edge & All data movement across the parallel
-interface is synchronized to this clock.\\
+
+phy\_reset & OUT & Low & Resets phy.\\
 \hline
+
 
 \end{tabular}
 \end{table}
@@ -295,15 +292,17 @@ interface is synchronized to this clock.\\
     \caption{Commands and Status signals}
     \label{tab:command}
     \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
+  \begin{tabular}{ |m{26mm}|P{5mm}|P{10mm}|m{60mm}|  }
 \hline
 \rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
+\multicolumn{1}{|c|}{\textbf{Name} }
+& \multicolumn{1}{|c|}{\textbf{I/O} }
 & \multicolumn{1}{|c|}{\textbf{Active Level}} 
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
  
-PowerDown[3:0] M2P  & N/A & Power up or down the transceiver. Power states
+PowerDown[3:0]
+ &  OUT & N/A & Power up or down the transceiver. Power states
 PCI Express Mode: \newline
 \begin{tabular}{|m{2mm}|m{2mm}|m{2mm}|m{2mm}|m{30mm}|}
  \hline
@@ -325,8 +324,8 @@ latency, power saving state \\
 \hline
 
  
-Rate[3:0] \newline M2P
- & N/A & 
+Rate[3:0]  
+& OUT & N/A & 
  Control the link signaling rate.
  
  \begin{tabular}{|c|c|}
@@ -340,12 +339,7 @@ Rate[3:0] \newline M2P
  \end{tabular}
 \\
 \hline
- PHY Mode[3:0] \newline M2P & N/A & PHYMode[1:0]
- \newline \newline
- $0 \longrightarrow PCI Express $
- \newline
- \\
-\hline
+
 
 \end{tabular}
 \end{table}
@@ -353,10 +347,10 @@ Rate[3:0] \newline M2P
 \begin{table}[H]
 
     \centering
-  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \begin{tabular}{ |m{26mm}|P{5mm}|P{18mm}|m{60mm}|  }
   
 \hline
- PhyStatus \newline P2M & High & Used to communicate completion
+ PhyStatus & IN & High & Used to communicate completion
 of several PHY functions including
 stable PCLK and/or Max PCLK
 (depending on clocking mode)
@@ -366,7 +360,7 @@ rate change, and receiver
 detection.\\
 \hline
 
-Width[1:0] & N/A &Controls the PIPE data path width. \newline 
+Width[1:0] & OUT & N/A &Controls the PIPE data path width. \newline 
 \begin{tabular}{|c|c|}
 \hline
     Value  & Datapath Width  \\ \hline
@@ -376,25 +370,9 @@ Width[1:0] & N/A &Controls the PIPE data path width. \newline
 \end{tabular}
 \\
 \hline
-PCLK Rate[4:0] & N/A & Control the PIPE PCLK rate. \newline
-\begin{tabular}{|c|c|}
-\hline
-    Value  & clk rate  \\ \hline
-    0 & 32.25 Mhz \\ \hline
-    1 &  62.5 Mhz \\ \hline
-    2 & 125 Mhz \\ \hline
-    3 & 250 Mhz \\ \hline
-    4 & 500 Mhz \\ \hline
-    5 & 1000 Mhz \\ \hline
-    6 & 2000 Mhz \\ \hline
-    7 & 4000 Mhz \\ \hline
-    
-    
-\end{tabular}
-\\
-\hline
 
-PclkChangeAck \newline M2P & High & 
+
+PclkChangeAck & OUT & High & 
 Only used when PCLK is a PHY input.
 Asserted by the MAC when a PCLK rate
 change or rate change or, if required,
@@ -410,7 +388,7 @@ sampled low.
 
 \\
 \hline
-PclkChangeOk \newline P2M & High &
+PclkChangeOk & IN & High &
 Only used when PCLK is a PHY
 input. Asserted by the PHY when
 it is ready for the MAC to change
@@ -455,50 +433,52 @@ requests.  \\ \hline
 \begin{table}[H]
   \caption{MAC Interface(in/out) Equalization signals}
   \centering
-\begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+\begin{tabular}{ |P{60mm}|P{10mm}|m{60mm}|  }
 \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
+& \multicolumn{1}{|c|}{\textbf{I/O}} 
 & \multicolumn{1}{|c|}{\textbf{Description}}\\
 \hline
 
-get\_eq\_info [21:0] & in & Reads the current equalization values of the transmitter port
-\newline -[3:0] TX preset
-\newline -[9:4] FS value when EC = 01b,Otherwise Pre-Cursor Coefficient 
-\newline -[15:10] LF value when EC = 01b,Otherwise Cursor Coefficient
-\newline -[21:16] Post-Cursor Coefficient\\
+LocalTxPresetCoefficients \newline [18*LANESNUMBER -1:0] & IN & Reads the current equalization values of the transmitter port
+PCI Express Mode:
+These are the coefficients for the preset on the
+LocalPresetIndex[3:0] after a
+GetLocalPresetCoeffcients request:
+\newline [5:0] C-1
+\newline [11:6] C0
+\newline  [17:12] C+1\\
 \hline
 
-send\_eq\_info [21:0] & out & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
+TXDeemph \newline [18*LANESNUMBER -1:0]  & OUT & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
 \newline -[3:0] TX preset
 \newline -[9:4] FS value when $EC = 01b$,Otherwise Pre-Cursor Coefficient 
 \newline -[15:10] LF value when $EC = 01b$,Otherwise Cursor Coefficient
 \newline -[21:16] Post-Cursor Coefficient\\
 \hline
 
-use\_preset & in & This value is used in phase 2 and 3 during correcting the equalization values of the link partener  \\ \hline
+LocalFS \newline [6*LANESNUMBER -1:0] & IN & This value is used in phase 2 and 3 during correcting the equalization values of the link partener  \\ \hline
 
-valid\_coeff & in & this signal is used in phase 2 for downstream and in phase 3 for upstream. It defines if the requested values for equalization from the link partener are in the valid range or not\\ \hline
+LocalLF \newline [6*LANESNUMBER -1:0] & IN & this signal is used in phase 2 for downstream and in phase 3 for upstream. It defines if the requested values for equalization from the link partener are in the valid range or not\\ \hline
 
-evaluation\_complete & in & This signal is used by the PHY to tell the MAC that the correction operation of the link partner preset values is finished and ready to be sent.  \\ \hline
+LocalPresetIndex \newline [4*LANESNUMBER -1:0] & OUT & This signal is used by the PHY to tell the MAC that the correction operation of the link partner preset values is finished and ready to be sent.  \\ \hline
 
-read\_eq & out & read request from the PIPE for equalization values \\ \hline
+GetLocalPresetCoeffcients [LANESNUMBER -1:0] & OUT & read request from the PIPE for equalization values \\ \hline
 
-evaluate\_eq & out & request the PIPE to evaluate the received equalization values. \\ \hline
+LocalTxCoefficientsValid [LANESNUMBER -1:0] & IN & request the PIPE to evaluate the received equalization values. \\ \hline
 
-write\_eq & out & request the PIPE to store the received equalization values. \\ \hline
+LF [LANESNUMBER -1:0] & OUT & request the PIPE to store the received equalization values. \\ \hline
 
-EC & out & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
+RxEqEval [LANESNUMBER -1:0] & OUT & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
 \hline
 
 
 
-RxDetectReq & out & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
+InvalidRequest [LANESNUMBER -1:0] & OUT & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
 
-DetectedLanes \newline [7:0] & in & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
+LinkEvaluationFeedbackDirectionChange \newline  [6*LANESNUMBER -1:0]  & IN & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
 
-RXElecIdle[7:0] & in & Status signal from PIPE interface indicate if lanes is in ElecIdle or not by setting the bit corresponding to the lane \\ \hline
 \end{tabular}
 \end{table}
 
