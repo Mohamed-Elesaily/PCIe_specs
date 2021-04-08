@@ -448,37 +448,221 @@ LocalPresetIndex[3:0] after a
 GetLocalPresetCoeffcients request:
 \newline [5:0] C-1
 \newline [11:6] C0
-\newline  [17:12] C+1\\
+\newline  [17:12] C+1
+\newline Valid on assertion of LocalTxCoefficientsValid. 
+\newline The MAC will reflect these coefficient values
+on the TxDeemph bus when MAC wishes to
+apply this preset.
+These signals are only used by a PHY that
+requires dynamic preset coefficient updates.
+\\
 \hline
 
-TXDeemph \newline [18*LANESNUMBER -1:0]  & OUT & Send the received equalization values from the link partner to th PIPE interface for evaluating or for use depending on the values of read sinal and evaluate signal.
-\newline -[3:0] TX preset
-\newline -[9:4] FS value when $EC = 01b$,Otherwise Pre-Cursor Coefficient 
-\newline -[15:10] LF value when $EC = 01b$,Otherwise Cursor Coefficient
-\newline -[21:16] Post-Cursor Coefficient\\
+TXDeemph \newline [18*LANESNUMBER -1:0]  & OUT & 
+When rate is 2.5 or 5.0 GT/s
+\begin{tabular}{|c|c|}
+  \hline
+      Value  & Description  \\ \hline
+      0 & -6dB de-emphasis \\ \hline
+      1 & -3.5dB de-emphasis \\ \hline
+      2 & No de-emphasis\\ \hline
+      3 & Reserved\\ \hline
+  \end{tabular} \newline
+PIPE implementations that only support 2.5
+GT/s do not implement this signal. PIPE PHY
+implementations that do not support low swing
+are not required to support the no-de-
+emphasis mode.
+When the rate is 8.0 GT/s
+\newline [5:0]
+C -1
+\newline [11:6]
+C 0
+\newline [17:12]
+C +1 \newline 
+Note: The MAC must ensure that only
+supported values are used for TxDeemph.
+\\
 \hline
 
-LocalFS \newline [6*LANESNUMBER -1:0] & IN & This value is used in phase 2 and 3 during correcting the equalization values of the link partener  \\ \hline
+LocalFS \newline [6*LANESNUMBER -1:0] & IN & 
+PCI Express Mode: \newline
+Provides the FS value for the PHY. These
+signals are only used by a PHY that requires
+dynamic preset coefficient updates. \newline
+This value shall be sampled by the MAC only
+when PhyStatus is pulsed after RESET or on
+the first PhyStatus pulse after a rate change to
+8 GT/s.
+\\ \hline
 
-LocalLF \newline [6*LANESNUMBER -1:0] & IN & this signal is used in phase 2 for downstream and in phase 3 for upstream. It defines if the requested values for equalization from the link partener are in the valid range or not\\ \hline
+LocalLF \newline [6*LANESNUMBER -1:0] & IN & 
 
-LocalPresetIndex \newline [4*LANESNUMBER -1:0] & OUT & This signal is used by the PHY to tell the MAC that the correction operation of the link partner preset values is finished and ready to be sent.  \\ \hline
+PCI Express Mode: \newline 
+Provides the LF value for the PHY. This
+signal is only used by a PHY that requires
+dynamic preset coefficient updates. 
+This value must only be sampled by the MAC
+only when PhyStatus is pulsed after RESET
+or on the first PhyStatus pulse after a rate
+change to 8 GT/s.
+\\ \hline
 
-GetLocalPresetCoeffcients [LANESNUMBER -1:0] & OUT & read request from the PIPE for equalization values \\ \hline
 
-LocalTxCoefficientsValid [LANESNUMBER -1:0] & IN & request the PIPE to evaluate the received equalization values. \\ \hline
 
-LF [LANESNUMBER -1:0] & OUT & request the PIPE to store the received equalization values. \\ \hline
 
-RxEqEval [LANESNUMBER -1:0] & OUT & Defining the phase of equalization for PIPE as some fields of get\_eq\_info and send\_eq\_info  depend on the phase number \\
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+
+  \centering
+\begin{tabular}{ |P{60mm}|P{10mm}|m{60mm}| }
+
 \hline
+GetLocalPresetCoeffcients [LANESNUMBER -1:0] & OUT &
+PCI Express Mode: \newline
+A MAC holds this signal high for one PCLK
+cycle requesting a preset to co-efficient
+mapping for the preset on
+LocalPresetIndex[3:0] to coefficients on
+LocalTxPresetCoefficient[17:0]
+Maximum Response time of PHY is 128 nSec.
+Note. A MAC can make this request any time
+after reset.\newline
+Note. After a local preset coefficient request a
+MAC could assert GetLocalPresetCoeffcients
+again as soon as the next PCLK after
+LocalTxCoefficientsValid deasserts.
+\newline
+This signal is only used with a PHY that
+requires dynamic preset coefficient updates
+
+\\ \hline
+LocalTxCoefficientsValid [LANESNUMBER -1:0] & IN & 
+PCI Express Mode: \newline
+A PHY holds this signal high for one PCLK
+cycle to indicate that the
+LocalTxPresetCoefficients[17:0] bus correctly
+represents the coefficients values for the
+preset on the LocalPresetIndex bus. \newline
+This signal is only used by a PHY that requires
+dynamic preset coefficient updates
+
+\\ \hline
+
+LF [LANESNUMBER -1:0] & OUT & 
+PCI Express Mode: \newline
+Provides the LF value advertised by the link
+partner. The MAC shall only change this value
+when a new LF value is captured during link
+training. A PHY may optionally consider this
+value when deciding how long to evaluate TX
+equalization settings of the link partner.
+These signals are only used at the 8.0 GT/s
+signaling rate
+\\ \hline
+RxEqEval [LANESNUMBER -1:0] & OUT & 
+PCI Express Mode: \newline
+The PHY starts evaluation of the far end
+transmitter TX EQ settings when the MAC asserts
+this signal.
+This signal is only used at the 8.0 GT/s
+signaling rate.
+\\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+
+  \centering
+\begin{tabular}{ |P{60mm}|P{10mm}|m{60mm}| }
+\hline
+LocalPresetIndex \newline [4*LANESNUMBER -1:0] & OUT & 
+PCI Express Mode: \newline
+Index for local PHY preset coefficients
+requested by the MAC \newline
+The preset index value is encoded as follows: \newline
+0000b – Preset P0.    \newline
+0001b – Preset P1.  \newline
+0010b – Preset P2.  \newline
+0011b – Preset P3.  \newline
+0100b – Preset P4.  \newline
+0101b – Preset P5.  \newline
+0110b – Preset P6.  \newline
+0111b – Preset P7.  \newline
+1000b – Preset P8.  \newline
+1001b – Preset P9.  \newline
+1010b – Preset P10. \newline
+1011b – Reserved      \newline
+1100b – Reserved      \newline
+1101b – Reserved    \newline
+1110b – Reserved      \newline
+1111b – Reserved.     \newline
+These signals are only      \newline
+These signals are only used with a PHY that
+requires dynamic preset coefficient updates.
+\\ \hline
+\end{tabular}
+\end{table}
 
 
+\begin{table}[H]
 
-InvalidRequest [LANESNUMBER -1:0] & OUT & Request from LTSSM to PIPE interface to begin detecting reciever  \\ \hline
+    \centering
+  \begin{tabular}{ |P{60mm}|P{10mm}|m{60mm}| }
+    
+  \hline
 
-LinkEvaluationFeedbackDirectionChange \newline  [6*LANESNUMBER -1:0]  & IN & PIPE interface to LTSSM to show status of each lane ,If lane connected to receiver its corresponding bit will be set \\ \hline 
-
+InvalidRequest [LANESNUMBER -1:0] & OUT & 
+PCI Express Mode: \newline
+Indicates that the Link Evaluation feedback
+requested a link partner TX EQ setting that was out
+of range. The MAC asserts this signal when it
+detects an out of range error locally based on
+calculated link partner transmitter coefficients
+based on the last valid link equalization feedback
+or it receives a NACK response from the link
+partner. The MAC keeps the sigal asserted until
+the next time it asserts RxEQEval. When a MAC
+asserts this signal it shall subsequently ask the
+PHY to perform an RxEQ evaluation using the last
+valid setting a second time.
+This signal is only used at the 8.0 GT/s
+signaling rate.
+\\ \hline
+  LinkEvaluationFeedbackDirectionChange \newline  [6*LANESNUMBER -1:0]  & IN & 
+  PCI Express Mode: \newline
+  Provides the link equalization evaluation feedback
+  in the direction change format. Feedback is
+  provided for each coefficient:\newline
+  [1:0] C -1\newline
+  [3:2] C 0\newline
+  [5:4] C 1\newline
+  The feedback value for each coefficient is encoded
+  as follows:\newline
+  00 - No change\newline
+  01 – Increment\newline
+  10 – Decrement\newline
+  11 - Reserved\newline
+  A PHY does not implement these signals if it is
+  does not provide link equalization evaluation
+  feedback using the Direction Change format.
+  Note: In 8.0 GT/s mode the MAC shall ignore the
+  C 0 value and use the correct value per the PCI
+  Express specification.\newline
+  These signals are only used at the 8.0 GT/s
+  signaling rate.\newline
+  Note that C -1 and C 1 are encoded as the absolute
+  value of the actual FIR coefficient and thus
+  incrementing or decrementing either value refers to
+  the magnitude of the actual FIR coefficient.
+  For example – if C -1 is 000001b the FIR coefficient
+  is negative one and a request to increment C -1 will
+  increase it in the direction of 000002b which
+  decreases the FIR coefficient.
+  \\ \hline
 \end{tabular}
 \end{table}
 
@@ -489,39 +673,40 @@ LinkEvaluationFeedbackDirectionChange \newline  [6*LANESNUMBER -1:0]  & IN & PIP
 \label{tab:l1}
     \caption{LPIF Interface Signals}
     \centering
-  \begin{tabular}{ |P{26mm}|P{10mm} | m{60mm}|  }
+  \begin{tabular}{ |P{26mm}|P{5mm}|P{10mm} | m{60mm}|  }
 \hline
 \rowcolor{Gray}
 \multicolumn{1}{|c|}{\textbf{Name} } 
+& \multicolumn{1}{|c|}{\textbf{I/O} } 
 
 & \multicolumn{1}{|c|}{\textbf{Active Level}}
 & \multicolumn{1}{|c|}{\textbf{Description}}
 \\
 \hline
-lclk & High &Link Clock: The clock frequency the LPIF interface operates at.
-The Link Clock is an input to signal to both the Link Layer as well as the Logical PHY.\\ \hline
 
-pl\_trdy & High & LIndicates Physical Layer is ready to accept data. Data is accepted when pl\_trdy, lp\_valid, and lp\_irdy are asserted together.\\ \hline
+pl\_trdy & OUT & High & LIndicates Physical Layer is ready to accept data. Data is accepted when pl\_trdy, lp\_valid, and lp\_irdy are asserted together.\\ \hline
 
 
-lp\_irdy & High & Link Layer to Physical Layer indicating Link Layer is ready to transfer data. lp\_irdy must not be presented by the upper layers when pl\_state\_sts is RESET.\\ \hline
+lp\_irdy & IN & High & Link Layer to Physical Layer indicating Link Layer is ready to transfer data. lp\_irdy must not be presented by the upper layers when pl\_state\_sts is RESET.\\ \hline
 
 
-lp\_valid [LP\_NVLD-1:0] & High & Link Layer to Physical Layer indicates data valid on the corresponding lp\_data bytes.
+lp\_valid [64 -1:0] & IN & High & Link Layer to Physical Layer indicates data valid on the corresponding lp\_data bytes.
 ‘LP\_NVLD’ equals the number of valid bits. The bytes of lp\_data associated with a
 specific bit of lp\_valid is implementation specific. When lp\_irdy is asserted, at least one
 of the bits of lp\_valid must be asserted.\\ \hline
-pl\_data [NBYTES-1:0][7:0] & N/A &
+pl\_data [512 -1:0] & OUT & N/A &
 Physical Layer to Link Layer Data, where ‘NBYTES’ equals number of bytes determined
 by the supported data bus for the LPIF interface. \\ \hline
-pl\_valid [PL\_NVLD-1:0] & High &
+pl\_valid [64 -1:0] & OUT & High &
 Physical Layer to Link Layer indicates data valid on pl\_data. ‘PL\_NVLD’ equals the
 number of valid bits. The bytes of pl\_data associated with a specific bit of pl\_valid is
 implementation specific.\\ \hline
-pl\_stallreq & High & Physical Layer request to Link Layer to flush all packets for state transition \\ \hline
-lp\_data [NBYTES-1:0][7:0] & N/A & Link Layer to Physical Layer Data, where ‘NBYTES’ equals number of bytes determined
-by the data width for the LPIF instance.
-\\ \hline
+
+lp\_data[512 -1:0] & IN & N/A &
+Link Layer to Physical Layer Data,
+where `NBYTES' equals number of
+bytes determined by the data width for
+the LPIF instance. \\ \hline
 
 \end{tabular}
 \end{table}
@@ -529,13 +714,11 @@ by the data width for the LPIF instance.
 \begin{table}[H]
 
     \centering
-  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \begin{tabular}{ |P{26mm}|P{5mm}|P{10mm} | m{60mm}|  }
   \hline
 
 \hline
-lp\_stallack & High & Link Layer to Physical layer indicates that the packets are aligned (if pl\_stallreq was
-asserted) and logPHY may begin state transitions. \\ \hline 
-lp\_state\_req[3:0] & N/A & 
+lp\_state\_req[3:0] & IN & N/A & 
 Link Layer Request to Logical Physical Layer to request state change.
 Encodings as follows: \newline
 0000: NOP \newline 
@@ -552,7 +735,7 @@ Encodings as follows: \newline
 1011: Retrain \newline 
 1100: Disable \newline 
 \\ \hline
-pl\_state\_sts[3:0] & N/A &
+pl\_state\_sts[3:0] & OUT & N/A &
 Physical Layer to Link Layer Status indication of the Interface.
 Encodings as follows:
 \newline
@@ -570,18 +753,6 @@ Encodings as follows:
 1011: Retrain \newline 
 1100: Disable \newline
 \\ \hline
-pl\_lnk\_cfg[2:0] & N/A &
-Width of the Port: This bit field indicates the width of the port as determined by the Link
-initialization: \newline
-000 – x1 \newline
-001 – x2 \newline
-010 – x4 \newline
-011 – x8 \newline
-100 – x12 \newline 
-101 – x16 \newline
-110 – x32 \newline
-
-\\ \hline
 \end{tabular}
 \end{table}
 
@@ -589,227 +760,96 @@ initialization: \newline
 \begin{table}[H]
 
     \centering
-  \begin{tabular}{ |P{30mm}|P{18mm}|m{63mm}|  }
+  \begin{tabular}{ |P{26mm}|P{5mm}|P{10mm} | m{60mm}|  }
   \hline
-pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
-When asserted, receiver framing error logging/escalation should be masked off in the
-Link Layer. logPHY asserts this based on link state and data path alignment to make
-sure false errors are not logged by the Link Layer.
-\\ \hline
-pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
+pl\_speedmode[2:0] & OUT & N/A & Current Link Speed as negotiated by the logPHY
 (3’b000=Gen1,3’b001=Gen2,3’b010=Gen3,\newline 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
 Link Layer should only consider this to be relevant when pl\_state\_sts=RETRAIN or
 ACTIVE. \\ \hline
-pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
-pl\_protocol[2:0] & N/A & logPHY indication to upper layers about which protocol was detected during training. It
-has the following encodings: \newline
-000b – PCIe \\ \hline
-pl\_protocol\_vld & High & 
-Indication that pl\_protocol has valid information. This is a level signal, asserted when
-the logPHY has discovered the appropriate protocol, but can de-assert again after
-subsequent transitions to RESET state depending on the link state machine transitions. \\ \hline
-lp\_force\_detect & High & This is a level signal. It forces logPHY to shut down the receiver, drive and keep the
+lp\_force\_detect & IN & High & This is a level signal. It forces logPHY to shut down the receiver, drive and keep the
 physical LTSSM in Detect. \\ \hline
-pl\_phyinrecenter & High & Physical Layer to Link Layer indication that the Physical Layer is in Recovery (Retrain)
-state. Please note that pl\_state\_sts indicates the status of the transmitter (training
-sequence sent by logPHY for example) whereas this signal is asserted when the receiver
-detects recovery entry (training sequences received by the logPHY for example) \\ \hline
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
-    
-    \caption{Error signals}
-    \centering
-  \label{tab:l2}
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{Active Level}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-pl\_error & High &  
-Indicates that the Physical layer detected an encoding or framing related error. This
-signal shall be asserted by the Logical PHY when non training related errors are
-detected.
-Please note that non-training errors are logical PHY specific.
-The logging of errors must be determined by the upper level protocols. \\ \hline
-pl\_trainerror & High &
-Indicates that Physical layer training. Please note that training errors are logical PHY
-specific.
-The logging of errors must be determined by the upper level protocols. Logical PHY
-may use this signal to indicate other uncorrectable errors as well (such as internal parity
-errors) and transition to LinkError state as a result.
-\\ \hline
-pl\_cerror & High  & Indicates that Physical Layer received an error which was corrected by Physical Layer.
-The logging of errors must be determined by upper layer protocols. \\ \hline 
-lp\_linkerror & High &  
-Link Layer to Physical Layer indication that an uncorrectable error has occurred and
-Physical Layer must move to LinkError State when it samples this signal. \\ \hline 
-
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-    \caption{Clock Gating Interface from logPHY}
-    \label{tab:l3}
-
-    \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{Active Level}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-pl\_exit\_cg\_req & High & When asserted, requests upper layers to exit clock gated state as soon as possible. \\ \hline
-lp\_exit\_cg\_ack & High & When asserted, indicates that upper layers are not in clock gated state and are ready to
-receive packets from the Physical Layer. \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-    \caption{Configuration Interface}
-    \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{Active Level}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-pl\_cfg[NC-1:0] & N/A & This is the configuration interface from Logical PHY to the Link Layer. \\ \hline
-pl\_cfg\_vld & High & When asserted, indicates that pl\_cfg has valid information that should be
-consumed by the Link Layer.
-receive packets from the Physical Layer. \\ \hline
-lp\_cfg[NC-1:0] & N/A & This is the configuration interface from Link Layer to Logical PHY.\\ \hline
-lp\_cfg\_vld & High &When asserted, indicates that lp\_cfg has valid information that should be
-consumed by the Logical PHY. \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-    \caption{Signals for PCIe}
-    \centering
-  \begin{tabular}{ |m{26mm}|m{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{Active Level}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-pl\_nbstallreq& High &Physical Layer request to Link Layer to align packets at LPIF width boundary \\ \hline 
-lp\_nbstallack& High & Link Layer acknowledge to pl\_nbstallreq.\\ \hline 
-
-pl\_block\_dl\_init &High & Indication from the logPHY to the LL to block initialization of DLLPs.\\ \hline 
-lp\_dl\_active &High & Indication from the LL that Data Link Control and Management State Machine is in
-DL\_Active state (as defined in the PCIe spec)\\ \hline 
-lp\_good\_dllp &High & ndication from Link Layer that a Data Link Layer Packet (DLLP) was received without errors. Used by upstream ports to block DLLP transmission until a good DLLP is received\\ \hline 
-pl\_in\_rxl0s & N/A& Indication from logPHY that Receiver is in L0s\\ \hline 
-pl\_byte\_err[(n-1):0] &N/A & Corresponding byte of data has an error. In Gen1/2 framing, it denotes k-char error 
-detected by logPHY. LL uses this to log an error. It may assert in higher data rates, but it
-is not logged by the Link Layer for Gen3 and above speeds.\\ \hline 
-
-pl\_kchar[(n-1):0] &N/A & k-char indication from logPHY. When asserted, the corresponding data byte must be
-interpreted at the LL as a k-char.\\ \hline 
-
-\end{tabular}
-\end{table}
 
 \begin{table}[H]
 
     \centering
-  \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
+  \begin{tabular}{ |m{26mm}|P{10mm}|P{18mm}|m{60mm}|  }
   \hline
 
-pl\_dlpstart[w-1] &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
+pl\_dlpstart[64-1] & IN &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
 bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline 
-pl\_dlpend[w-1] &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
+pl\_dlpend[64-1]& IN &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
 bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline
-pl\_tlpstart[w-1] &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
+pl\_tlpstart[64-1]& IN &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
 (STP). \\ \hline
-pl\_tlpend[w-1] &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
+pl\_tlpend[64-1]& IN &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
 (END).\\ \hline
-pl\_tlpedb[w-1] &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
-pl\_rx\_flush &N/A & Request from logPHY to Link Layer to flush its receiver pipeline. This typically occurs for
-framing errors in Gen3\\ \hline
+pl\_tlpedb[64-1]& IN &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
+
+lp\_dlpstart[64-1] & OUT &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
+bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline 
+lp\_dlpend[64-1]& OUT &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
+bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline
+lp\_tlpstart[64-1]& OUT &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
+(STP). \\ \hline
+lp\_tlpend[64-1]& OUT &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
+(END).\\ \hline
+lp\_tlpedb[64-1]& OUT &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
 
 \end{tabular}
 \end{table}
-\section{Internal Signals}
-
-\begin{table}[H]
-    \caption{LTSSM(in/out) and ordered set Inteface}
-    \centering
-  \begin{tabular}{ |P{26mm}|m{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-ordered\_set\_type\newline[3:0] & out & 
-
-0000 : SOS   \newline 
-0001 : EIOS  \newline
-0010 : EIEOS  \newline 
-0011 : TS1 \newline   
-0100 : TS2 \newline 
-0101 : FTS \newline
-0110 : SDS \newline
-0111 : COM \newline
- \\ \hline
-Gen\_type & out & Gen $1 \longleftrightarrow 2$:0 
-\newline  Gen $3 \longleftrightarrow 5$:1  \\ \hline
-link\_number & out & Link Number
-\newline -For PAD assign it to 0.
-\newline -For default link number assign it to 1.
-\\ \hline
-Eq\_info[7:0] & out & equalization info is needded by 
-TS1 and TS2  \\ \hline
-lane\_number\newline[3:0] & out & Lane Number 
-\newline -Lane number values from 0 to 7. 
-\newline -For PAD assign it to 8. 
-\newline -From 9 to 15 is Reserved.\\ \hline
-rate\_identifier\newline[7:0] & out & Data Rate Identifier: 
-\newline -Bit 1: 2.5 GT/s supported (must be set to 1b).
-\newline -Bit 2: 5.0 GT/s supported (must be set if bit 3 is set).
-\newline -Bit 3: 8.0 GT/s supported.
-\newline -Bit 6: Autonomous Change/Selectable De-emphasis.
-\newline -Bit 7: Speed change. This can only be set to one in the Recovery.RcvrLock LTSSM state.
-\newline -Bits (0,5,4) are Reserved\\ \hline
-
-\end{tabular}
-\label{or}
-\end{table}
-\begin{table}[H]
-  \caption{LTSSM(in/out) and ordered set decoder}
-  \centering
-\begin{tabular}{ |P{50mm}|P{10mm}|m{40mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
-
-ordered\_set\_type\_Detector[3:0]  \newline \newline
- Gen\_type\_Detector \newline \newline
-link\_number\_Detector \newline  \newline
-Eq\_info\_Detector[7:0] \newline \newline
-lane\_number\_Detector[3:0] \newline \newline
-rete\_identifier\_Detector[7:0] 
-&in
-& Decode the information get from ordered set in table \ref{or}
-\\ \hline
-\end{tabular}
-\end{table}
+% \section{Internal Signals}
 
 % \begin{table}[H]
-%   \caption{LTSSM(in/out) and LPIF Inteface}
+%     \caption{LTSSM(in/out) and ordered set Inteface}
+%     \centering
+%   \begin{tabular}{ |P{26mm}|m{10mm}|m{60mm}|  }
+% \hline
+% \rowcolor{Gray}
+% \multicolumn{1}{|c|}{\textbf{Name} } 
+% & \multicolumn{1}{|c|}{\textbf{In/Out}} 
+% & \multicolumn{1}{|c|}{\textbf{Description}}\\
+% \hline
+% ordered\_set\_type\newline[3:0] & out & 
+
+% 0000 : SOS   \newline 
+% 0001 : EIOS  \newline
+% 0010 : EIEOS  \newline 
+% 0011 : TS1 \newline   
+% 0100 : TS2 \newline 
+% 0101 : FTS \newline
+% 0110 : SDS \newline
+% 0111 : COM \newline
+%  \\ \hline
+% Gen\_type & out & Gen $1 \longleftrightarrow 2$:0 
+% \newline  Gen $3 \longleftrightarrow 5$:1  \\ \hline
+% link\_number & out & Link Number
+% \newline -For PAD assign it to 0.
+% \newline -For default link number assign it to 1.
+% \\ \hline
+% Eq\_info[7:0] & out & equalization info is needded by 
+% TS1 and TS2  \\ \hline
+% lane\_number\newline[3:0] & out & Lane Number 
+% \newline -Lane number values from 0 to 7. 
+% \newline -For PAD assign it to 8. 
+% \newline -From 9 to 15 is Reserved.\\ \hline
+% rate\_identifier\newline[7:0] & out & Data Rate Identifier: 
+% \newline -Bit 1: 2.5 GT/s supported (must be set to 1b).
+% \newline -Bit 2: 5.0 GT/s supported (must be set if bit 3 is set).
+% \newline -Bit 3: 8.0 GT/s supported.
+% \newline -Bit 6: Autonomous Change/Selectable De-emphasis.
+% \newline -Bit 7: Speed change. This can only be set to one in the Recovery.RcvrLock LTSSM state.
+% \newline -Bits (0,5,4) are Reserved\\ \hline
+
+% \end{tabular}
+% \label{or}
+% \end{table}
+% \begin{table}[H]
+%   \caption{LTSSM(in/out) and ordered set decoder}
 %   \centering
-% \begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+% \begin{tabular}{ |P{50mm}|P{10mm}|m{40mm}|  }
 % \hline
 % \rowcolor{Gray}
 % \multicolumn{1}{|c|}{\textbf{Name} } 
@@ -817,96 +857,107 @@ rete\_identifier\_Detector[7:0]
 % & \multicolumn{1}{|c|}{\textbf{Description}}\\
 % \hline
 
-% a & b & c \newline d \\ \hline
+% ordered\_set\_type\_Detector[3:0]  \newline \newline
+%  Gen\_type\_Detector \newline \newline
+% link\_number\_Detector \newline  \newline
+% Eq\_info\_Detector[7:0] \newline \newline
+% lane\_number\_Detector[3:0] \newline \newline
+% rete\_identifier\_Detector[7:0] 
+% &in
+% & Decode the information get from ordered set in table \ref{or}
+% \\ \hline
+% \end{tabular}
+% \end{table}
+
+% % \begin{table}[H]
+% %   \caption{LTSSM(in/out) and LPIF Inteface}
+% %   \centering
+% % \begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+% % \hline
+% % \rowcolor{Gray}
+% % \multicolumn{1}{|c|}{\textbf{Name} } 
+% % & \multicolumn{1}{|c|}{\textbf{In/Out}} 
+% % & \multicolumn{1}{|c|}{\textbf{Description}}\\
+% % \hline
+
+% % a & b & c \newline d \\ \hline
+
+% % \end{tabular}
+% % \end{table}
+
+% \begin{table}[H]
+%   \caption{LTSSM(in/out) and clock management}
+%   \centering
+% \begin{tabular}{ |P{30mm}|P{10mm}|m{60mm}|  }
+% \hline
+% \rowcolor{Gray}
+% \multicolumn{1}{|c|}{\textbf{Name} } 
+% & \multicolumn{1}{|c|}{\textbf{In/Out}} 
+% & \multicolumn{1}{|c|}{\textbf{Description}}\\
+% \hline
+
+% PclkChangeAckM2P & in & acknowlede LTSSM that finish changing rate. \newline
+% for more information see table \ref{tab:command} \\ \hline
+% PCLK Rate[4:0]  & out & change pclk rate. \newline
+% for more information see table \ref{tab:command}  \\ \hline
+% \end{tabular}
+% \end{table}
+
+
+% \begin{table}[H]
+%   \caption{LTSSM(in/out) and Timer}
+%   \centering
+% \begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+% \hline
+% \rowcolor{Gray}
+% \multicolumn{1}{|c|}{\textbf{Name} } 
+% & \multicolumn{1}{|c|}{\textbf{In/Out}} 
+% & \multicolumn{1}{|c|}{\textbf{Description}}
+% \\
+% \hline
+
+% set\_timer[2:0] & out & Set the timer interval to value predefined 
+% \newline       001 mean 12 ms
+% \newline       010 mean 24 ms 
+% \\ \hline
+
+% start\_timer & out & Signal to turn the timer ON
+% \\ \hline
+
+% time\_out\_flag & in & Signal to indicate the time interval specified earlier has finished
+% \\ \hline
+
+
 
 % \end{tabular}
 % \end{table}
 
-\begin{table}[H]
-  \caption{LTSSM(in/out) and clock management}
-  \centering
-\begin{tabular}{ |P{30mm}|P{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}\\
-\hline
+% \begin{table}[H]
+%   \caption{PIPE interface(in/out) and PIPE register}
+%   \centering
+% \begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
+% \hline
+% \rowcolor{Gray}
+% \multicolumn{1}{|c|}{\textbf{Name} } 
+% & \multicolumn{1}{|c|}{\textbf{In/Out}} 
+% & \multicolumn{1}{|c|}{\textbf{Description}}
+% \\
+% \hline
 
-PclkChangeAckM2P & in & acknowlede LTSSM that finish changing rate. \newline
-for more information see table \ref{tab:command} \\ \hline
-PCLK Rate[4:0]  & out & change pclk rate. \newline
-for more information see table \ref{tab:command}  \\ \hline
-\end{tabular}
-\end{table}
+% write\_reg[7:0]] & out & write registers in PIPE Register
+% \\ \hline
 
+% read\_reg[7:0] & out & read registers in PIPE Register
+% \\ \hline
 
-\begin{table}[H]
-  \caption{LTSSM(in/out) and Timer}
-  \centering
-\begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}
-\\
-\hline
-
-set\_timer[2:0] & out & Set the timer interval to value predefined 
-\newline       001 mean 12 ms
-\newline       010 mean 24 ms 
-\\ \hline
-
-start\_timer & out & Signal to turn the timer ON
-\\ \hline
-
-time\_out\_flag & in & Signal to indicate the time interval specified earlier has finished
-\\ \hline
-
-
-
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-  \caption{PIPE interface(in/out) and PIPE register}
-  \centering
-\begin{tabular}{ |P{26mm}|P{10mm}|m{60mm}|  }
-\hline
-\rowcolor{Gray}
-\multicolumn{1}{|c|}{\textbf{Name} } 
-& \multicolumn{1}{|c|}{\textbf{In/Out}} 
-& \multicolumn{1}{|c|}{\textbf{Description}}
-\\
-\hline
-
-write\_reg[7:0]] & out & write registers in PIPE Register
-\\ \hline
-
-read\_reg[7:0] & out & read registers in PIPE Register
-\\ \hline
-
-\end{tabular}
-\end{table}
+% \end{tabular}
+% \end{table}
 % \begin{table}[H]
 
 %     \centering
 %   \begin{tabular}{ |m{26mm}|P{18mm}|m{60mm}|  }
 %   \hline
-% pl\_rxframe\_errmask & High & Rx Framing Error Reporting Mask:
-% When asserted, receiver framing error logging/escalation should be masked off in the
-% Link Layer. logPHY asserts this based on link state and data path alignment to make
-% sure false errors are not logged by the Link Layer.
-% \\ \hline
-% pl\_speedmode[2:0] & N/A & Current Link Speed as negotiated by the logPHY
-% (3’b000=Gen1,3’b001=Gen2,3’b010=Gen3, 3’b011=Gen4, 3’b100=Gen5, rest=Rsvd)
-% Link Layer should only consider this to be relevant when pl_state_sts=RETRAIN or
-% ACTIVE. \\ \hline
-% pl\_setlabs & High & logPHY’s pulsed indication to set Link Auto Bandwidth Change status in Link Status register \\ \hline
-% pl\_protocol[2:0] & N/A & logPHY indication to upper layers about which protocol was detected during training. It
-% has the following encodings: \newline
-% 000b – PCIe
+
 % \end{tabular}
 % \end{table}
 
