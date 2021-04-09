@@ -47,6 +47,9 @@
   \item Link control management un-stripes data bytes.
   \item OS Decoder will decode the order set and give its information to Rx LTSSM
 \end{enumerate}
+<<<<<<< HEAD
+
+=======
 \subsection{Linkup scenario}
 Configuration state:\newline
 \begin{enumerate}
@@ -161,3 +164,4 @@ Configuration state:\newline
   \item (Downstream \& Upstream) After Rx LTSSM receives 8 Idle symbols and Tx LTSSM send 16 Idle symbols then Linkup signal is asserted and training is successfully completed.
 \end{enumerate}
 \end{enumerate}
+>>>>>>> 06f3fd9ed015fdfa228d7fbb925ba9c0f7c5be7a
