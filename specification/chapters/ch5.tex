@@ -1,4 +1,5 @@
 \chapter{Scenarios}
+
 \section{TX Scenarios}
 \subsection{Sending TLP or DLLP}
 \begin{enumerate}
@@ -48,6 +49,93 @@
   \item OS Decoder will decode the order set and give its information to Rx LTSSM
 \end{enumerate}
 \subsection{Linkup scenario}
+
+\subsection{Detect state}
+\begin{enumerate}
+  \item Detect.quiet 
+ \newline \textbf{Transmitter side}
+  \begin{itemize}
+    \item Tx LTSSM inform PIPE TX Ctrl to set TxElecIdle signal 
+    \item Tx LTSSM inform PIPE TX Ctrl to output Rate signal to GEN1 (2.5 G) 
+    \item After 12 ms timeout EXIT TO Detect.active.
+  \end{itemize}
+    \textbf{Receiver side}
+\begin{itemize}
+  
+  \item If any lane exit Electrical Idle
+   (RxElecIdle is low) EXIT TO Detect.active.
+\end{itemize}
+  \item Detect.active
+ \textbf{Transmitter side}  
+ \begin{itemize}
+   \item  TX LTSSM inform PIPE TX Ctrl to start detect process
+  \item   If  PIPE TX Ctrl inform Receiver detection 
+\begin{itemize}
+  \item TX LTSSM inform PIPE TX Ctrl to unset TxElecIdle signal 
+  \item TX LTSSM EXIT TO Polling state
+\end{itemize}
+\item Else After 12 ms timeout EXIT TO Detect.active.
+
+ \end{itemize}
+        
+\textbf{Receiver side}  
+\begin{itemize}
+  \item N/A
+\end{itemize}    
+
+\end{enumerate}
+\subsection{Polling state}
+
+    Polling.Active
+  \newline
+  \textbf{Transmitter Side}
+  \begin{enumerate}
+    \item Tx LTSSM will inform the OS 
+    generator to generate 1024 TS1s
+     on all detected lanes$ \rightarrow$
+      filling the Lane and Link Number
+       fields with PAD Symbol, advertising
+        all the data rates that the device
+         supports and setting the Loopback bit of Symbol 5 to 1b.
+    \item Tx LTSSM will inform FIFO to hold the data inside it.
+    \item Tx LTSSM will inform the MUX to pass TS1s Ordered Set.
+    \item Tx LTSSM informs Lane Management Control that the output of the MUX is ordered set, so LMC will strip the TS1s on all the lanes simultaneously.
+    \item  These TS1s will bypass the Scrambler (except for Symbols 1 to 15 in GEN 3\&4\&5) and then out to the PHY through PIPE Tx data.
+
+  \end{enumerate}
+  
+
+  \textbf{Receiver Side}
+  \begin{enumerate}
+    
+   \item The PIPE Rx Data checks whether data valid is asserted or not.
+   \item For GEN 3\&4\&5, PIPE Rx Data checks for the Sync Header to know whether it is Ordered Set or data packet.
+   \item TS1s bypass De-scrambler except for Symbols 1 to 15 in GEN 3\&4\&5. 
+   \item LMC un-stripes the TS1s. 
+   \item OS Decoder will decode these TS1s and give their information to Rx LTSSM $ \rightarrow$ all detected lanes should receive 8 consecutive TS1s with the Lane and Link Number fields filled with PAD Symbol and setting the Loopback bit of Symbol 5 to 1b.
+
+  \end{enumerate}
+ Polling.Configuration
+  \newline \textbf{Transmitter Side}
+  \begin{enumerate}
+    
+    \item After receiving one TS2 on the receiver side, Tx LTSSM will inform the OS generator to generate at least 16 TS2s $ \rightarrow$ filling the Lane and Link Number fields with PAD Symbol and advertising all the data rates that the device supports.
+    \item Tx LTSSM will inform FIFO to hold the data inside it.
+    \item Tx LTSSM will inform the MUX to pass TS2s Ordered Set.
+    \item Tx LTSSM informs Lane Management Control that the output of the mux is ordered set, so LMC will strip the TS2s on all the lanes simultaneously.
+    \item  These TS2s will bypass the Scrambler (except for Symbols 1 to 15 in GEN 3\&4\&5) and then out to the PHY through PIPE Tx data.
+
+  \end{enumerate} 
+  \textbf{Receiver Side}
+  \begin{enumerate}
+    
+    \item The PIPE Rx Data checks whether data valid is asserted or not.
+    \item For GEN 3\&4\&5, PIPE Rx Data checks for the Sync Header to know whether it is Ordered Set or data packet.
+    \item TS2s bypass De-scrambler except for Symbols 1 to 15 in GEN 3\&4\&5. 
+    \item LMC un-stripes the TS2s. 
+    \item OS Decoder will decode these TS2s and give their information to Rx LTSSM $ \rightarrow$ on any Lane, 8 consecutive TS2s should be received with the Lane and Link Number fields filled with PAD Symbol.
+  \end{enumerate}
+
 Configuration state:\newline
 \begin{enumerate}
 \item LinkWidth.Start
@@ -161,3 +249,4 @@ Configuration state:\newline
   \item (Downstream \& Upstream) After Rx LTSSM receives 8 Idle symbols and Tx LTSSM send 16 Idle symbols then Linkup signal is asserted and training is successfully completed.
 \end{enumerate}
 \end{enumerate}
+
