@@ -47,3 +47,117 @@
   \item Link control management un-stripes data bytes.
   \item OS Decoder will decode the order set and give its information to Rx LTSSM
 \end{enumerate}
+\subsection{Linkup scenario}
+Configuration state:\newline
+\begin{enumerate}
+\item LinkWidth.Start
+\newline\textbf{Transmitter Side}
+ \begin{enumerate}
+  \item (Downstream) Tx LTSSM will specify link numbers and PAD lane numbers then pass it to OS generator to generate TS1 ordered set.
+  \item (Upstream) Tx LTSSM will send same link numbers received in the receiver side and PAD lane numbers then pass it to OS generator to generate TS1 ordered set.
+  \item Tx LTSSM will inform the MUX to pass the TS1OS.
+  \item Tx LTSSM will inform LMC to distribute the TS1OS on all lanes simultaneously.
+  \item The TS1OS will pass through Scrambler then out to the PHY through the PIPE Tx data.
+\end{enumerate}
+\textbf{Receiver Side}
+\begin{enumerate}
+  \item The PIPE Rx Data checks data valid is asserted or not.
+  \item For GEN 3\&4\&5, PIPE Rx Data checks for the sync header to know whether packet received is data (TLP or DLLP) or order set.
+  \item All order sets bypass Descrambler except for symbols from 1 to 15 for TS ordered sets in GEN 3\&4\&5.
+  \item The LMC un-stripes the data.
+  \item The OS Decoder will decode the TS1OS and give its information to Rx LTSSM.
+  \item (Upstream) Rx LTSSM takes the link and lanes numbers then it forwards it to Tx LTSSM through Main LTSSM to generate TS1OS with same values to send it to the Downstream port and after receiving 2 TS1OS with same link and lane numbers the LTSSM goes to Configuration.LinkWidth.Accept substate.
+  \item (Downstream) Upon Rx LTSSM receives 2 TS1OS with same link and lane numbers the LTSSM goes to Configuration.LinkWidth.Accept substate.
+\end{enumerate}
+\item LinkWidth.Accept
+\newline\textbf{Transmitter Side}
+\begin{enumerate}
+  \item (Downstream) Tx LTSSM initiates lane numbers with same link number then pass it to OS generator to generate TS1 ordered set.
+  \item (Upstream) Tx LTSSM will send its lane numbers and same link number then pass it to OS generator to generate TS1 ordered set.
+  \item Tx LTSSM will inform the MUX to pass the TS1OS.
+  \item Tx LTSSM will inform LMC to distribute the TS1OS on all lanes simultaneously.
+  \item The TS1OS will pass through Scrambler then out to the PHY through the PIPE Tx data.
+\end{enumerate}
+\textbf{Receiver Side}
+\begin{enumerate}
+  \item The PIPE Rx Data checks data valid is asserted or not.
+  \item For GEN 3\&4\&5, PIPE Rx Data checks for the sync header to know whether packet received is data (TLP or DLLP) or order set.
+  \item All order sets bypass Descrambler except for symbols from 1 to 15 for TS ordered sets in GEN 3\&4\&5.
+  \item The LMC un-stripes the data.
+  \item The OS Decoder will decode the TS1OS and give its information to Rx LTSSM.
+  \item (Upstream) Rx LTSSM takes the link number and forward it to Tx LTSSM through Main LTSSM to generate TS1OS with same link numbers and with its lane numbers to send it to the Downstream port the LTSSM goes to Configuration.Lanenum.Wait substate.
+  \item (Downstream) Doesn’t wait to receive TS1OS as after sending TS1OS with non-PAD link and lane numbers the LTSSM goes to Configuration.Lanenum.Wait substate.
+\end{enumerate}
+\item Configuration.Lanenum.Wait
+\newline\textbf{Transmitter Side}
+\begin{enumerate}
+  \item (Downstream) Tx LTSSM keeps the same lane numbers and link number as in previous states and pass it to OS generator to generate TS1 ordered set.
+  \item (Upstream) Tx LTSSM will keep sending its lane numbers and same link number then pass it to OS generator to generate TS1 ordered set.
+  \item Tx LTSSM will inform the MUX to pass the TS1OS.
+  \item Tx LTSSM will inform LMC to distribute the TS1OS on all lanes simultaneously.
+  \item The TS1OS will pass through Scrambler then out to the PHY through the PIPE Tx data.
+\end{enumerate}
+\textbf{Receiver Side}
+\begin{enumerate}
+  \item The PIPE Rx Data checks data valid is asserted or not.
+  \item For GEN 3\&4\&5, PIPE Rx Data checks for the sync header to know whether packet received is data (TLP or DLLP) or order set.
+  \item All order sets bypass Descrambler except for symbols from 1 to 15 for TS ordered sets in GEN 3\&4\&5.
+  \item The LMC un-stripes the data.
+  \item The OS Decoder will decode the TS1OS \& TS2OS and give its information to Rx LTSSM.
+  \item (Upstream) After Rx LTSSM receives 2 TS2OS with same link and lane numbers the LTSSM goes to Configuration.Lanenum.Accept substate.
+  \item (Downstream) After Rx LTSSM receives 2 TS1OS with same link and lane numbers the LTSSM goes to Configuration.Lanenum.Accept substate.
+\end{enumerate}
+\item Configuration.Lanenum.Accept
+\newline\textbf{Transmitter Side}
+\begin{enumerate}
+  \item (Downstream) Tx LTSSM keeps the same lane numbers and link number as in previous states and pass it to OS generator to generate TS1 ordered set.
+  \item (Upstream) Tx LTSSM will keep sending its lane numbers and same link number then pass it to OS generator to generate TS1 ordered set.
+  \item Tx LTSSM will inform the MUX to pass the TS1OS.
+  \item Tx LTSSM will inform LMC to distribute the TS1OS on all lanes simultaneously.
+  \item The TS1OS will pass through Scrambler then out to the PHY through the PIPE Tx data.
+\end{enumerate}
+\textbf{Receiver Side}
+\begin{enumerate}
+  \item The PIPE Rx Data checks data valid is asserted or not.
+  \item For GEN 3\&4\&5, PIPE Rx Data checks for the sync header to know whether packet received is data (TLP or DLLP) or order set.
+  \item All order sets bypass Descrambler except for symbols from 1 to 15 for TS ordered sets in GEN 3\&4\&5.
+  \item The LMC un-stripes the data.
+  \item The OS Decoder will decode the TS1OS \& TS2OS and give its information to Rx LTSSM.
+  \item (Upstream) After Rx LTSSM receives 2 TS2OS with same link and lane numbers the LTSSM goes to Configuration.Complete substate.
+  \item (Downstream) After Rx LTSSM receives 2 TS1OS with same link and lane numbers the LTSSM goes to Configuration.Complete substate.
+\end{enumerate}
+\item Configuration.Complete
+\newline\textbf{Transmitter Side}
+\begin{enumerate}
+  \item (Downstream \& Upstream) Tx LTSSM will send the negotiated lane numbers and link number as in previous states and pass it to OS generator to generate TS2 ordered set.
+  \item Tx LTSSM will inform the MUX to pass the TS2OS.
+  \item Tx LTSSM will inform LMC to distribute the TS2OS on all lanes simultaneously.
+  \item The TS2OS will pass through Scrambler then out to the PHY through the PIPE Tx data.
+\end{enumerate}
+\textbf{Receiver Side}
+\begin{enumerate}
+  \item The PIPE Rx Data checks data valid is asserted or not.
+  \item For GEN 3\&4\&5, PIPE Rx Data checks for the sync header to know whether packet received is data (TLP or DLLP) or order set.
+  \item All order sets bypass Descrambler except for symbols from 1 to 15 for TS ordered sets in GEN 3\&4\&5.
+  \item The LMC un-stripes the data.
+  \item The OS Decoder will decode the TS2OS and give its information to Rx LTSSM.
+  \item (Downstream \& Upstream) After Rx LTSSM receives 8 TS2OS and Tx LTSSM send 16 TS2OS with the negotiated link and lane numbers the LTSSM goes to Configuration.Idle substate.
+\end{enumerate}
+\item Configuration.Idle
+\newline\textbf{Transmitter Side}
+\begin{enumerate}
+  \item (Downstream \& Upstream) Tx LTSSM will inform OS generator to send Idle symbols.
+  \item Tx LTSSM will inform the MUX to pass the Idle symbol.
+  \item Tx LTSSM will inform LMC to distribute the Idle symbol on all lanes simultaneously.
+  \item The Idle symbol will pass through Scrambler then out to the PHY through the PIPE Tx data.
+\end{enumerate}
+\textbf{Receiver Side}
+\begin{enumerate}
+  \item The PIPE Rx Data checks data valid is asserted or not.
+  \item For GEN 3\&4\&5, PIPE Rx Data checks for the sync header to know whether packet received is data (TLP or DLLP) or order set.
+  \item All order sets bypass Descrambler except for symbols from 1 to 15 for TS ordered sets in GEN 3\&4\&5.
+  \item The LMC un-stripes the data.
+  \item The OS Decoder will decode the Idle symbol then inform the Rx LTSSM that Idle symbol is received.
+  \item (Downstream \& Upstream) After Rx LTSSM receives 8 Idle symbols and Tx LTSSM send 16 Idle symbols then Linkup signal is asserted and training is successfully completed.
+\end{enumerate}
+\end{enumerate}
