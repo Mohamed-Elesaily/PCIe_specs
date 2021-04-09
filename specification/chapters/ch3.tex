@@ -258,6 +258,21 @@ reported with code
 
 \end{table}
 
+\begin{table}[H]
+
+    \centering
+  \begin{tabular}{ |m{50mm}|P{5mm}|P{5mm}|m{60mm}|  }
+  \hline
+RXElecldle & IN & High & Indicates receiver detection of an electrical
+idle. While deasserted with the PHY in P2
+(PCI Express mode) or the PHY in P0, P1, P2,
+or P3 (USB Mode), indicates detection of
+either: \newline
+PCI Express Mode: a beacon. \\
+\hline
+\end{tabular}
+\end{table}
+
 
 
 \begin{table}[H]
@@ -770,25 +785,25 @@ physical LTSSM in Detect. \\ \hline
   \begin{tabular}{ |m{26mm}|P{10mm}|P{18mm}|m{60mm}|  }
   \hline
 
-pl\_dlpstart[64-1] & IN &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
+pl\_dlpstart[64-1] & OUT &N/A & logPHY indicates the start of a Data Link Layer packet for Gen3 and above speeds. Each
 bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline 
-pl\_dlpend[64-1]& IN &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
+pl\_dlpend[64-1]& OUT &N/A & logPHY indicating the end of a Data Link Layer packet for Gen3 and above speeds. Each
 bit corresponds to a specific data byte depending on the configuration of the port.\\ \hline
-pl\_tlpstart[64-1]& IN &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
+pl\_tlpstart[64-1]& OUT &N/A &logPHY indicating the start of a Transaction Layer packet for Gen3 and above speeds
 (STP). \\ \hline
-pl\_tlpend[64-1]& IN &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
+pl\_tlpend[64-1]& OUT &N/A & logPHY indicating the end of a Transaction Layer packet for Gen3 and above speeds
 (END).\\ \hline
-pl\_tlpedb[64-1]& IN &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
+pl\_tlpedb[64-1]& OUT &N/A & logPHY indicating EDB received for Gen3 and above speeds. \\ \hline
 
-lp\_dlpstart[64-1] & OUT &N/A & 
+lp\_dlpstart[64-1] & IN &N/A & 
 Indicates from Link Layer start of dlp\\ \hline 
-lp\_dlpend[64-1]& OUT &N/A & 
+lp\_dlpend[64-1]& IN &N/A & 
 Indicates from Link Layer end of dlp\\ \hline
-lp\_tlpstart[64-1]& OUT &N/A &
+lp\_tlpstart[64-1]& IN &N/A &
 Indicates from Link Layer start of tlp \\ \hline
-lp\_tlpend[64-1]& OUT &N/A & 
+lp\_tlpend[64-1]& IN &N/A & 
 Indicates from Link Layer end of tlp\\ \hline
-lp\_tlpedb[64-1]& OUT &N/A & 
+lp\_tlpedb[64-1]& IN &N/A & 
 Indicates from Link Layer end o of bad tlp\\ \hline
 
 \end{tabular}
