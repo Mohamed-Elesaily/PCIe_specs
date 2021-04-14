@@ -17,6 +17,7 @@ module PCIe #(
 (
 //clk and reset 
 input CLK,
+output Pclk,
 input reset,
 output phy_reset,
 //PIPE interface width
