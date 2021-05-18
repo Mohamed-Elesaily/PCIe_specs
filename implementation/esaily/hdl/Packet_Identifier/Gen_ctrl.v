@@ -29,19 +29,6 @@ localparam gen5_sel = 3'b100;
 localparam N = 64;
 
 reg [63:0]valid_reg;
-reg [3:0]shift;
-
-always @(*) begin
-    case (numberOfDetectedLanes)
-        5'b00001: shift = 4'b0000;
-        5'b00010: shift = 4'b0001;
-        5'b00100: shift = 4'b0010;
-        5'b01000: shift = 4'b0100;
-        5'b10000: shift = 4'b1000; 
-
-
-    endcase
-end
 
 // gen decoder
 always @*
