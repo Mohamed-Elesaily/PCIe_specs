@@ -5,7 +5,7 @@ reg valid_pd;
 reg linkup;
 reg [63:0]DK;
 reg [2:0]gen;
-
+reg [4:0]numberOfDetectedLanes;
 wire [511:0]Data_out;
 
 wire w;
@@ -24,6 +24,7 @@ packet_identifier DUT(
     .gen(gen),
     .linkup(linkup),
     .DK(DK),
+    .numberOfDetectedLanes(numberOfDetectedLanes),
 
     .data_out(Data_out),
     .pl_valid   (pl_valid   ),
@@ -50,7 +51,7 @@ localparam DK2_2 =16'h0F40;
 
 localparam DK1 = 16'h1_00_1;
 initial begin
-gen = 3'b000;valid_pd=0;linkup=0;DK=0;Data_in=0;
+numberOfDetectedLanes=8; gen = 3'b000;valid_pd=0;linkup=0;DK=0;Data_in=0;
 #10
 valid_pd=1;linkup=1;DK=0;Data_in=0;
 #10

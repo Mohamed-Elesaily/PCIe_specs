@@ -14,7 +14,7 @@ input [63:0]DK,
 input valid_pd,
 input [2:0]gen,
 input linkup,
-
+input [4:0]numberOfDetectedLanes,
 output [511:0] data_out,
 
 output [63:0]pl_valid,
@@ -64,6 +64,7 @@ Gen_ctrl #(
     .valid_pd(valid_pd),
     .gen(gen),
     .linkup(linkup),
+    .numberOfDetectedLanes(numberOfDetectedLanes),
     .sel(sel),
     .valid(valid),
     .w(w)

@@ -35,7 +35,7 @@ module check_byte(
     always @*
     begin
        tlp_or_dllp_out_reg=tlp_or_dllp_in;
-    //    type_reg=not_valid;  
+        type_reg=not_valid;  
         if(valid)begin
             if(DK)
             begin
