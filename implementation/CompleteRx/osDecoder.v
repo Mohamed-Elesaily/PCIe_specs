@@ -1,3 +1,4 @@
+
 module osDecoder #(
 parameter Width = 32,
 parameter GEN1_PIPEWIDTH = 64 ,	
@@ -11,18 +12,19 @@ input [2:0]gen,
 input reset,
 input [4:0]numberOfDetectedLanes,
 input [511:0]data,
-input validFromLMC,
+input validFromLMC,	
 input linkUp,
 output reg valid,
 output reg [2047:0]outOs);
 
 reg [9:0]width;
-reg [2047:0]orderedSets,out;
+reg [2047:0]orderedSets,orderedSetsnext,out;
 reg [2:0]numberOfShifts;
 reg found;
+reg validnext;
 reg [3:0] lane_iter;
 reg [6:0] index_iter;
-reg [11:0]capacity;
+reg [11:0]capacity,capacitynext;
 integer i,j;
 
 parameter[7:0]
@@ -41,19 +43,22 @@ always@(posedge clk or negedge reset)
 begin
 if(!reset)
 begin
-orderedSets =2048'b0;
-lane_iter = 4'd0;
-index_iter = 7'd0;
+orderedSets <=2048'b0;
+capacity<=12'd0;
+lane_iter <= 4'd0;
+index_iter <= 7'd0;
+valid<=1'b0;
 end
-
-end
-always@(posedge clk)
+else
 begin
-if(valid)
-begin
-valid = 1'b0;
-capacity = 12'd0;
+	capacity <= capacitynext;
+	orderedSets<=orderedSetsnext;
+	valid <= validnext;
 end
+end
+always@(*)
+begin
+validnext=1'b0;
 found = 1'b0;
 if(validFromLMC)
 begin
@@ -64,22 +69,23 @@ begin
 	found = 1'b1;
 	if(capacity+i-((numberOfDetectedLanes-1)<<3) >= 128<<numberOfShifts)
 	begin
-	valid = 1'b1;
+	validnext = 1'b1;
 	out = orderedSets|(data)<<capacity;
 	end
-	orderedSets = data>>i-((numberOfDetectedLanes-1)<<3);
-	capacity = width-i+((numberOfDetectedLanes-1)<<3);
+	orderedSetsnext = data>>i-((numberOfDetectedLanes-1)<<3);
+	capacitynext = width-i+((numberOfDetectedLanes-1)<<3);
 	end
 
 end
 	if(!found)
 	begin
-	orderedSets = orderedSets|((2048'b0|data) << capacity);
-	capacity = capacity + width;
-	if(capacity >= (128<<numberOfShifts))
+	orderedSetsnext = orderedSets|((2048'b0|data) << capacity);
+	capacitynext = capacity + width;
+	if(capacity>= (128<<numberOfShifts))
 	begin
-	valid = 1'b1;
+	validnext = 1'b1;
 	out = orderedSets;
+	capacitynext=12'd0;
 	end
 	end
 end
@@ -111,7 +117,7 @@ end
 //reg [11:0]test1 = lanesOffsets[((1<<3)+(1<<1)+1) +: 11];
 //reg [11:0]test2 = lanesOffsets[1*11 +: 11];
 
-always@(out)
+always@(valid)
 begin
 	
 	for(j = 0;j<128<<numberOfShifts;j=j+8)
