@@ -15,10 +15,14 @@ module osChecker #(parameter DEVICETYPE = 0)(
     reg[4:0] currentState,nextState;
     reg[127:0] localorderedset;
     reg notEqual;
+    wire ts1CorrectStart,ts2CorrectStart;
     localparam [7:0]
     PAD = 8'b11110111, //F7
     TS1 = 8'b00101010,	//2A
-    TS2 = 8'b0100101;  //25
+    TS2 = 8'b0100101,  //25
+    COM = 	8'b10111100, //BC
+    gen3TS1 = 8'h1E,
+    gen3TS2 = 8'h2D;
 
 //input substates from main ltssm
     localparam [3:0]
@@ -106,9 +110,9 @@ begin
         pollingActive1:
         begin
             resetcounter = 1'b1; countup = 1'b0;
-            if((valid && orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[43] == 1'b0 && orderedset[87:80] == TS1)||
-            (valid && orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)||
-            (valid && orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[42] == 1'b1 && orderedset[87:80] == TS1)) 
+            if((valid&&ts1CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[43] == 1'b0 && orderedset[87:80] == TS1)||
+            (valid&&ts2CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)||
+            (valid&&ts1CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[42] == 1'b1 && orderedset[87:80] == TS1)) 
             begin
             nextState = pollingActive2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -120,9 +124,9 @@ begin
             resetcounter = 1'b1; countup = 1'b0; 
             if(valid)
             begin
-            if((orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[43] == 1'b0 && orderedset[87:80] == TS1)||
-                (orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)||
-                (orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[42] == 1'b1 && orderedset[87:80] == TS1)) 
+            if((ts1CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[43] == 1'b0 && orderedset[87:80] == TS1)||
+                (ts2CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)||
+                (ts1CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[42] == 1'b1 && orderedset[87:80] == TS1)) 
                 begin
                     countup = 1'b1; 
                     nextState = pollingActive2;
@@ -136,7 +140,7 @@ begin
         pollingConfiguration1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)
+            if(valid &&ts2CorrectStart&& orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)
             begin
                 nextState = pollingConfiguration2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -149,7 +153,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
             begin
-                if(orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)
+                if(ts2CorrectStart&&orderedset[15:8]==PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS2)
                 begin
                     countup = 1'b1; 
                     nextState = pollingConfiguration2;
@@ -162,7 +166,7 @@ begin
         configLinkWidthStartDown1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
+            if(valid&&ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
             begin
                 nextState =  configLinkWidthStartDown2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -175,7 +179,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(orderedset[15:8]==linkNumber && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
+                    if(ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
                     begin
                         countup = 1'b1;
                         nextState =  configLinkWidthStartDown2;
@@ -187,7 +191,7 @@ begin
         configLinkWidthStartUp1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
+            if(valid &&ts1CorrectStart&&orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
             begin
                 nextState =  configLinkWidthStartUp2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -200,7 +204,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
+                    if(ts1CorrectStart&&orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
                     begin
                         countup =1'b1;
                         nextState =  configLinkWidthStartUp2;
@@ -213,7 +217,7 @@ begin
             configLinkWidthAcceptUp1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]!=PAD  && orderedset[87:80] == TS1)
+            if(valid &&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]!=PAD  && orderedset[87:80] == TS1)
             begin
                 nextState = configLinkWidthAcceptUp2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -226,7 +230,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(orderedset[15:8]==linkNumber && orderedset[23:16]!=PAD && orderedset[87:80] == TS1)
+                    if(ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]!=PAD && orderedset[87:80] == TS1)
                     begin
                         countup = 1'b1;
                         nextState =  configLinkWidthAcceptUp2;
@@ -239,7 +243,7 @@ begin
             configLanenumWaitDown1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
+            if(valid && ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
             begin
                 nextState = configLanenumWaitDown2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -252,7 +256,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
             begin
-                if(orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
+                if(ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
                 begin
                     countup = 1'b1;
                     nextState =  configLanenumWaitDown2;
@@ -265,7 +269,7 @@ begin
         configLanenumWaitUp1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+            if(valid && ts2CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
             begin
             nextState = configLanenumWaitUp2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -278,7 +282,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+                    if(ts2CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
                     begin
                         countup = 1'b1;
                         nextState =  configLanenumWaitUp2;
@@ -291,7 +295,7 @@ begin
         configLanenumAcceptDown1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
+            if(valid && ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
             begin
                 nextState = configLanenumAcceptDown2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -304,7 +308,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
             begin
-                if(orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
+                if(ts1CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS1)
                 begin
                     countup = 1'b1;
                     nextState =  configLanenumAcceptDown2;
@@ -317,7 +321,7 @@ begin
         configLanenumAcceptUp1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+            if(valid &&ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
             begin 
                 nextState = configLanenumAcceptUp2;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -330,7 +334,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
             begin
-                if(orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+                if(ts2CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
                 begin
                     countup = 1'b1;
                     nextState =  configLanenumAcceptUp2;
@@ -343,7 +347,7 @@ begin
         configCompleteDown1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+            if(valid &&ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
             begin
             nextState = configCompleteDown2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -357,7 +361,7 @@ begin
             if(notEqual)nextState = configCompleteDown1;
             else if(valid)
             begin
-                if(orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+                if(ts2CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
                 begin
                     countup = 1'b1;
                     nextState =  configCompleteDown2;
@@ -370,7 +374,7 @@ begin
         configCompleteUp1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+            if(valid &&ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
             begin
             nextState = configCompleteUp2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -383,7 +387,7 @@ begin
             if(notEqual)nextState = configCompleteUp1;
             else if(valid)
                 begin
-                    if(orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
+                    if(ts2CorrectStart&&orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber && orderedset[87:80] == TS2)
                     begin
                         countup = 1'b1;
                         nextState =  configCompleteUp2;
@@ -425,5 +429,8 @@ endcase
 end
     assign rateid = localorderedset[39:32];
     assign upconfigure_capability = localorderedset[42];
-    assign {link,lane,id}={orderedset[15:8],orderedset[23:16],orderedset[87:80]};    
+    assign ts1CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS1)? 1'b1 : 1'b0;
+    assign ts2CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS2)? 1'b1 : 1'b0;
+    //assign {link,lane,id}={orderedset[15:8],orderedset[23:16],orderedset[87:80]};
+    
 endmodule

@@ -42,7 +42,7 @@ begin
 
 		t2ms:begin  
 			TimerIntervalBase= 32'h1E848 ;//125000 cycle => Gen1 32bit width , 2ms 
-			
+		end	
 		t0ms:begin  
 			TimerIntervalBase= 32'h00000000;//0cycle => Gen1 32bit width , 0ms 
 		end
