@@ -32,11 +32,11 @@ module LPIF_RX_Control_DataFlow(input clk, input reset, input [63:0]tlpstart, in
 			begin
 			pl_data <= pl_data_next;
 			pl_valid <= pl_valid_next;
-			pl_tlpedb <= {pl_tlpedb_next[63:1], pl_tlpedb_next[0] | pl_tlpedb[63]};
-			pl_tlpend <= {pl_tlpend_next[63:1], pl_tlpend_next[0] | pl_tlpend[63]};
-			pl_dllpend <= {pl_dllpend_next[63:1], pl_dllpend_next[0] | pl_dllpend[63]};
-			pl_tlpstart <= {pl_tlpstart_next[63:1]>>1, pl_tlpstart_next[0]};
-			pl_dllpstart <= {pl_dllpstart_next[63:1]>>1, pl_dllpstart_next[0]};
+			pl_tlpedb <= {pl_tlpedb_next[63:1]>>1, pl_tlpedb_next[0]}; //pl_tlpedb_next[0] to keep first bit while shifting. important if pipewidth = 8 and lanes number = 1
+			pl_tlpend <= {pl_tlpend_next[63:1]>>1, pl_tlpend_next[0]};
+			pl_dllpend <= {pl_dllpend_next[63:1]>>1, pl_dllpend_next[0]};
+			pl_tlpstart <= pl_tlpstart_next;
+			pl_dllpstart <= pl_dllpstart_next;
 			pl_state_sts <= pl_state_sts_next;
 			pl_speedmode <= pl_speedmode_next;
 			ltssmForceDetect <= ltssmForceDetect_next;
@@ -57,7 +57,7 @@ module LPIF_RX_Control_DataFlow(input clk, input reset, input [63:0]tlpstart, in
 			pl_dllpstart_next[i/8] = register[4][i/8];
 			pl_dllpend_next[i/8] = register[5][i/8];
 			
-			if(register[0][i/8] == 0) //note: this won't work well if there is 2 control char after each other but the valid for second one will be 0.
+			if(register[0][i/8] == 0)
 				begin
 				data = data>>8;
 				register[0] = register[0]>>1;	//valid
@@ -67,14 +67,22 @@ module LPIF_RX_Control_DataFlow(input clk, input reset, input [63:0]tlpstart, in
 				register[4] = register[4]>>1;	//dllpstart
 				register[5] = register[5]>>1;	//dllpend
 				end
-				
+			
+			if(register[0][i/8] == 0)
+				begin
+				data = data>>8;
+				register[0] = register[0]>>1;	//valid
+				pl_tlpstart_next[i/8] = register[1][i/8] | pl_tlpstart_next[i/8];
+				pl_tlpend_next[i/8] = register[2][i/8] | pl_tlpend_next[i/8];
+				pl_tlpedb_next[i/8] = register[3][i/8] | pl_tlpedb_next[i/8];
+				pl_dllpstart_next[i/8] = register[4][i/8] | pl_dllpstart_next[i/8];
+				pl_dllpend_next[i/8] = register[5][i/8] | pl_dllpend_next[i/8];
+				end
+
 			pl_data_next[i+:8] = data[i+:8];
 			pl_valid_next[i/8] = register[0][i/8];
 			end
 		
-		pl_tlpedb_next[63] = (((~pl_valid_next)&pl_tlpedb_next)==0)? 0:1;
-		pl_tlpend_next[63] = (((~pl_valid_next)&pl_tlpend_next)==0)? 0:1;
-		pl_dllpend_next[63] = (((~pl_valid_next)&pl_dllpend_next)==0)? 0:1;
 		end
 		
 	always@*

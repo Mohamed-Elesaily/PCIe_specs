@@ -1,4 +1,13 @@
-module RxLTSSM #(parameter DEVICETYPE=0) (
+module RxLTSSM #(
+parameter DEVICETYPE=0,
+parameter Width = 32,
+parameter GEN1_PIPEWIDTH = 8 ,	
+parameter GEN2_PIPEWIDTH = 8 ,	
+parameter GEN3_PIPEWIDTH = 8 ,	
+parameter GEN4_PIPEWIDTH = 8 ,	
+parameter GEN5_PIPEWIDTH = 8)
+ (
+input [2:0]Gen,
 input clk,
 input reset,
 input [2047:0] orderedSets,
@@ -15,7 +24,8 @@ output [3:0]exitTo,
 output linkUp,
 output witeUpconfigureCapability,
 output writerateid,
-output disableDescrambler
+output disableDescrambler,
+output [3:0]lpifStatus
 );
 
 wire [15:0]resetOsCheckers;
@@ -26,7 +36,7 @@ wire [79:0]countersValues;
 wire [4:0] checkValues;
 wire [15:0]comparisonValues;
 wire  enableTimer,resetTimer,timeOut;
-wire [5:0]setTimer;
+wire [2:0]setTimer;
 
 
 genvar i;
@@ -75,13 +85,31 @@ masterRxLTSSM masterRxLTSSM(
     exitTo,
     resetOsCheckers,
     disableDescrambler,
+    lpifStatus,
     setTimer,
     enableTimer,
     resetTimer,
     checkValues);
 
-timer timer(clk,setTimer,enableTimer,resetTimer,timeOut);
-
+//timer timer(clk,setTimer,enableTimer,resetTimer,timeOut);
+Timer #(
+Width,
+GEN1_PIPEWIDTH,	
+GEN2_PIPEWIDTH,	
+GEN3_PIPEWIDTH,	
+GEN4_PIPEWIDTH,	
+GEN5_PIPEWIDTH
+)
+timer
+(
+Gen,
+resetTimer,
+clk,
+enableTimer,
+enableTimer,
+setTimer,
+timeOut
+);
 
 assign writerateid= (finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign witeUpconfigureCapability=(finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
