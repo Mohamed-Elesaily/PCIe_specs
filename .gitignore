@@ -10,3 +10,4 @@
 *.vscode
 **/*.dvi
 **/*.bak
+*TX
