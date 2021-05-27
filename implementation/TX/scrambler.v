@@ -1,6 +1,6 @@
 module Scrambler (input wire pclk, input wire reset_n, input wire turnOff, input wire [5:0]PIPEWIDTH, 
-				  input wire [23:0]seedValue, input wire [31:0]dataout_1, input wire [3:0]d_k_out_1, input wire [3:0]data_valid_out_1, 
-				  output wire [31:0]scramblerDataOut, output wire [3:0]scramblerDataK, output wire [3:0]scramblerDataValid);
+				  input wire [23:0]seedValue, input wire [31:0]dataout_1, input wire [3:0]d_k_out_1, input wire data_valid_out_1, 
+				  output wire [31:0]scramblerDataOut, output wire [3:0]scramblerDataK, output wire scramblerDataValid);
 
 
 	wire patternReset;
@@ -75,3 +75,4 @@ module Scrambler (input wire pclk, input wire reset_n, input wire turnOff, input
 	assign scramblerDataValid = data_valid_out_1;
 
 endmodule
+
