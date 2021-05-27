@@ -9,12 +9,14 @@ module osChecker #(parameter DEVICETYPE = 0)(
     output reg countup,
     output reg resetcounter,
     output [7:0] rateid,
+    output [7:0] linkNumberOut,
     output upconfigure_capability);
 
     //LOCLA VARIABLES
     reg[4:0] currentState,nextState;
     reg[127:0] localorderedset;
     reg notEqual;
+    reg linkNumberReg;
     wire ts1CorrectStart,ts2CorrectStart;
     localparam [7:0]
     PAD = 8'b11110111, //F7
@@ -194,6 +196,7 @@ begin
             if(valid &&ts1CorrectStart&&orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
             begin
                 nextState =  configLinkWidthStartUp2;
+                linkNumberReg = orderedset[15:8];
                 resetcounter = 1'b1; countup = 1'b1;
             end
                 else nextState = configLinkWidthStartUp1;
@@ -204,7 +207,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(ts1CorrectStart&&orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
+                    if(ts1CorrectStart&&orderedset[15:8]==linkNumberReg && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
                     begin
                         countup =1'b1;
                         nextState =  configLinkWidthStartUp2;
@@ -428,6 +431,7 @@ begin
 endcase
 end
     assign rateid = localorderedset[39:32];
+    assign linkNumberOut = localorderedset[15:8];
     assign upconfigure_capability = localorderedset[42];
     assign ts1CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS1)? 1'b1 : 1'b0;
     assign ts2CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS2)? 1'b1 : 1'b0;

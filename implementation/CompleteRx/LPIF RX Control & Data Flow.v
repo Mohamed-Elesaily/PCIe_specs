@@ -1,45 +1,39 @@
 module LPIF_RX_Control_DataFlow(input clk, input reset, input [63:0]tlpstart, input [63:0]dllpstart, input [63:0]tlpend, input [63:0]dllpend, 
-								input [63:0]edb, input [63:0]packetValid, input [511:0]packetData, input lp_force_detect, input [2:0]GEN, 
-								input [3:0]state, output reg [63:0]pl_tlpstart, output reg [63:0]pl_dllpstart, output reg [63:0]pl_tlpend,
-								output reg [63:0]pl_dllpend, output reg [63:0]pl_tlpedb, output reg [63:0]pl_valid, output reg [511:0]pl_data,
-								output reg [2:0]pl_speedmode, output reg [3:0]pl_state_sts, output reg ltssmForceDetect);
+								input [63:0]edb, input [63:0]packetValid, input [511:0]packetData, input [2:0]GEN, 
+								output [63:0]pl_tlpstart, output [63:0]pl_dllpstart, output [63:0]pl_tlpend,
+								output [63:0]pl_dllpend, output [63:0]pl_tlpedb, output reg [63:0]pl_valid, output reg [511:0]pl_data,
+								output reg [2:0]pl_speedmode);
 			
 
 	integer i;
-	localparam STP = 8'hFB, SDP = 8'h5C, END = 8'hFD, EDB = 8'hFE;
-	reg ltssmForceDetect_next;
 	reg [2:0]pl_speedmode_next;
-	reg [3:0]pl_state_sts_next;
 	reg [511:0]data, pl_data_next;
 	reg [63:0]register[0:5];
-	reg [63:0]pl_valid_next, pl_tlpedb_next, pl_tlpend_next, pl_dllpend_next, pl_tlpstart_next, pl_dllpstart_next;
+	reg [63:0]tlpStartReg, dllpStartReg, tlpEndReg, dllpEndReg, tlpEdbReg, 
+			pl_valid_next, pl_tlpedb_next, pl_tlpend_next, pl_dllpend_next, pl_tlpstart_next, pl_dllpstart_next;
 	
 	always@(posedge clk or negedge reset)
 		if(!reset)
 			begin
 			pl_data <= 0;
 			pl_valid <= 0;
-			pl_tlpedb <= 0;
-			pl_tlpend <= 0;
-			pl_dllpend <= 0;
-			pl_dllpstart <= 0;
-			pl_tlpstart <= 0;
+			tlpEdbReg <= 0;
+			tlpEndReg <= 0;
+			dllpEndReg <= 0;
+			dllpStartReg <= 0;
+			tlpStartReg <= 0;
 			pl_speedmode <= 0;
-			pl_state_sts <= 0;
-			ltssmForceDetect <= 0;
 			end
 		else
 			begin
 			pl_data <= pl_data_next;
 			pl_valid <= pl_valid_next;
-			pl_tlpedb <= {pl_tlpedb_next[63:1]>>1, pl_tlpedb_next[0]}; //pl_tlpedb_next[0] to keep first bit while shifting. important if pipewidth = 8 and lanes number = 1
-			pl_tlpend <= {pl_tlpend_next[63:1]>>1, pl_tlpend_next[0]};
-			pl_dllpend <= {pl_dllpend_next[63:1]>>1, pl_dllpend_next[0]};
-			pl_tlpstart <= pl_tlpstart_next;
-			pl_dllpstart <= pl_dllpstart_next;
-			pl_state_sts <= pl_state_sts_next;
+			tlpEdbReg <= {pl_tlpedb_next[63:1]>>1, pl_tlpedb_next[0]}; //pl_tlpedb_next[0] to keep first bit while shifting. important if pipewidth = 8 and lanes number = 1
+			tlpEndReg <= {pl_tlpend_next[63:1]>>1, pl_tlpend_next[0]};
+			dllpEndReg <= {pl_dllpend_next[63:1]>>1, pl_dllpend_next[0]};
+			tlpStartReg <= {pl_tlpstart_next[63:1], pl_tlpstart_next[0] | tlpStartReg[63]};
+			dllpStartReg <= {pl_dllpstart_next[63:1], pl_dllpstart_next[0] | dllpStartReg[63]};
 			pl_speedmode <= pl_speedmode_next;
-			ltssmForceDetect <= ltssmForceDetect_next;
 			end
 			
 	always@*
@@ -82,13 +76,15 @@ module LPIF_RX_Control_DataFlow(input clk, input reset, input [63:0]tlpstart, in
 			pl_data_next[i+:8] = data[i+:8];
 			pl_valid_next[i/8] = register[0][i/8];
 			end
-		
+		if(packetValid == 0)
+			begin
+			pl_tlpstart_next[63] = pl_tlpstart_next[0];
+			pl_dllpstart_next[63] = pl_dllpstart_next[0];
+			end
 		end
 		
 	always@*
 		begin
-		pl_state_sts_next <= state;
-		ltssmForceDetect_next <= lp_force_detect;
 		if(GEN == 1)
 			pl_speedmode_next <= 3'b0;
 		else if(GEN == 2)
@@ -102,6 +98,12 @@ module LPIF_RX_Control_DataFlow(input clk, input reset, input [63:0]tlpstart, in
 		else
 			pl_speedmode_next <= 3'b111;
 		end
+		
+	assign pl_tlpstart = tlpStartReg;
+	assign pl_dllpstart = dllpStartReg;
+	assign pl_tlpedb = (packetValid == 64'b0)? edb : tlpEdbReg;
+	assign pl_tlpend = (packetValid == 64'b0)? tlpend : tlpEndReg;
+	assign pl_dllpend = (packetValid == 64'b0)? dllpend : dllpEndReg;
 		
 		
 endmodule

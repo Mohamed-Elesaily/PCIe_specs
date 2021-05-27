@@ -15,7 +15,7 @@ input [63:0]RxDataK,
 input [4:0]numberOfDetectedLanes,
 input [3:0]substate,
 input [7:0]linkNumber,
-input lp_force_detect,
+//input lp_force_detect,
 output [63:0]pl_tlpstart, 
 output [63:0]pl_dllpstart, 
 output [63:0]pl_tlpend,
@@ -26,12 +26,14 @@ output [511:0]pl_data,
 output [2:0]pl_speedmode, 
 output [3:0]pl_state_sts,
 output [7:0] rateid,
+output [7:0] linkNumberOut,
 output upConfigureCapability,
 output finish,
 output [3:0]exitTo,
 output linkUp,
 output witeUpconfigureCapability,
-output writerateid);
+output writerateid,
+output writeLinkNumber);
 	
 	wire [5:0]PIPEWIDTH;
 	wire [511:0]PIPEData, descramblerData, LMCData;
@@ -40,7 +42,7 @@ output writerateid);
 	wire LMCValid;
 	wire [31:0]PIPESyncHeader, descramblerSyncHeader;
 	wire [2047:0] orderedSets;
-	wire forceDetect;
+	//wire forceDetect;
 	wire [15:0]rxElectricalIdle;
 	wire validOrderedSets;
 	wire disableDescrambler;
@@ -105,16 +107,18 @@ output writerateid);
 	 numberOfDetectedLanes,
 	 substate,
 	 linkNumber,
-	 forceDetect,
+	 //forceDetect,
 	 rxElectricalIdle[0],
 	 validOrderedSets,
 	 rateid,
+	 linkNumberOut,
 	 upConfigureCapability,
 	 finish,
 	 exitTo,
 	 linkUp,
 	 witeUpconfigureCapability,
 	 writerateid,
+	 writeLinkNumber,
 	 disableDescrambler,
 	 lpifStatus
 	);
@@ -140,9 +144,9 @@ packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWID
 
 
 LPIF_RX_Control_DataFlow lpif(.clk(clk),  .reset(reset), .tlpstart(tlpstart), .dllpstart(dlpstart), .tlpend(tlpend), .dllpend(dlpend), .edb(tlpedb), 
-.packetValid(valid), .packetData(Data_out), .lp_force_detect(lp_force_detect), .GEN(GEN), .state(lpifStatus), 
-.pl_tlpstart(pl_tlpstart), .pl_dllpstart(pl_dllpstart), .pl_tlpend(pl_tlpend), .pl_dllpend(pl_dllpend), 
-.pl_tlpedb(pl_tlpedb), .pl_valid(pl_valid), .pl_data(pl_data), .pl_speedmode(pl_speedmode), .pl_state_sts(pl_state_sts),.ltssmForceDetect(forceDetect));
+			      .packetValid(valid), .packetData(Data_out)/*, .lp_force_detect(lp_force_detect)*/, .GEN(GEN), /*.state(lpifStatus),*/ 
+			      .pl_tlpstart(pl_tlpstart), .pl_dllpstart(pl_dllpstart), .pl_tlpend(pl_tlpend), .pl_dllpend(pl_dllpend), 
+			      .pl_tlpedb(pl_tlpedb), .pl_valid(pl_valid), .pl_data(pl_data), .pl_speedmode(pl_speedmode)/*, .pl_state_sts(pl_state_sts),.ltssmForceDetect(forceDetect)*/);
 
 
 endmodule
@@ -162,7 +166,7 @@ module RX_TB_Integration;
 	reg [4:0]numberOfDetectedLanes;
 	reg [3:0]substate;
 	reg [7:0]linkNumber;
-	reg lp_force_detect;
+	//reg lp_force_detect;
 	wire [63:0]pl_tlpstart,
 	pl_dllpstart,pl_tlpend,
 	pl_dllpend,
@@ -172,12 +176,14 @@ module RX_TB_Integration;
 	wire [2:0]pl_speedmode;
 	wire [3:0]pl_state_sts;
 	wire [7:0] rateid;
+	wire [7:0] linkNumberOut;
 	wire upConfigureCapability;
 	wire finish;
 	wire [3:0]exitTo;
 	wire linkUp;
 	wire witeUpconfigureCapability;
 	wire writerateid;
+	wire writeLinkNumber;
 //input substates from main ltssm
     localparam [3:0]
 		detectQuiet =  4'd0,
@@ -209,7 +215,7 @@ module RX_TB_Integration;
 	numberOfDetectedLanes,
 	substate,
 	linkNumber,
-	lp_force_detect,
+	//lp_force_detect,
 	pl_tlpstart,
 	pl_dllpstart,
 	pl_tlpend,
@@ -220,12 +226,14 @@ module RX_TB_Integration;
 	pl_speedmode,
 	pl_state_sts,
 	rateid,
+	linkNumberOut,
 	upConfigureCapability,
 	finish,
 	exitTo,
 	linkUp,
 	witeUpconfigureCapability,
-	writerateid
+	writerateid,
+	writeLinkNumber
 );
 
 
