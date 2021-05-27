@@ -144,9 +144,9 @@ packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWID
 
 
 LPIF_RX_Control_DataFlow lpif(.clk(clk),  .reset(reset), .tlpstart(tlpstart), .dllpstart(dlpstart), .tlpend(tlpend), .dllpend(dlpend), .edb(tlpedb), 
-.packetValid(valid), .packetData(Data_out)/*, .lp_force_detect(lp_force_detect)*/, .GEN(GEN), .state(lpifStatus), 
-.pl_tlpstart(pl_tlpstart), .pl_dllpstart(pl_dllpstart), .pl_tlpend(pl_tlpend), .pl_dllpend(pl_dllpend), 
-.pl_tlpedb(pl_tlpedb), .pl_valid(pl_valid), .pl_data(pl_data), .pl_speedmode(pl_speedmode), .pl_state_sts(pl_state_sts)/*,.ltssmForceDetect(forceDetect)*/);
+			      .packetValid(valid), .packetData(Data_out)/*, .lp_force_detect(lp_force_detect)*/, .GEN(GEN), /*.state(lpifStatus),*/ 
+			      .pl_tlpstart(pl_tlpstart), .pl_dllpstart(pl_dllpstart), .pl_tlpend(pl_tlpend), .pl_dllpend(pl_dllpend), 
+			      .pl_tlpedb(pl_tlpedb), .pl_valid(pl_valid), .pl_data(pl_data), .pl_speedmode(pl_speedmode)/*, .pl_state_sts(pl_state_sts),.ltssmForceDetect(forceDetect)*/);
 
 
 endmodule
