@@ -22,7 +22,7 @@ output [7:0] linkNumberOut,
 output upConfigureCapability,
 output finish,
 output [3:0]exitTo,
-output linkUp,
+//output linkUp,
 output witeUpconfigureCapability,
 output writerateid,
 output writeLinkNumber,
@@ -119,5 +119,5 @@ assign writerateid= (finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign witeUpconfigureCapability=(finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign writeLinkNumber = (finish && (exitTo == 4'd5) && DEVICETYPE)? 1'b1:1'b0;
 assign {rateId,upConfigureCapability,linkNumberOut} = {rateIds[7:0],upConfigurebits[0],linkNumbers[7:0]};
-assign linkUp = (substate == 4'd10)? 1'b1 : 1'b0;
+//assign linkUp = (substate == 4'd10)? 1'b1 : 1'b0;
 endmodule
