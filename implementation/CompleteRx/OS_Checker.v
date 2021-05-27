@@ -16,6 +16,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
     reg[4:0] currentState,nextState;
     reg[127:0] localorderedset;
     reg notEqual;
+    reg linkNumberReg;
     wire ts1CorrectStart,ts2CorrectStart;
     localparam [7:0]
     PAD = 8'b11110111, //F7
@@ -195,6 +196,7 @@ begin
             if(valid &&ts1CorrectStart&&orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
             begin
                 nextState =  configLinkWidthStartUp2;
+                linkNumberReg = orderedset[15:8];
                 resetcounter = 1'b1; countup = 1'b1;
             end
                 else nextState = configLinkWidthStartUp1;
@@ -205,7 +207,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(ts1CorrectStart&&orderedset[15:8]!=PAD && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
+                    if(ts1CorrectStart&&orderedset[15:8]==linkNumberReg && orderedset[23:16]==PAD && orderedset[87:80] == TS1)
                     begin
                         countup =1'b1;
                         nextState =  configLinkWidthStartUp2;
