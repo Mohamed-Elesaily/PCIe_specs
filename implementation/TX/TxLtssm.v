@@ -15,6 +15,7 @@ parameter MAX_GEN = 1
 input Pclk,
 input Reset, //active low
 output reg [2:0]Gen ,
+output reg [4:0] NumberDetectLanes,
 output reg [LANESNUMBER-1:0] DetectLanes,
 output reg WriteDetectLanesFlag,
 // main LTSSM interface
@@ -57,7 +58,11 @@ output reg MuxSel,
 //PIPE TX Control
 output reg [ LANESNUMBER-1:0]DetectReq,
 output reg [ LANESNUMBER-1:0]ElecIdleReq,
-input  [ LANESNUMBER-1:0]DetectStatus
+input  [ LANESNUMBER-1:0]DetectStatus,
+//scrambler
+output reg turnOff,
+output [23:0]seedValue
+
 );
 
 // states encoding
@@ -72,6 +77,7 @@ parameter t12ms= 3'b001;
 //Generation
 parameter Gen1 = 3'b001,Gen2 = 3'b010,Gen3 = 3'b011,Gen4 = 3'b100,Gen5 = 3'b101; // TODO edited
 //internal Register 
+
 reg [3:0]State;
 wire [3:0]NextState;
 reg [3:0] ExitToState;
@@ -79,7 +85,8 @@ reg ExitToFlag;
 //internal Register 
 reg [15:0]OSCount;
 reg [2:0]CurrentGen;
-
+//
+reg WriteDetectLanesFlagReg;
 //Timer interface
 reg TimerEnable;
 reg TimerStart;
@@ -90,13 +97,34 @@ Timer #(.Width(32)) T(.Gen(Gen),.Reset(Reset),.Pclk(Pclk),.Enable(TimerEnable),.
 //assignment
 assign NextState = SetTXState; 
 
-
+///lanes number
+always @ *
+begin 
+if(DetectLanes[15]) NumberDetectLanes=15+1;
+else if (DetectLanes[14]) NumberDetectLanes=14+1;
+else if (DetectLanes[13]) NumberDetectLanes=13+1;
+else if (DetectLanes[12]) NumberDetectLanes=12+1;
+else if (DetectLanes[11]) NumberDetectLanes=11+1;
+else if (DetectLanes[10]) NumberDetectLanes=10+1;
+else if (DetectLanes[9]) NumberDetectLanes=9+1;
+else if (DetectLanes[8]) NumberDetectLanes=8+1;
+else if (DetectLanes[7]) NumberDetectLanes=7+1;
+else if (DetectLanes[6]) NumberDetectLanes=6+1;
+else if (DetectLanes[5]) NumberDetectLanes=5+1;
+else if (DetectLanes[4]) NumberDetectLanes=4+1;
+else if (DetectLanes[3]) NumberDetectLanes=3+1;
+else if (DetectLanes[2]) NumberDetectLanes=2+1;
+else if (DetectLanes[1]) NumberDetectLanes=1+1;
+else if (DetectLanes[0]) NumberDetectLanes=0+1;
+else   NumberDetectLanes=0;
+end 
 //exit to logic combinational
 always @ *
 begin
 //default value for outputs (synthesis)
 ExitToState = 4'bxxxx;
 ExitToFlag  = 0 ;
+
 	case(State)
 		DetectQuiet:begin
 			if (TimeOut==1) begin
@@ -107,6 +135,7 @@ ExitToFlag  = 0 ;
 		DetectActive:begin
 			if (DetectStatus == {LANESNUMBER{1'b1}} )begin
 				DetectLanes = DetectStatus;
+				WriteDetectLanesFlagReg<=1;
 				ExitToState = PollingActive;
 				ExitToFlag  = 1 ;
 			end	
@@ -152,6 +181,7 @@ ElecIdleReq <= {LANESNUMBER{1'b0}};
 DetectReq<= {LANESNUMBER{1'b0}};
 OSGeneratorStart <=0;
 WriteLinkNumFlag <=0;
+turnOff<=1;
 	case(State)
 		DetectQuiet:begin
 			HoldFIFOData <= 1;
@@ -278,6 +308,11 @@ WriteLinkNumFlag <=0;
 			OSGeneratorStart<=1;
 			end
 		end
+		L0:begin
+			turnOff<=0;
+			HoldFIFOData<=0;
+			MuxSel <=1; //TODO : check is it 1 or 0 for orderset
+		end
 	endcase 
 end
 
@@ -399,11 +434,13 @@ begin
 		TXExitTo <= DetectQuiet;
 		TXFinishFlag <= 0;
 		CurrentGen=Gen1;
+		WriteDetectLanesFlag<=0;
 	end
 	else begin
 		State   <= NextState;
 		TXExitTo<= ExitToState;
 		TXFinishFlag <= ExitToFlag;
+		WriteDetectLanesFlag<=WriteDetectLanesFlagReg;
 	end
 end
 
