@@ -3,7 +3,7 @@ module  masterRxLTSSM #(parameter MAXLANES = 16)(
     input [4:0]numberOfDetectedLanes,
     input [3:0]substate,
     input [15:0]countersComparators,
-    input forceDetect,
+    //input forceDetect,
     input rxElectricalIdle,
     input timeOut,
     input reset,
@@ -21,7 +21,7 @@ module  masterRxLTSSM #(parameter MAXLANES = 16)(
     reg[1:0] currentState,nextState;
     //reg[5:0] timeToWait;
     reg[15:0]comparatorsCondition;
-    reg forcedetectflag;
+    //reg forcedetectflag;
 
 //timer parameters
 parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b101,t0ms = 3'b000;
@@ -47,29 +47,19 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
     failed = 2'b11;
 
     //CURRENT STATE FF
-    always @(posedge clk or negedge reset or posedge forceDetect)
+    always @(posedge clk or negedge reset)
     begin
         if(!reset)
         begin
             currentState <= start;
 	        finish <= 1'b0;
 		    lastState<=4'hF;
-		    forcedetectflag<=1'b0;
+		    //forcedetectflag<=1'b0;
         end
         else
         begin
-            if(forceDetect) //got to detectquiet
-            begin
-                comparatorsCount <= 5'd0;
-                timeToWait <= t12ms;
-                currentState <= counting;
-                forcedetectflag <=1'b1;
-            end
-            else 
-            begin
-                currentState <= nextState;
-                lastState<=lastState_next;
-            end
+            currentState <= nextState;
+            lastState<=lastState_next;
         end    
     end
 
@@ -79,7 +69,7 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
         case(currentState)
         start:
         begin
-	    forcedetectflag = 1'b0;        
+    
          if(substate != lastState) //ensure that this is a new request
          begin
             resetOsCheckers = {16{1'b1}};
@@ -173,7 +163,7 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
             enableTimer = 1'b0;
             resetTimer = 1'b0;
             finish = 1'b1;
-            exitTo =  forcedetectflag? detectActive : substate + 1'b1;
+            exitTo =  substate + 1'b1;
             nextState = start;
         end
         failed:

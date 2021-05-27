@@ -9,6 +9,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
     output reg countup,
     output reg resetcounter,
     output [7:0] rateid,
+    output [7:0] linkNumberOut,
     output upconfigure_capability);
 
     //LOCLA VARIABLES
@@ -428,6 +429,7 @@ begin
 endcase
 end
     assign rateid = localorderedset[39:32];
+    assign linkNumberOut = localorderedset[15:8];
     assign upconfigure_capability = localorderedset[42];
     assign ts1CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS1)? 1'b1 : 1'b0;
     assign ts2CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS2)? 1'b1 : 1'b0;

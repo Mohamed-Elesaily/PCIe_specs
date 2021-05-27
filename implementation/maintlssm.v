@@ -3,11 +3,13 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
     input reset,
     input [3:0] lpifStateRequest,
     input [4:0] numberOfDetectedLanesIn,
-    input [7:0] linkNumberIn,
+    input [7:0] linkNumberInTx,
+    input [7:0] linkNumberInRx,
     input [7:0] rateIdIn,
     input upConfigureCapabilityIn,
     input writeNumberOfDetectedLanes,
-    input writeLinkNumber,
+    input writeLinkNumberTx,
+    input writeLinkNumberRx,
     input writeUpconfigureCapability,
     input writeRateId,
     input finishTx,
@@ -16,9 +18,10 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
     input [3:0] gotoRx,
     input forceDetect,
     output reg linkUp,
-    output [2:0] GEN,
+    output reg[2:0] GEN,
     output [4:0] numberOfDetectedLanesOut,
-    output [7:0] linkNumberOut,
+    output [7:0] linkNumberOutTx,
+    output [7:0] linkNumberOutRx,
     output [7:0] rateIdOut,
     output upConfigureCapabilityOut,
     output reg[3:0] lpifStateStatus,
@@ -60,7 +63,8 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
     always@(posedge clk)
     begin
         if(writeNumberOfDetectedLanes)numberOfDetectedLanes<=numberOfDetectedLanesIn;
-        if(writeLinkNumber)linkNumber<=linkNumberIn;
+        if(writeLinkNumberTx)linkNumber<=linkNumberInTx;
+        else if(writeLinkNumberRx)linkNumber<=linkNumberInRx;
         if(writeUpconfigureCapability)upConfigureCapability<=upConfigureCapabilityIn;
     end
 
@@ -71,6 +75,7 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
             currentState <= reset_;
             substateTx <= detectQuiet;
             substateRx <= detectQuiet;
+            GEN <= 3'd1;
             
         end
         else
@@ -273,7 +278,7 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
 
 
 
-    assign{numberOfDetectedLanesOut,linkNumberOut,rateIdOut,upConfigureCapabilityOut} = {numberOfDetectedLanes,linkNumber,
-    rateId,upConfigureCapability};
+    assign{numberOfDetectedLanesOut,linkNumberOutTx,linkNumberOutRx,rateIdOut,upConfigureCapabilityOut} = {numberOfDetectedLanes,linkNumber
+    ,linkNumber,rateId,upConfigureCapability};
     
 endmodule
