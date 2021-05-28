@@ -26,22 +26,22 @@ always @ *
 begin
 	case({TimerIntervalCode})
 		t12ms:begin  
-			TimerIntervalBase= 32'h000B71B0 ;//750000 cycle => Gen1 32bit width , 12ms 
+			TimerIntervalBase= 32'd6;//32'h000B71B0 ;//750000 cycle => Gen1 32bit width , 12ms 
 		end
 		
 		t24ms:begin  
-			TimerIntervalBase= 32'h16E360 ;//1500000 cycle => Gen1 32bit width , 24ms 
+			TimerIntervalBase= 32'd12;//32'h16E360 ;//1500000 cycle => Gen1 32bit width , 24ms 
 		end
 
 		t48ms:begin  
-			TimerIntervalBase= 32'h2DC6C0 ;//3000000cycle => Gen1 48bit width , 48ms 
+			TimerIntervalBase= 32'd24;//32'h2DC6C0 ;//3000000cycle => Gen1 48bit width , 48ms 
 		end
 		t8ms:begin  
-			TimerIntervalBase= 32'h7A120 ;//500000cycle => Gen1 48bit width , 48ms 
+			TimerIntervalBase= 32'd4;//32'h7A120 ;//500000cycle => Gen1 48bit width , 48ms 
 		end
 
 		t2ms:begin  
-			TimerIntervalBase= 32'h1E848 ;//125000 cycle => Gen1 32bit width , 2ms 
+			TimerIntervalBase= 32'd1;//32'h1E848 ;//125000 cycle => Gen1 32bit width , 2ms 
 		end	
 		t0ms:begin  
 			TimerIntervalBase= 32'h00000000;//0cycle => Gen1 32bit width , 0ms 

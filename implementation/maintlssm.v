@@ -73,8 +73,8 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
         if(!reset || forceDetect)
         begin
             currentState <= reset_;
-            substateTx <= detectQuiet;
-            substateRx <= detectQuiet;
+            //substateTx <= detectQuiet;
+            //substateRx <= detectQuiet;
             GEN <= 3'd1;
             
         end

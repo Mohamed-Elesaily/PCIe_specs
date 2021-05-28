@@ -1,4 +1,4 @@
-module LMC #(parameter GEN1_PIPEWIDTH = 8, parameter GEN2_PIPEWIDTH = 16, parameter GEN3_PIPEWIDTH = 32, parameter GEN4_PIPEWIDTH = 8,
+module LMC_RX #(parameter GEN1_PIPEWIDTH = 8, parameter GEN2_PIPEWIDTH = 16, parameter GEN3_PIPEWIDTH = 32, parameter GEN4_PIPEWIDTH = 8,
 			parameter GEN5_PIPEWIDTH = 8)(input wire clk, input wire reset, input wire [2:0]GEN, 
 				input wire [31:0]descramblerSyncHeader, input wire [15:0]descramblerDataValid, input wire [4:0]LANESNUMBER,
 				input wire [511: 0]LMCIn , input wire [63:0]descramblerDataK, output wire LMCValid,

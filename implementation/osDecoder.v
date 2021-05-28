@@ -117,9 +117,9 @@ end
 //reg [11:0]test1 = lanesOffsets[((1<<3)+(1<<1)+1) +: 11];
 //reg [11:0]test2 = lanesOffsets[1*11 +: 11];
 
-always@(valid)
+always@(out)
 begin
-	
+
 	for(j = 0;j<128<<numberOfShifts;j=j+8)
 	begin
 	outOs[(lanesOffsets[((lane_iter<<3)+(lane_iter<<1)+lane_iter) +: 11]+index_iter)+:8] = out[j+:8];
@@ -130,6 +130,7 @@ begin
 	end
 	else lane_iter = lane_iter + 1'b1;
 	end
+	
 end
 endmodule
 

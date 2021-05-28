@@ -100,7 +100,7 @@ assign NextState = SetTXState;
 ///lanes number
 always @ *
 begin 
-if(DetectLanes[15]) NumberDetectLanes=15+1;
+if(DetectLanes[15]) NumberDetectLanes=5'd16;
 else if (DetectLanes[14]) NumberDetectLanes=14+1;
 else if (DetectLanes[13]) NumberDetectLanes=13+1;
 else if (DetectLanes[12]) NumberDetectLanes=12+1;

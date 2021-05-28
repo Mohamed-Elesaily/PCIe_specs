@@ -24,7 +24,7 @@ output [63:0]pl_tlpedb,
 output[63:0]pl_valid, 
 output [511:0]pl_data,
 output [2:0]pl_speedmode, 
-output [3:0]pl_state_sts,
+//output [3:0]pl_state_sts,
 output [7:0] rateid,
 output [7:0] linkNumberOut,
 output upConfigureCapability,
@@ -83,7 +83,7 @@ output writeLinkNumber);
 			end
 	endgenerate
 	
-	LMC #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))  
+	LMC_RX #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))  
 		lmc (.clk(clk), .reset(reset), .GEN(GEN), .descramblerSyncHeader(descramblerSyncHeader), .descramblerDataValid(descramblerDataValid),
 			.LANESNUMBER(numberOfDetectedLanes), .LMCIn(descramblerData), .descramblerDataK(descramblerDataK), .LMCValid(LMCValid), .LMCDataK(LMCDataK),.LMCData(LMCData));
 										

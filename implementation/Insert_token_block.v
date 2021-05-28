@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+//`timescale 1ns / 1ps
 `define en(i) \
 else if(valid_reg[i]&&(STB_reg[i]||SDB_reg[i]||END_reg[i])) \
 begin \
