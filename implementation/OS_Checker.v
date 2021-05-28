@@ -19,10 +19,10 @@ module osChecker #(parameter DEVICETYPE = 0)(
     reg linkNumberReg;
     wire ts1CorrectStart,ts2CorrectStart;
     localparam [7:0]
-    PAD = 8'b11110111, //F7
-    TS1 = 8'b00101010,	//2A
-    TS2 = 8'b0100101,  //25
-    COM = 	8'b10111100, //BC
+    PAD = 8'hF7, 
+    TS1 = 8'h4A,
+    TS2 = 8'h45,
+    COM = 	8'hBC, //BC
     gen3TS1 = 8'h1E,
     gen3TS2 = 8'h2D;
 

@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+//`timescale 1ns / 1ps
 `define en(i) \
 else if(valid_reg[i]&&(STB_reg[i]||SDB_reg[i]||END_reg[i])) \
 begin \
@@ -56,7 +56,7 @@ else if (valid_reg[80-a]) count<= 80-a+1;\
 module InsertTokenBlock #
 (
 parameter MAXPIPEWIDTH = 32,
-parameter LANESNUMBER = 8,
+parameter LANESNUMBER = 16,
 parameter GEN1_PIPEWIDTH = 8 ,	
 parameter GEN2_PIPEWIDTH = 16 ,	
 parameter GEN3_PIPEWIDTH = 32 ,	

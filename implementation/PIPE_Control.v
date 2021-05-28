@@ -1,6 +1,8 @@
 module PIPE_Control(generation, pclk, reset_n, RxStatus, ElecIdle_req, Detect_req, PhyStatus, TxDetectRx_Loopback, PowerDown, Detect_status, TxElecIdle);
 
+
 parameter number_of_lanes= 4;
+
 
 input pclk, reset_n;
 input [2:0] generation;

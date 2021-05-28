@@ -73,8 +73,8 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
         if(!reset || forceDetect)
         begin
             currentState <= reset_;
-            substateTx <= detectQuiet;
-            substateRx <= detectQuiet;
+            //substateTx <= detectQuiet;
+            //substateRx <= detectQuiet;
             GEN <= 3'd1;
             
         end
@@ -128,7 +128,7 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
             case ({substateTx,substateRx})
                 {detectQuiet,detectQuiet}:
                 begin
-                   if (finishTx&&finishRx&&gotoTx==detectActive&&gotoRx==detectActive) 
+                   if (/*finishTx&&*/finishRx&&/*gotoTx==detectActive&&*/gotoRx==detectActive) 
                     begin
                         {substateTxnext,substateRxnext} = {detectActive,detectActive};
                         lpifStateStatus = reset_;
@@ -151,7 +151,7 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
 
                 {pollingActive,pollingActive}:
                 begin
-                    if (finishTx&&finishRx&&gotoTx==pollingConfiguration&&gotoRx==pollingConfiguration) 
+                    if ((finishRx&&gotoRx==pollingConfiguration) ||(gotoTx==pollingConfiguration&&finishTx)) 
                         begin
                             {substateTxnext,substateRxnext}= {pollingConfiguration,pollingConfiguration};
                             lpifStateStatus = reset_;

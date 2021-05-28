@@ -14,6 +14,7 @@ module  masterRxLTSSM #(parameter MAXLANES = 16)(
     output [3:0]lpifStatus,
     output reg [2:0]timeToWait,
     output reg enableTimer,
+    output reg startTimer,
     output reg resetTimer,
     output reg[4:0]comparatorsCount);
     
@@ -54,6 +55,7 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
             currentState <= start;
 	        finish <= 1'b0;
 		    lastState<=4'hF;
+            lastState_next<=4'hF;
 		    //forcedetectflag<=1'b0;
         end
         else
@@ -70,14 +72,16 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
         start:
         begin
     
-         if(substate != lastState) //ensure that this is a new request
+          if(substate != lastState) //ensure that this is a new request
          begin
             resetOsCheckers = {16{1'b1}};
             if(substate == detectQuiet)
             begin
                 comparatorsCount = 5'd0;
-                timeToWait = t12ms;
+                timeToWait = t0ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		 
             end
             else if(substate == detectActive)
@@ -85,6 +89,8 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
                 comparatorsCount = 5'd0;
                 timeToWait = t0ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		
             end
             else if(substate==pollingActive||substate==configurationComplete)
@@ -92,6 +98,8 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
                 comparatorsCount = 5'd8;
                 timeToWait = t24ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		
             end
             else if (substate==configurationLinkWidthStart||substate==configurationLinkWidthAccept||substate==configurationLanenumAccept)
@@ -99,6 +107,8 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
                 comparatorsCount = 5'd2;
                 timeToWait = t24ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		                
             end
             else if (substate==configurationLanenumWait)
@@ -106,6 +116,8 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
                 comparatorsCount=5'd2;
                 timeToWait = t2ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		
             end
             else if (substate==pollingConfiguration)
@@ -113,6 +125,8 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
                 comparatorsCount=5'd8;
                 timeToWait = t48ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		
             end
  	    else if (substate==configurationIdle)
@@ -120,16 +134,19 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
                 comparatorsCount=5'd8;
                 timeToWait = t2ms;
                 nextState = counting;
+                startTimer = 1'b1;
+                enableTimer = 1'b1;
 		
             end
 		
         end
         
-        else 
+       else 
         begin
             comparatorsCount=5'd0;
             timeToWait = t0ms;
             enableTimer = 1'b0;
+            startTimer = 1'b0;
             resetTimer = 1'b0;
             resetOsCheckers = 16'b0;
             nextState = start;
@@ -142,11 +159,13 @@ parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b10
         enableTimer = 1'b1;
         resetTimer  = 1'b1;
         resetOsCheckers = {16{1'b1}};
+        startTimer = 1'b0;
 	finish = 1'b0;
-        if((!timeOut && countersComparators >= comparatorsCondition) || (substate == detectQuiet && rxElectricalIdle) || (substate == detectQuiet && timeOut))
+        if((!timeOut && countersComparators >= comparatorsCondition) || (substate == detectQuiet && rxElectricalIdle) || (substate == detectQuiet && timeOut)|| (substate == detectActive && timeOut))
         begin
             enableTimer = 1'b0;
             resetTimer  = 1'b0;
+            startTimer = 1'b0;
             nextState = success;
            
         end

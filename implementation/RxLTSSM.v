@@ -38,7 +38,7 @@ wire [15:0]upConfigurebits;
 wire [79:0]countersValues;
 wire [4:0] checkValues;
 wire [15:0]comparisonValues;
-wire  enableTimer,resetTimer,timeOut;
+wire  enableTimer,startTimer,resetTimer,timeOut;
 wire [2:0]setTimer;
 
 
@@ -92,6 +92,7 @@ masterRxLTSSM masterRxLTSSM(
     lpifStatus,
     setTimer,
     enableTimer,
+    startTimer,
     resetTimer,
     checkValues);
 
@@ -110,7 +111,7 @@ Gen,
 resetTimer,
 clk,
 enableTimer,
-enableTimer,
+startTimer,
 setTimer,
 timeOut
 );

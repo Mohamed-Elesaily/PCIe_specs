@@ -73,7 +73,7 @@ input [7:0] ReadLinkNum;
 //scrambler  
 wire [31:0]scramblerDataOut1,scramblerDataOut2, scramblerDataOut3,scramblerDataOut4, scramblerDataOut5,scramblerDataOut6,scramblerDataOut7,scramblerDataOut8,scramblerDataOut9,scramblerDataOut10, scramblerDataOut11, scramblerDataOut12,scramblerDataOut13, scramblerDataOut14,scramblerDataOut15,scramblerDataOut16;
 wire [3:0] scramblerDataK1, scramblerDataK2, scramblerDataK3, scramblerDataK4, scramblerDataK5, scramblerDataK6, scramblerDataK7, scramblerDataK8, scramblerDataK9, scramblerDataK10, scramblerDataK11, scramblerDataK12, scramblerDataK13, scramblerDataK14, scramblerDataK15,scramblerDataK16;
-wire [3:0] scramblerDataValid1,scramblerDataValid2,scramblerDataValid3,scramblerDataValid4,scramblerDataValid5,scramblerDataValid6,scramblerDataValid7,scramblerDataValid8,scramblerDataValid9,scramblerDataValid10,scramblerDataValid11,scramblerDataValid12,scramblerDataValid13,scramblerDataValid14,scramblerDataValid15,scramblerDataValid16;
+wire  scramblerDataValid1,scramblerDataValid2,scramblerDataValid3,scramblerDataValid4,scramblerDataValid5,scramblerDataValid6,scramblerDataValid7,scramblerDataValid8,scramblerDataValid9,scramblerDataValid10,scramblerDataValid11,scramblerDataValid12,scramblerDataValid13,scramblerDataValid14,scramblerDataValid15,scramblerDataValid16;
 
 wire[511:0] os_data;
 wire [63:0] os_datak;
@@ -101,7 +101,7 @@ TX_CONTROL
 #(.MAXPIPEWIDTH(MAXPIPEWIDTH),.LANESNUMBER(LANESNUMBER),.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),
 .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH)) 
 LPIF_CTRL
-(.reset_n(reset_n),.NumberDetectLanes(NumberDetectLanes),.data_in(lp_data),.wr(lp_irdy),.wr_valid(lp_valid),.pclk(pclk),.STP_IN(lp_tlpstart),.SDP_IN(lp_dlpstart)
+(.reset_n(reset_n),.data_in(lp_data),.wr(lp_irdy),.wr_valid(lp_valid),.pclk(pclk),.STP_IN(lp_tlpstart),.SDP_IN(lp_dlpstart)
 ,.END_IN(lp_tlpend|lp_dlpend),.Gen(gen),.DetectedLanes(detected_lanes),.Hold(hold),.DataOut(FIFO_dataIN),.ValidOut(FIFO_datavalid),.DKOut(FIFO_datak),.full(pl_trdy));
 genvar i;
 generate 
@@ -120,11 +120,12 @@ TX_LTSSM #(.MAXPIPEWIDTH(MAXPIPEWIDTH),.LANESNUMBER(LANESNUMBER),.GEN1_PIPEWIDTH
 .Rate(rate),.Loopback(loopback),.OSGeneratorStart(start),.OSGeneratorBusy(busy),.OSGeneratorFinish(finish),. EC(),.ResetEIEOSCount(),.TXPreset(),.RXPreset(),.UsePresetCoff(),
 .FS(),.LF(),.PreCursorCoff(),.CursorCoff(),.PostCursorCoff(),.RejectCoff(),.SpeedChange(),.ReqEq(),.MuxSel(sel),.DetectReq(DetectReq),
 .ElecIdleReq(ElecIdleReq),.DetectStatus(DetectStatus),.turnOff(turnOff),
-.seedValue(seedValue)
+.seedValue(seedValue),.NumberDetectLanes(NumberDetectLanes)
 );
 
 
-OS_GENERATOR block1 (pclk, reset_n, os_type, lane_number, link_number, rate, loopback , detected_lanes, gen, start, finish, os_data, os_datak, busy, os_datavalid);
+OS_GENERATOR #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.no_of_lanes(LANESNUMBER))
+block1 (pclk, reset_n, os_type, lane_number, link_number, rate, loopback , detected_lanes, gen, start, finish, os_data, os_datak, busy, os_datavalid);
 MUX block2 (sel,FIFO_datavalid, os_datavalid, FIFO_dataIN, os_data, FIFO_datak, os_datak,data_muxout,datak_muxout,datavalid_muxout);
 LMC  #(.pipe_width_gen1(GEN1_PIPEWIDTH),
 .pipe_width_gen2(GEN2_PIPEWIDTH),

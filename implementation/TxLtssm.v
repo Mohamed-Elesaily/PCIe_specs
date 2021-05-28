@@ -73,7 +73,7 @@ output [23:0]seedValue
 //Device type 
 parameter DownStream = 0 ,UpStream = 1;
 //time 
-parameter t12ms= 3'b001;
+parameter t12ms= 3'b001,t0ms = 3'b000;
 //Generation
 parameter Gen1 = 3'b001,Gen2 = 3'b010,Gen3 = 3'b011,Gen4 = 3'b100,Gen5 = 3'b101; // TODO edited
 //internal Register 
@@ -156,6 +156,12 @@ ExitToFlag  = 0 ;
 			ExitToFlag  = 1 ;
 		 end
 		end
+		ConfigrationLinkWidthAccept:begin
+		if(DEVICETYPE==DownStream && OSGeneratorFinish)begin
+			ExitToState = ConfigrationLaneNumWait;
+			ExitToFlag  = 1 ;
+		end
+		end
 		ConfigrationComplete:begin
 		if(OSCount >= 16)begin
 			ExitToState = ConfigrationIdle;
@@ -232,24 +238,7 @@ turnOff<=1;
 			OSGeneratorStart<=1;
 			end
 		end
-		ConfigrationLinkWidthStart:begin
-			HoldFIFOData<=1;
-			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(!OSGeneratorBusy)begin //it is supposed that
-			OSType<=2'b00; //TS1
-		   LaneNumber<=2'b00;
-			Rate<=MAX_GEN;
-			if(DEVICETYPE==DownStream)begin
-				LinkNumber<=8'b01;
-				WriteLinkNum <= 8'b01;
-				WriteLinkNumFlag <= 1;
-			end
-			else begin
-				LinkNumber<=8'b00; //pad
-			end
-			OSGeneratorStart<=1;
-			end
-		end
+		
 		ConfigrationLinkWidthAccept:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
@@ -367,7 +356,7 @@ TimerStart <= 0;
 				OSCount<=0;		
 			end			
 		end		
-
+		
 		PollingConfigration :begin
 			if(OSGeneratorFinish)begin
 				OSCount<=OSCount+1;		
@@ -382,7 +371,7 @@ TimerStart <= 0;
 				OSCount<=0;		
 			end			
 		end		
-
+	
 		ConfigrationComplete:begin
 			if(OSGeneratorFinish)begin
 				OSCount<=OSCount+1;		
