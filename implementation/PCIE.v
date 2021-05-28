@@ -13,7 +13,7 @@ module PCIe #(
 (
 //clk and reset 
 input CLK,
-input reset,
+input lpreset,
 output phy_reset,
 //PIPE interface width
 output [1:0] width, ///////////////////which module
@@ -27,11 +27,10 @@ output [2*LANESNUMBER -1:0]TxSyncHeader,
 output [LANESNUMBER-1:0]TxDetectRx_Loopback,
 //RX_signals
 input  	[MAXPIPEWIDTH*LANESNUMBER-1:0]RxData,
-input   [LANESNUMBER-1:0]RxDataValid,////////////////////////////////////////
+input   [LANESNUMBER-1:0]RxDataValid,
 input	[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK,
 input	[LANESNUMBER-1:0]RxStartBlock,
 input	[2*LANESNUMBER -1:0]RxSyncHeader,
-input	[LANESNUMBER-1:0]RxValid,
 input	[3*LANESNUMBER -1:0]RxStatus,
 input [15:0]RxElectricalIdle,
 //commands and status signals
@@ -100,9 +99,17 @@ wire [3:0]RXexitTo;
 wire witeUpconfigureCapability;
 wire writerateid;
 
-mainLTSSM #(.DEVICETYPE(DEVICETYPE)) mainltssm(
+mainLTSSM #(
+.Width(MAXPIPEWIDTH),
+.DEVICETYPE(DEVICETYPE), //0 for downstream 1 for upstream
+.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),	
+.GEN2_PIPEWIDTH (GEN2_PIPEWIDTH) ,	
+.GEN3_PIPEWIDTH (GEN3_PIPEWIDTH),	
+.GEN4_PIPEWIDTH (GEN4_PIPEWIDTH) ,	
+.GEN5_PIPEWIDTH (GEN5_PIPEWIDTH)	
+) mainltssm(
     .clk(CLK),
-    .reset(reset),
+    .reset(lpreset),
     .lpifStateRequest(lp_state_req),
     .numberOfDetectedLanesIn(NumberDetectLanesfromtx),
     .rateIdIn(rateid),
@@ -130,8 +137,8 @@ mainLTSSM #(.DEVICETYPE(DEVICETYPE)) mainltssm(
     .writeLinkNumberTx(WriteLinkNumFlagTx),
     .writeLinkNumberRx(WriteLinkNumFlagRx),
     .linkNumberOutTx(linkNumberTxInput),
-    .linkNumberOutRx(linkNumberRxInput)
-
+    .linkNumberOutRx(linkNumberRxInput),
+    .width(width)
 );
 
  
@@ -139,11 +146,11 @@ mainLTSSM #(.DEVICETYPE(DEVICETYPE)) mainltssm(
 
 RX #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
 rx
-( .reset(reset), 
+( .reset(lpreset), 
 .clk(CLK), 
 .GEN(GEN), 
 .PhyStatus(PhyStatus), 
-.RxValid(RxValid),
+.RxValid(RxDataValid),
 .RxStartBlock(RxStartBlock), 
 .RxStatus(RxStatus),
 .RxSyncHeader(RxSyncHeader), 
@@ -190,7 +197,7 @@ TOP_MODULE #
 .MAX_GEN(MAX_GEN))
 TX
 (.pclk(CLK),
-.reset_n(reset),
+.reset_n(lpreset),
 .pl_trdy(pl_trdy),
 .lp_irdy(lp_irdy),
 .lp_data(lp_data),
@@ -215,54 +222,57 @@ TX
 .ReadLinkNum(linkNumberTxInput),
 .rateIdIn(rateIdInTx),
 .upConfigureCapabilityIn(upConfigureCapabilityInTX),
-.TxData1(TxData[31:0]),
-.TxData2(TxData[63:32]),
-.TxData3(TxData[95:64]),
-.TxData4(TxData[127:96]),
-.TxData5(TxData[159:128]),
-.TxData6(TxData[191:160]),
-.TxData7(TxData[223:192]),
-.TxData8(TxData[255:224]),
-.TxData9(TxData[287:256]),
-.TxData10(TxData[319:288]),
-.TxData11(TxData[351:320]),
-.TxData12(TxData[383:352]),
-.TxData13(TxData[415:384]),
-.TxData14(TxData[447:416]),
-.TxData15(TxData[479:448]),
-.TxData16(TxData[511:480]),
-.TxDataValid1(TxDataValid[0]),
-.TxDataValid2(TxDataValid[1]),
-.TxDataValid3(TxDataValid[2]),
-.TxDataValid4(TxDataValid[3]),
-.TxDataValid5(TxDataValid[4]),
-.TxDataValid6(TxDataValid[5]),
-.TxDataValid7(TxDataValid[6]),
-.TxDataValid8(TxDataValid[7]),
-.TxDataValid9(TxDataValid[8]),
-.TxDataValid10(TxDataValid[9]),
-.TxDataValid11(TxDataValid[10]),
-.TxDataValid12(TxDataValid[11]),
-.TxDataValid13(TxDataValid[12]),
-.TxDataValid14(TxDataValid[13]),
-.TxDataValid15(TxDataValid[14]),
-.TxDataValid16(TxDataValid[15]),
-.TxDataK1(TxDataK[3:0]),
-.TxDataK2(TxDataK[7:4]),
-.TxDataK3(TxDataK[11:8]),
-.TxDataK4(TxDataK[15:12]),
-.TxDataK5(TxDataK[19:16]),
-.TxDataK6(TxDataK[23:20]),
-.TxDataK7(TxDataK[27:24]),
-.TxDataK8(TxDataK[31:28]),
-.TxDataK9(TxDataK[35:32]),
-.TxDataK10(TxDataK[39:36]),
-.TxDataK11(TxDataK[43:40]),
-.TxDataK12(TxDataK[47:44]),
-.TxDataK13(TxDataK[51:48]),
-.TxDataK14(TxDataK[55:52]),
-.TxDataK15(TxDataK[59:56]),
-.TxDataK16(TxDataK[63:60]));
+.TxData16(TxData[31:0]),
+.TxData15(TxData[63:32]),
+.TxData14(TxData[95:64]),
+.TxData13(TxData[127:96]),
+.TxData12(TxData[159:128]),
+.TxData11(TxData[191:160]),
+.TxData10(TxData[223:192]),
+.TxData9(TxData[255:224]),
+.TxData8(TxData[287:256]),
+.TxData7(TxData[319:288]),
+.TxData6(TxData[351:320]),
+.TxData5(TxData[383:352]),
+.TxData4(TxData[415:384]),
+.TxData3(TxData[447:416]),
+.TxData2(TxData[479:448]),
+.TxData1(TxData[511:480]),
+.TxDataValid16(TxDataValid[0]),
+.TxDataValid15(TxDataValid[1]),
+.TxDataValid14(TxDataValid[2]),
+.TxDataValid13(TxDataValid[3]),
+.TxDataValid12(TxDataValid[4]),
+.TxDataValid11(TxDataValid[5]),
+.TxDataValid10(TxDataValid[6]),
+.TxDataValid9(TxDataValid[7]),
+.TxDataValid8(TxDataValid[8]),
+.TxDataValid7(TxDataValid[9]),
+.TxDataValid6(TxDataValid[10]),
+.TxDataValid5(TxDataValid[11]),
+.TxDataValid4(TxDataValid[12]),
+.TxDataValid3(TxDataValid[13]),
+.TxDataValid2(TxDataValid[14]),
+.TxDataValid1(TxDataValid[15]),
+.TxDataK16(TxDataK[3:0]),
+.TxDataK15(TxDataK[7:4]),
+.TxDataK14(TxDataK[11:8]),
+.TxDataK13(TxDataK[15:12]),
+.TxDataK12(TxDataK[19:16]),
+.TxDataK11(TxDataK[23:20]),
+.TxDataK10(TxDataK[27:24]),
+.TxDataK9(TxDataK[31:28]),
+.TxDataK8(TxDataK[35:32]),
+.TxDataK7(TxDataK[39:36]),
+.TxDataK6(TxDataK[43:40]),
+.TxDataK5(TxDataK[47:44]),
+.TxDataK4(TxDataK[51:48]),
+.TxDataK3(TxDataK[55:52]),
+.TxDataK2(TxDataK[59:56]),
+.TxDataK1(TxDataK[63:60]));
+
+assign phy_reset = lpreset;
+
 endmodule
 
 
@@ -407,7 +417,6 @@ pcie
  RxDataK,
  RxStartBlock,
  RxSyncHeader,
- RxValid,
  RxStatus,
  RxElectricalIdle,
 //commands and status signals

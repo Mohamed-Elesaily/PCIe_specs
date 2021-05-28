@@ -190,7 +190,7 @@ always@(posedge pclk) begin
 				 end
 				 
 			 else begin
-			     os_out = 128'h0F0E0D0C0B0A9080706050403020100;
+			     os_out = 128'h0F0E0D0C0B0A09080706050403020100;
 				 datak = {no_of_lanes{D}};
 				 end
 			 end
@@ -509,7 +509,7 @@ always@(posedge pclk) begin
 				 end
 				 
 			 else begin
-			     os_out = {{no_of_lanes{TS1[31:24]}},{128'h0F0E0D0C0B0A9080706050403020100}};
+			     os_out = {{no_of_lanes{TS1[31:24]}},{128'h0F0E0D0C0B0A09080706050403020100}};
 				 datak = {{no_of_lanes{D}},{no_of_lanes{D}}};
 				 end
 			 end
@@ -800,7 +800,7 @@ always@(posedge pclk) begin
 			     end
 				 
 			 else begin
-			     os_out = {{no_of_lanes{TS1[31:24]}},{128'h0F0E0D0C0B0A9080706050403020100},{no_of_lanes{TS1[15:8]}},{no_of_lanes{TS1[7:0]}}};
+			     os_out = {{no_of_lanes{TS1[31:24]}},{128'h0F0E0D0C0B0A09080706050403020100},{no_of_lanes{TS1[15:8]}},{no_of_lanes{TS1[7:0]}}};
 				  if (TS1[15:8] == 8'hF7)
                    datak ={{no_of_lanes{D}},{no_of_lanes{D}},{no_of_lanes{K}},{no_of_lanes{K}}};  
 	             else 
