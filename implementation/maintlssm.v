@@ -1,4 +1,12 @@
-module mainLTSSM #(parameter DEVICETYPE = 0)(
+module mainLTSSM  #(
+parameter DEVICETYPE=0,
+parameter Width = 32,
+parameter GEN1_PIPEWIDTH = 8 ,	
+parameter GEN2_PIPEWIDTH = 8 ,	
+parameter GEN3_PIPEWIDTH = 8 ,	
+parameter GEN4_PIPEWIDTH = 8 ,	
+parameter GEN5_PIPEWIDTH = 8)
+(
     input clk,
     input reset,
     input [3:0] lpifStateRequest,
@@ -26,7 +34,8 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
     output upConfigureCapabilityOut,
     output reg[3:0] lpifStateStatus,
     output reg[3:0] substateTx,
-    output reg[3:0] substateRx    
+    output reg[3:0] substateRx,
+    output reg[1:0] width    
 );
 
 
@@ -118,6 +127,49 @@ module mainLTSSM #(parameter DEVICETYPE = 0)(
         
     end
 
+//check on gneration and adjust width reg 0 for 8bit 1 for 16bit 2 for 32bit
+always @ (posedge clk)
+begin 
+	if(!reset) begin width <= 0; end
+	else begin
+		if (GEN == 1)begin  
+			case(GEN1_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (GEN == 2)begin  
+			case(GEN2_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (GEN == 3)begin  
+			case(GEN3_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (GEN == 4)begin  
+			case(GEN4_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (GEN == 5)begin  
+			case(GEN5_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		
+	end
+end
 
 //output handling block
     always @(*)

@@ -49,7 +49,7 @@ generate
      osChecker #(.DEVICETYPE(DEVICETYPE))osChecker( 
      clk,
      linkNumber,
-     i[7:0],
+     i,
      orderedSets[(i*128)+127:i*128],
      validOrderedSets,
      substate,
