@@ -73,7 +73,7 @@ output [23:0]seedValue
 //Device type 
 parameter DownStream = 0 ,UpStream = 1;
 //time 
-parameter t12ms= 3'b001;
+parameter t12ms= 3'b001,t0ms = 3'b000;
 //Generation
 parameter Gen1 = 3'b001,Gen2 = 3'b010,Gen3 = 3'b011,Gen4 = 3'b100,Gen5 = 3'b101; // TODO edited
 //internal Register 

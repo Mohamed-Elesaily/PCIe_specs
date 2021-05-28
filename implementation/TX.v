@@ -124,7 +124,8 @@ TX_LTSSM #(.MAXPIPEWIDTH(MAXPIPEWIDTH),.LANESNUMBER(LANESNUMBER),.GEN1_PIPEWIDTH
 );
 
 
-OS_GENERATOR block1 (pclk, reset_n, os_type, lane_number, link_number, rate, loopback , detected_lanes, gen, start, finish, os_data, os_datak, busy, os_datavalid);
+OS_GENERATOR #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.no_of_lanes(LANESNUMBER))
+block1 (pclk, reset_n, os_type, lane_number, link_number, rate, loopback , detected_lanes, gen, start, finish, os_data, os_datak, busy, os_datavalid);
 MUX block2 (sel,FIFO_datavalid, os_datavalid, FIFO_dataIN, os_data, FIFO_datak, os_datak,data_muxout,datak_muxout,datavalid_muxout);
 LMC  #(.pipe_width_gen1(GEN1_PIPEWIDTH),
 .pipe_width_gen2(GEN2_PIPEWIDTH),

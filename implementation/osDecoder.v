@@ -119,10 +119,8 @@ begin
 	for(j = 0;j<128<<numberOfShifts;j=j+8)
 	begin
 	outOs[(lanesOffsets[11*lane_iter +: 11]+index_iter)+:8] = out[j+:8];
-	$display("%d",lanesOffsets[11*lane_iter +: 11]);
 	if(lane_iter==numberOfDetectedLanes-1)
 	begin
-	$display("yes");
 	lane_iter = 4'd0;
 	index_iter = index_iter + 8; 
 	end
