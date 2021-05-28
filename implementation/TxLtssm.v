@@ -100,7 +100,7 @@ assign NextState = SetTXState;
 ///lanes number
 always @ *
 begin 
-if(DetectLanes[15]) NumberDetectLanes=5'd16;
+if(DetectLanes[15]) NumberDetectLanes=15+1;
 else if (DetectLanes[14]) NumberDetectLanes=14+1;
 else if (DetectLanes[13]) NumberDetectLanes=13+1;
 else if (DetectLanes[12]) NumberDetectLanes=12+1;
@@ -155,6 +155,12 @@ ExitToFlag  = 0 ;
 			ExitToState = ConfigrationLinkWidthStart;
 			ExitToFlag  = 1 ;
 		 end
+		end
+		ConfigrationLinkWidthAccept:begin
+		if(DEVICETYPE==DownStream && OSGeneratorFinish)begin
+			ExitToState = ConfigrationLaneNumWait;
+			ExitToFlag  = 1 ;
+		end
 		end
 		ConfigrationComplete:begin
 		if(OSCount >= 16)begin
@@ -232,24 +238,7 @@ turnOff<=1;
 			OSGeneratorStart<=1;
 			end
 		end
-		ConfigrationLinkWidthStart:begin
-			HoldFIFOData<=1;
-			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(!OSGeneratorBusy)begin //it is supposed that
-			OSType<=2'b00; //TS1
-		   LaneNumber<=2'b00;
-			Rate<=MAX_GEN;
-			if(DEVICETYPE==DownStream)begin
-				LinkNumber<=8'b01;
-				WriteLinkNum <= 8'b01;
-				WriteLinkNumFlag <= 1;
-			end
-			else begin
-				LinkNumber<=8'b00; //pad
-			end
-			OSGeneratorStart<=1;
-			end
-		end
+		
 		ConfigrationLinkWidthAccept:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
@@ -367,7 +356,7 @@ TimerStart <= 0;
 				OSCount<=0;		
 			end			
 		end		
-
+		
 		PollingConfigration :begin
 			if(OSGeneratorFinish)begin
 				OSCount<=OSCount+1;		
@@ -382,7 +371,7 @@ TimerStart <= 0;
 				OSCount<=0;		
 			end			
 		end		
-
+	
 		ConfigrationComplete:begin
 			if(OSGeneratorFinish)begin
 				OSCount<=OSCount+1;		
