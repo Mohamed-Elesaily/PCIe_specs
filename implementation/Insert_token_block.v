@@ -56,7 +56,7 @@ else if (valid_reg[80-a]) count<= 80-a+1;\
 module InsertTokenBlock #
 (
 parameter MAXPIPEWIDTH = 32,
-parameter LANESNUMBER = 8,
+parameter LANESNUMBER = 16,
 parameter GEN1_PIPEWIDTH = 8 ,	
 parameter GEN2_PIPEWIDTH = 16 ,	
 parameter GEN3_PIPEWIDTH = 32 ,	
