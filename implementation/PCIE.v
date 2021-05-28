@@ -458,5 +458,5 @@ M2P_MessageBus,
 P2M_MessageBus
 );
 
-assign {RxData,RxDataValid,RxDataK,RxValid} = {TxData,TxDataValid,TxDataK,TxDataValid}; 
+//assign {RxData,RxDataValid,RxDataK,RxValid} = {TxData,TxDataValid,TxDataK,TxDataValid}; 
 endmodule
