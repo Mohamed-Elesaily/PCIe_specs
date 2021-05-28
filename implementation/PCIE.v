@@ -302,12 +302,11 @@ wire [(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]TxDataK;
 wire [2*LANESNUMBER -1:0]TxSyncHeader;
 wire [LANESNUMBER-1:0]TxDetectRx_Loopback;
 //RX_signals
-reg [MAXPIPEWIDTH*LANESNUMBER-1:0]RxData;
-reg [LANESNUMBER-1:0]RxDataValid;////////////////////////////////////////
-reg	[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
+wire [MAXPIPEWIDTH*LANESNUMBER-1:0]RxData;
+wire [LANESNUMBER-1:0]RxDataValid;////////////////////////////////////////
+wire	[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
 reg	[LANESNUMBER-1:0]RxStartBlock;
 reg	[2*LANESNUMBER -1:0]RxSyncHeader;
-reg	[LANESNUMBER-1:0]RxValid;
 reg	[3*LANESNUMBER -1:0]RxStatus;
 reg [15:0]RxElectricalIdle;
 //commands and status signals
@@ -360,7 +359,7 @@ localparam[1:0]
         reset_   = 2'd0,
         active_  = 2'd1,
         retrain_ = 2'd2;
-
+integer i;
 initial
 begin
     CLK = 0;
