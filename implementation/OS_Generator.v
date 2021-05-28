@@ -292,22 +292,22 @@ always@(posedge pclk) begin
 			 
 			 else if(lane_number_reg==2'b01)begin // checking if lanes number are sequential
 			   if (count==5'b00001)begin
-			     os_out = 8'h01;
+			     os_out = 8'h00;
 				 datak ={no_of_lanes{D}};
 				 end
 				 
 			   else if (count==5'b00100)begin
-			     os_out = 32'h04030201;
+			     os_out = 32'h03020100;
 				 datak ={no_of_lanes{D}};
 				 end
 				 
 			   else if (count==5'b01000)begin
-			     os_out = 64'h0807060504030201;
+			     os_out = 64'h0706050403020100;
 				 datak ={no_of_lanes{D}};
 				 end
 				 
 			 else begin
-			     os_out = 128'h100F0E0D0C0B0A090807060504030201;
+			     os_out = 128'h0F0E0D0C0B0A09080706050403020100;
 				 datak ={no_of_lanes{D}};
 				 end
 			 end
@@ -907,7 +907,7 @@ always@(posedge pclk) begin
 			 
 			 else if(lane_number_reg==2'b01)begin // checking if lanes number are sequential
 			   if (count==5'b00001)begin
-			     os_out = {{no_of_lanes{TS2[31:24]}},{8'h00},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
+			     os_out = {{no_of_lanes{TS2[31:24]}},{8'h01},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
 				 if (TS2[15:8] == 8'hF7)
                    datak ={{no_of_lanes{D}},{no_of_lanes{D}},{no_of_lanes{K}},{no_of_lanes{K}}};  
 	             else 
@@ -916,7 +916,7 @@ always@(posedge pclk) begin
 				 
 				 
 			   else if (count==5'b00100)begin
-			     os_out = {{no_of_lanes{TS2[31:24]}},{32'h03020100},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
+			     os_out = {{no_of_lanes{TS2[31:24]}},{32'h04030201},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
 				  if (TS2[15:8] == 8'hF7)
                    datak ={{no_of_lanes{D}},{no_of_lanes{D}},{no_of_lanes{K}},{no_of_lanes{K}}};  
 	             else 
@@ -925,7 +925,7 @@ always@(posedge pclk) begin
 				
 				 
 			   else if (count==5'b01000)begin
-			     os_out = {{no_of_lanes{TS2[31:24]}},{64'h0706050403020100},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
+			     os_out = {{no_of_lanes{TS2[31:24]}},{64'h0807060504030201},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
 				  if (TS2[15:8] == 8'hF7)
                    datak ={{no_of_lanes{D}},{no_of_lanes{D}},{no_of_lanes{K}},{no_of_lanes{K}}};  
 	             else 
@@ -933,7 +933,7 @@ always@(posedge pclk) begin
 			     end
 				 
 			 else begin
-			     os_out = {{no_of_lanes{TS2[31:24]}},{128'h0F0E0D0C0B0A09080706050403020100},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
+			     os_out = {{no_of_lanes{TS2[31:24]}},{128'h100F0E0D0C0B0A090807060504030201},{no_of_lanes{TS2[15:8]}},{no_of_lanes{TS2[7:0]}}};
 				  if (TS2[15:8] == 8'hF7)
                    datak ={{no_of_lanes{D}},{no_of_lanes{D}},{no_of_lanes{K}},{no_of_lanes{K}}};  
 	             else 

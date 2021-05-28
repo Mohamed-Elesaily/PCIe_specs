@@ -1,7 +1,7 @@
 module TX_CONTROL#
 (
 parameter MAXPIPEWIDTH =32,
-parameter LANESNUMBER = 16,
+parameter LANESNUMBER = 8,
 parameter GEN1_PIPEWIDTH = 8,
 parameter GEN2_PIPEWIDTH = 16,	
 parameter GEN3_PIPEWIDTH = 32,	

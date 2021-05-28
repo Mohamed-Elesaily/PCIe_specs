@@ -27,7 +27,7 @@ output [63:0]pl_tlpend,
 output w
 
 );
-wire hld ;
+wire hld;
 wire sel;
 wire [63:0]valid;
 wire [511:0]data;
