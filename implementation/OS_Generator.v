@@ -292,22 +292,22 @@ always@(posedge pclk) begin
 			 
 			 else if(lane_number_reg==2'b01)begin // checking if lanes number are sequential
 			   if (count==5'b00001)begin
-			     os_out = 8'h00;
+			     os_out = 8'h01;
 				 datak ={no_of_lanes{D}};
 				 end
 				 
 			   else if (count==5'b00100)begin
-			     os_out = 32'h03020100;
+			     os_out = 32'h04030201;
 				 datak ={no_of_lanes{D}};
 				 end
 				 
 			   else if (count==5'b01000)begin
-			     os_out = 64'h0706050403020100;
+			     os_out = 64'h0807060504030201;
 				 datak ={no_of_lanes{D}};
 				 end
 				 
 			 else begin
-			     os_out = 128'h0F0E0D0C0B0A09080706050403020100;
+			     os_out = 128'h100F0E0D0C0B0A090807060504030201;
 				 datak ={no_of_lanes{D}};
 				 end
 			 end
