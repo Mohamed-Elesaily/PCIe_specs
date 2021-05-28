@@ -112,32 +112,6 @@ case (gen)
 3'b101 : width = GEN5_PIPEWIDTH<<(numberOfShifts);
 endcase
 end
-/*
-always @(*)
- begin
-	 case(lane_iter)
-
-	 4'd0:lanesOffsets = 0;
-	 4'd1:lanesOffsets = 128;
-	 4'd2:lanesOffsets = 256;
-	 4'd3:lanesOffsets = 384;
-	 4'd4:lanesOffsets = 512;
-	 4'd5:lanesOffsets = 640;
-	 4'd6:lanesOffsets = 768;
-	 4'd7:lanesOffsets = 896;
-	 4'd8:lanesOffsets = 1024;
-	 4'd9:lanesOffsets = 1152;
-	 4'd10:lanesOffsets = 1280;
-	 4'd11:lanesOffsets = 1408;
-	 4'd12:lanesOffsets = 1536;
-	 4'd13:lanesOffsets = 1664;
-	 4'd14:lanesOffsets = 1792;
-	 4'd14:lanesOffsets = 1920;
-	 default:lanesOffsets = 0;
-	 endcase
-end*/
-//reg [11:0]test1 = lanesOffsets[((1<<3)+(1<<1)+1) +: 11];
-//reg [11:0]test2 = lanesOffsets[1*11 +: 11];
 
 always@(out)
 begin
