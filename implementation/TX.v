@@ -116,7 +116,7 @@ endgenerate
 
 TX_LTSSM #(.MAXPIPEWIDTH(MAXPIPEWIDTH),.LANESNUMBER(LANESNUMBER),.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),
 .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH)) txltssm (.Pclk(pclk),.Reset(reset_n),.Gen(gen),.TXFinishFlag(TXFinishFlag),.TXExitTo(TXExitTo),.DetectLanes(detected_lanes),.WriteDetectLanesFlag(WriteDetectLanesFlag),.SetTXState(SetTXState)
-,.WriteLinkNum(WriteLinkNum),.WriteLinkNumFlag(WriteLinkNumFlag),.ReadLinkNum(ReadLinkNum),.HoldFIFOData(hold),.FIFOReady(),.OSType(os_type),.LaneNumber(lane_number),.LinkNumber( link_number),
+,.WriteLinkNum(WriteLinkNum),.TrainToGen(),.WriteLinkNumFlag(WriteLinkNumFlag),.ReadLinkNum(ReadLinkNum),.HoldFIFOData(hold),.FIFOReady(),.OSType(os_type),.LaneNumber(lane_number),.LinkNumber( link_number),
 .Rate(rate),.Loopback(loopback),.OSGeneratorStart(start),.OSGeneratorBusy(busy),.OSGeneratorFinish(finish),. EC(),.ResetEIEOSCount(),.TXPreset(),.RXPreset(),.UsePresetCoff(),
 .FS(),.LF(),.PreCursorCoff(),.CursorCoff(),.PostCursorCoff(),.RejectCoff(),.SpeedChange(),.ReqEq(),.MuxSel(sel),.DetectReq(DetectReq),
 .ElecIdleReq(ElecIdleReq),.DetectStatus(DetectStatus),.turnOff(turnOff),

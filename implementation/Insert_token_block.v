@@ -82,7 +82,7 @@ parameter GEN5_PIPEWIDTH = 8
 	 );
 //internal reg
 reg [7:0] count;
-reg [MAXPIPEWIDTH/8*LANESNUMBER-1:0]DK;
+reg [64+16-1:0]DK;
 
 wire[MAXPIPEWIDTH/8*LANESNUMBER-1:0]flag1;
 reg [3 :0] flag2; 

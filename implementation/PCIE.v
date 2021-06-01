@@ -295,6 +295,7 @@ reg reset;
 //PIPE interface width
 //output [1:0] width, ///////////////////which module
 //TX_signals
+wire [1:0] width;
 wire [MAXPIPEWIDTH*LANESNUMBER-1:0]TxData;
 wire [LANESNUMBER-1:0]TxDataValid;
 wire [LANESNUMBER-1:0]TxElecIdle;
@@ -470,5 +471,5 @@ M2P_MessageBus,
 P2M_MessageBus
 );
 
-assign {RxData,RxDataValid,RxDataK,RxValid} = {TxData,TxDataValid,TxDataK,TxDataValid}; 
+//assign {RxData,RxDataValid,RxDataK,RxValid} = {TxData,TxDataValid,TxDataK,TxDataValid}; 
 endmodule
