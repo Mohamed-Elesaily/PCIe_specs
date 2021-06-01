@@ -293,7 +293,7 @@ turnOff<=1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
-			OSType<=2'b100; //IDLE
+			OSType<=3'b100; //IDLE
 			OSGeneratorStart<=1;
 			end
 		end
