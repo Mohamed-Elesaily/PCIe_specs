@@ -25,6 +25,7 @@ output reg [3:0] TXExitTo,
 output reg[7:0] WriteLinkNum,
 output reg WriteLinkNumFlag,
 input [7:0] ReadLinkNum,
+input [2:0] TrainToGen,
 // LPIF TX control & data flow interface 
 output reg HoldFIFOData,
 input FIFOReady,
@@ -69,7 +70,7 @@ output [23:0]seedValue
  parameter  DetectQuiet = 4'b0000, DetectActive = 4'b0001, PollingActive = 4'b0010,
 	    PollingConfigration = 4'b0011, ConfigrationLinkWidthStart = 4'b0100, ConfigrationLinkWidthAccept= 4'b0101,
             ConfigrationLaneNumWait = 4'b0110,  ConfigrationLaneNumActive = 4'b0111, ConfigrationComplete = 4'b1000,
-            ConfigrationIdle = 4'b1001,L0=4'b1010 ,Idle=4'b1111;
+            ConfigrationIdle = 4'b1001,L0=4'b1010,RecoveryRcvrLock=4'b1011,RecoverySpeed=4'b1100,RecoveryRcvrCfg=4'b1101,Idle=4'b1111;
 //Device type 
 parameter DownStream = 0 ,UpStream = 1;
 //time 
@@ -293,7 +294,7 @@ turnOff<=1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
-			OSType<=2'b100; //IDLE
+			OSType<=3'b100; //IDLE
 			OSGeneratorStart<=1;
 			end
 		end
