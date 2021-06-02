@@ -270,7 +270,23 @@ TX
 .TxDataK4(TxDataK[51:48]),
 .TxDataK3(TxDataK[55:52]),
 .TxDataK2(TxDataK[59:56]),
-.TxDataK1(TxDataK[63:60]));
+ .TxDataK1(TxDataK[63:60]),
+ .TxSyncHeader1(TxSyncHeader[1:0]),
+ .TxSyncHeader2(TxSyncHeader[3:2]),
+ .TxSyncHeader3(TxSyncHeader[5:4]),
+ .TxSyncHeader4(TxSyncHeader[7:6]),
+ .TxSyncHeader5(TxSyncHeader[9:8]),
+ .TxSyncHeader6(TxSyncHeader[11:10]),
+ .TxSyncHeader7(TxSyncHeader[13:12]),
+ .TxSyncHeader8(TxSyncHeader[15:14]),
+ .TxSyncHeader9(TxSyncHeader[17:16]),
+ .TxSyncHeader10(TxSyncHeader[19:18]),
+ .TxSyncHeader11(TxSyncHeader[21:20]),
+ .TxSyncHeader12(TxSyncHeader[23:22]),
+ .TxSyncHeader13(TxSyncHeader[25:24]),
+ .TxSyncHeader14(TxSyncHeader[27:26]),
+ .TxSyncHeader15(TxSyncHeader[29:28]),
+ .TxSyncHeader16(TxSyncHeader[31:30]));
 
 assign phy_reset = lpreset;
 
