@@ -40,7 +40,7 @@ output writeLinkNumber);
 	wire [63:0]PIPEDataK, descramblerDataK, LMCDataK;
 	wire [15:0]PIPEDataValid, descramblerDataValid;
 	wire LMCValid;
-	wire [31:0]PIPESyncHeader, descramblerSyncHeader;
+	wire [31:0]PIPESyncHeader, descramblerSyncHeader, LMCSyncHeader;
 	wire [2047:0] orderedSets;
 	//wire forceDetect;
 	wire [15:0]rxElectricalIdle;
@@ -58,6 +58,9 @@ output writeLinkNumber);
 	wire [63:0]tlpedb    ;
 	wire [63:0]tlpend    ;
 
+	
+	//=== seed values for Gen 3 descrambler ===
+	reg [191:0]seedValue = {24'h1dbfbc, 24'h0607bb, 24'h1ec760, 24'h18c0db, 24'h010f12, 24'h19cfc9, 24'h0277ce, 24'h1bb807};
 
 
 	
@@ -70,6 +73,7 @@ output writeLinkNumber);
 			localparam integer k = i*3;
 			localparam integer l = i*4;
 			localparam integer m = i*32;
+			localparam integer s = (i%8)*24;
 			PIPE_Rx_Data #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),
 						.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH)) 
 						PIPE(.reset(reset), .clk(clk), .GEN(GEN), .RxValid(RxValid[i]), .RxStatus(RxStatus[k+:3]), .PhyStatus(PhyStatus[i]),.RxElectricalIdle(RxElectricalIdle[i]),
@@ -77,7 +81,7 @@ output writeLinkNumber);
 							.PIPESyncHeader(PIPESyncHeader[j+:2]), .PIPEDataValid(PIPEDataValid[i]), .PIPEData(PIPEData[m+:32]), .PIPEDataK(PIPEDataK[l+:4]),.PIPEElectricalIdle(rxElectricalIdle[i]));
 							
 			Descrambler descrambler(.clk(clk), .reset(reset), .turnOff(disableDescrambler), .PIPEDataValid(PIPEDataValid[i]), .PIPEWIDTH(PIPEWIDTH), 
-								.PIPESyncHeader(PIPESyncHeader[j+:2]), .seedValue(24'b0), .PIPEData(PIPEData[m+:32]), .PIPEDataK(PIPEDataK[l+:4]), 
+								.PIPESyncHeader(PIPESyncHeader[j+:2]), .seedValue(seedValue[s+:24]), .PIPEData(PIPEData[m+:32]), .PIPEDataK(PIPEDataK[l+:4]), .GEN(GEN),
 								.descramblerDataValid(descramblerDataValid[i]), .descramblerData(descramblerData[m+:32]), .descramblerDataK(descramblerDataK[l+:4]), 
 								.descramblerSyncHeader(descramblerSyncHeader[j+:2]));	
 			end
@@ -85,7 +89,7 @@ output writeLinkNumber);
 	
 	LMC_RX #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))  
 		lmc (.clk(clk), .reset(reset), .GEN(GEN), .descramblerSyncHeader(descramblerSyncHeader), .descramblerDataValid(descramblerDataValid),
-			.LANESNUMBER(numberOfDetectedLanes), .LMCIn(descramblerData), .descramblerDataK(descramblerDataK), .LMCValid(LMCValid), .LMCDataK(LMCDataK),.LMCData(LMCData));
+			.LANESNUMBER(numberOfDetectedLanes), .LMCIn(descramblerData), .descramblerDataK(descramblerDataK), .LMCValid(LMCValid), .LMCSyncHeader(LMCSyncHeader), .LMCDataK(LMCDataK),.LMCData(LMCData));
 										
 	osDecoder#(.Width(32),.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
 	 os(
@@ -321,7 +325,4 @@ always #5 clk = ~clk;
 
 
 endmodule
-
-
-
 
