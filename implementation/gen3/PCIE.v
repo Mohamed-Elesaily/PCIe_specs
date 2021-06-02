@@ -286,7 +286,23 @@ TX
  .TxSyncHeader13(TxSyncHeader[25:24]),
  .TxSyncHeader14(TxSyncHeader[27:26]),
  .TxSyncHeader15(TxSyncHeader[29:28]),
- .TxSyncHeader16(TxSyncHeader[31:30]));
+ .TxSyncHeader16(TxSyncHeader[31:30])
+ .TxStartBlock1(TxStartBlock[0]), 
+ .TxStartBlock2(TxStartBlock[1]), 
+ .TxStartBlock3(TxStartBlock[2]), 
+ .TxStartBlock4(TxStartBlock[3]), 
+ .TxStartBlock5(TxStartBlock[4]), 
+ .TxStartBlock6(TxStartBlock[5]), 
+ .TxStartBlock7(TxStartBlock[6]), 
+ .TxStartBlock8(TxStartBlock[7]), 
+ .TxStartBlock9(TxStartBlock[8]),
+ .TxStartBlock10(TxStartBlock[9]), 
+ .TxStartBlock11(TxStartBlock[10]),
+ .TxStartBlock12(TxStartBlock[11]), 
+ .TxStartBlock13(TxStartBlock[12]), 
+ .TxStartBlock14(TxStartBlock[13]), 
+ .TxStartBlock15(TxStartBlock[14]), 
+ .TxStartBlock16(TxStartBlock[15]));
 
 assign phy_reset = lpreset;
 
