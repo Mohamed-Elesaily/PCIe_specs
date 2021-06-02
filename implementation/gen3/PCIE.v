@@ -286,7 +286,7 @@ TX
  .TxSyncHeader13(TxSyncHeader[25:24]),
  .TxSyncHeader14(TxSyncHeader[27:26]),
  .TxSyncHeader15(TxSyncHeader[29:28]),
- .TxSyncHeader16(TxSyncHeader[31:30])
+ .TxSyncHeader16(TxSyncHeader[31:30]),
  .TxStartBlock1(TxStartBlock[0]), 
  .TxStartBlock2(TxStartBlock[1]), 
  .TxStartBlock3(TxStartBlock[2]), 
