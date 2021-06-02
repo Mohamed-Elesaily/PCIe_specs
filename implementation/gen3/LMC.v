@@ -104,7 +104,7 @@ always @(posedge pclk or negedge reset_n) begin
             end
 
         end
-        else if(PIPEWIDTH==6'b010000 && MUXSyncHeader==1 && count>0) begin
+    else if(PIPEWIDTH==6'b010000 && MUXSyncHeader==1 && count>0) begin
 
             count = count + 1;
             if(MUXSyncHeader==1 && count==9) begin
@@ -146,7 +146,7 @@ always @(posedge pclk or negedge reset_n) begin
             end
         end
 
-        else if(PIPEWIDTH==6'b100000 && MUXSyncHeader==1 && count>0) begin
+    else if(PIPEWIDTH==6'b100000 && MUXSyncHeader==1 && count>0) begin
             count = count + 1;
 
             if(MUXSyncHeader==1 && count==5) begin
@@ -186,10 +186,13 @@ always @(posedge pclk or negedge reset_n) begin
                 LMCSyncHeader_15 =0;
                 LMCSyncHeader_16 =0;
 
-            end  
-        end
+            end 
+    end
+    else 
+        count=0;
+  
 
-    else if(MUXSyncHeader==0 && count==0) begin    ///////// Data Block
+    if(MUXSyncHeader==0 && count==0) begin    ///////// Data Block
         LMCSyncHeader_1 =01;
         LMCSyncHeader_2 =01;
         LMCSyncHeader_3 =01;
@@ -338,7 +341,8 @@ always @(posedge pclk or negedge reset_n) begin
             end  
         end
 
-    ////////////////////////////////////////////////////
+        else
+            count =0;
 
   end
 
