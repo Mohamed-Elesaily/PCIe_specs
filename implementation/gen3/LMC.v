@@ -4,7 +4,7 @@ parameter pipe_width_gen3 = 16,
 parameter pipe_width_gen4 = 32,
 parameter pipe_width_gen5 = 32,
 parameter number_of_lanes= 4
-) (reset_n, pclk, generation, data_valid, data, d_k_in, PIPEWIDTH, data_valid_out_1, data_valid_out_2, data_valid_out_3, data_valid_out_4, data_valid_out_5, data_valid_out_6, data_valid_out_7, data_valid_out_8, data_valid_out_9, data_valid_out_10, data_valid_out_11, data_valid_out_12, data_valid_out_13, data_valid_out_14, data_valid_out_15, data_valid_out_16, d_k_out_1, d_k_out_2, d_k_out_3, d_k_out_4, d_k_out_5, d_k_out_6, d_k_out_7, d_k_out_8, d_k_out_9, d_k_out_10, d_k_out_11, d_k_out_12, d_k_out_13, d_k_out_14, d_k_out_15, d_k_out_16, dataout_1, dataout_2, dataout_3, dataout_4, dataout_5, dataout_6, dataout_7, dataout_8, dataout_9, dataout_10, dataout_11, dataout_12, dataout_13, dataout_14, dataout_15, dataout_16);
+) (reset_n, pclk, generation, data_valid, data, d_k_in, MUXSyncHeader, PIPEWIDTH, data_valid_out_1, data_valid_out_2, data_valid_out_3, data_valid_out_4, data_valid_out_5, data_valid_out_6, data_valid_out_7, data_valid_out_8, data_valid_out_9, data_valid_out_10, data_valid_out_11, data_valid_out_12, data_valid_out_13, data_valid_out_14, data_valid_out_15, data_valid_out_16, d_k_out_1, d_k_out_2, d_k_out_3, d_k_out_4, d_k_out_5, d_k_out_6, d_k_out_7, d_k_out_8, d_k_out_9, d_k_out_10, d_k_out_11, d_k_out_12, d_k_out_13, d_k_out_14, d_k_out_15, d_k_out_16, dataout_1, dataout_2, dataout_3, dataout_4, dataout_5, dataout_6, dataout_7, dataout_8, dataout_9, dataout_10, dataout_11, dataout_12, dataout_13, dataout_14, dataout_15, dataout_16, LMCSyncHeader_1, LMCSyncHeader_2, LMCSyncHeader_3, LMCSyncHeader_4, LMCSyncHeader_5, LMCSyncHeader_6, LMCSyncHeader_7, LMCSyncHeader_8, LMCSyncHeader_9, LMCSyncHeader_10, LMCSyncHeader_11, LMCSyncHeader_12, LMCSyncHeader_13, LMCSyncHeader_14, LMCSyncHeader_15, LMCSyncHeader_16);
 
 
 
@@ -13,13 +13,16 @@ input [2:0] generation;
 input [63:0] data_valid;
 input [511 : 0] data;
 input [63:0] d_k_in;
+input MUXSyncHeader;
 
 output reg data_valid_out_1, data_valid_out_2, data_valid_out_3, data_valid_out_4, data_valid_out_5, data_valid_out_6, data_valid_out_7, data_valid_out_8, data_valid_out_9, data_valid_out_10, data_valid_out_11, data_valid_out_12, data_valid_out_13, data_valid_out_14, data_valid_out_15, data_valid_out_16;
 output reg [31 : 0] dataout_1, dataout_2, dataout_3, dataout_4, dataout_5, dataout_6, dataout_7, dataout_8, dataout_9, dataout_10, dataout_11, dataout_12, dataout_13, dataout_14, dataout_15, dataout_16;
 output reg [3 : 0] d_k_out_1, d_k_out_2, d_k_out_3, d_k_out_4, d_k_out_5, d_k_out_6, d_k_out_7, d_k_out_8, d_k_out_9, d_k_out_10, d_k_out_11, d_k_out_12, d_k_out_13, d_k_out_14, d_k_out_15, d_k_out_16;
 output reg [5:0] PIPEWIDTH;
+output reg [1:0] LMCSyncHeader_1, LMCSyncHeader_2, LMCSyncHeader_3, LMCSyncHeader_4, LMCSyncHeader_5, LMCSyncHeader_6, LMCSyncHeader_7, LMCSyncHeader_8, LMCSyncHeader_9, LMCSyncHeader_10, LMCSyncHeader_11, LMCSyncHeader_12, LMCSyncHeader_13, LMCSyncHeader_14, LMCSyncHeader_15, LMCSyncHeader_16;
 
 reg [5:0] pipe_width;
+reg [4:0] count= 0;
 
 always@(generation) begin
     if(generation==1)
@@ -37,6 +40,308 @@ always@(generation) begin
 end
 
 always @(posedge pclk or negedge reset_n) begin
+
+  if(generation >= 3 && reset_n) begin
+
+    if(MUXSyncHeader==1 && count==0) begin  // when MUX = 1 --> Ordered Set
+        LMCSyncHeader_1 =10;
+        LMCSyncHeader_2 =10;
+        LMCSyncHeader_3 =10;
+        LMCSyncHeader_4 =10;
+        LMCSyncHeader_5 =10;
+        LMCSyncHeader_6 =10;
+        LMCSyncHeader_7 =10;
+        LMCSyncHeader_8 =10;
+        LMCSyncHeader_9 =10;
+        LMCSyncHeader_10 =10;
+        LMCSyncHeader_11 =10;
+        LMCSyncHeader_12 =10;
+        LMCSyncHeader_13 =10;
+        LMCSyncHeader_14 =10;
+        LMCSyncHeader_15 =10;
+        LMCSyncHeader_16 =10;
+        count = count + 1;
+    end
+    else if(PIPEWIDTH==6'b001000 && MUXSyncHeader==1 && count>0) begin
+            count = count + 1;
+            if(MUXSyncHeader==1 && count==17) begin
+                LMCSyncHeader_1 =10;
+                LMCSyncHeader_2 =10;
+                LMCSyncHeader_3 =10;
+                LMCSyncHeader_4 =10;
+                LMCSyncHeader_5 =10;
+                LMCSyncHeader_6 =10;
+                LMCSyncHeader_7 =10;
+                LMCSyncHeader_8 =10;
+                LMCSyncHeader_9 =10;
+                LMCSyncHeader_10 =10;
+                LMCSyncHeader_11 =10;
+                LMCSyncHeader_12 =10;
+                LMCSyncHeader_13 =10;
+                LMCSyncHeader_14 =10;
+                LMCSyncHeader_15 =10;
+                LMCSyncHeader_16 =10;
+                count=1;
+            end
+            else begin
+                LMCSyncHeader_1 =0;
+                LMCSyncHeader_2 =0;
+                LMCSyncHeader_3 =0;
+                LMCSyncHeader_4 =0;
+                LMCSyncHeader_5 =0;
+                LMCSyncHeader_6 =0;
+                LMCSyncHeader_7 =0;
+                LMCSyncHeader_8 =0;
+                LMCSyncHeader_9 =0;
+                LMCSyncHeader_10 =0;
+                LMCSyncHeader_11 =0;
+                LMCSyncHeader_12 =0;
+                LMCSyncHeader_13 =0;
+                LMCSyncHeader_14 =0;
+                LMCSyncHeader_15 =0;
+                LMCSyncHeader_16 =0;
+
+            end
+
+        end
+        else if(PIPEWIDTH==6'b010000 && MUXSyncHeader==1 && count>0) begin
+
+            count = count + 1;
+            if(MUXSyncHeader==1 && count==9) begin
+                LMCSyncHeader_1 =10;
+                LMCSyncHeader_2 =10;
+                LMCSyncHeader_3 =10;
+                LMCSyncHeader_4 =10;
+                LMCSyncHeader_5 =10;
+                LMCSyncHeader_6 =10;
+                LMCSyncHeader_7 =10;
+                LMCSyncHeader_8 =10;
+                LMCSyncHeader_9 =10;
+                LMCSyncHeader_10 =10;
+                LMCSyncHeader_11 =10;
+                LMCSyncHeader_12 =10;
+                LMCSyncHeader_13 =10;
+                LMCSyncHeader_14 =10;
+                LMCSyncHeader_15 =10;
+                LMCSyncHeader_16 =10;
+                count=1;
+            end
+            else begin
+                LMCSyncHeader_1 =0;
+                LMCSyncHeader_2 =0;
+                LMCSyncHeader_3 =0;
+                LMCSyncHeader_4 =0;
+                LMCSyncHeader_5 =0;
+                LMCSyncHeader_6 =0;
+                LMCSyncHeader_7 =0;
+                LMCSyncHeader_8 =0;
+                LMCSyncHeader_9 =0;
+                LMCSyncHeader_10 =0;
+                LMCSyncHeader_11 =0;
+                LMCSyncHeader_12 =0;
+                LMCSyncHeader_13 =0;
+                LMCSyncHeader_14 =0;
+                LMCSyncHeader_15 =0;
+                LMCSyncHeader_16 =0;
+            end
+        end
+
+        else if(PIPEWIDTH==6'b100000 && MUXSyncHeader==1 && count>0) begin
+            count = count + 1;
+
+            if(MUXSyncHeader==1 && count==5) begin
+                LMCSyncHeader_1 =10;
+                LMCSyncHeader_2 =10;
+                LMCSyncHeader_3 =10;
+                LMCSyncHeader_4 =10;
+                LMCSyncHeader_5 =10;
+                LMCSyncHeader_6 =10;
+                LMCSyncHeader_7 =10;
+                LMCSyncHeader_8 =10;
+                LMCSyncHeader_9 =10;
+                LMCSyncHeader_10 =10;
+                LMCSyncHeader_11 =10;
+                LMCSyncHeader_12 =10;
+                LMCSyncHeader_13 =10;
+                LMCSyncHeader_14 =10;
+                LMCSyncHeader_15 =10;
+                LMCSyncHeader_16 =10;
+                count=1;
+            end
+            else begin
+                LMCSyncHeader_1 =0;
+                LMCSyncHeader_2 =0;
+                LMCSyncHeader_3 =0;
+                LMCSyncHeader_4 =0;
+                LMCSyncHeader_5 =0;
+                LMCSyncHeader_6 =0;
+                LMCSyncHeader_7 =0;
+                LMCSyncHeader_8 =0;
+                LMCSyncHeader_9 =0;
+                LMCSyncHeader_10 =0;
+                LMCSyncHeader_11 =0;
+                LMCSyncHeader_12 =0;
+                LMCSyncHeader_13 =0;
+                LMCSyncHeader_14 =0;
+                LMCSyncHeader_15 =0;
+                LMCSyncHeader_16 =0;
+
+            end  
+        end
+
+    else if(MUXSyncHeader==0 && count==0) begin    ///////// Data Block
+        LMCSyncHeader_1 =01;
+        LMCSyncHeader_2 =01;
+        LMCSyncHeader_3 =01;
+        LMCSyncHeader_4 =01;
+        LMCSyncHeader_5 =01;
+        LMCSyncHeader_6 =01;
+        LMCSyncHeader_7 =01;
+        LMCSyncHeader_8 =01;
+        LMCSyncHeader_9 =01;
+        LMCSyncHeader_10 =01;
+        LMCSyncHeader_11 =01;
+        LMCSyncHeader_12 =01;
+        LMCSyncHeader_13 =01;
+        LMCSyncHeader_14 =01;
+        LMCSyncHeader_15 =01;
+        LMCSyncHeader_16 =01;
+        count = count + 1;     
+    end 
+
+
+    /////////////////////////////////////////////////
+    else if(PIPEWIDTH==6'b001000 && MUXSyncHeader==0 && count>0) begin
+            count = count + 1;
+            if(MUXSyncHeader==1 && count==17) begin
+                LMCSyncHeader_1 =01;
+                LMCSyncHeader_2 =01;
+                LMCSyncHeader_3 =01;
+                LMCSyncHeader_4 =01;
+                LMCSyncHeader_5 =01;
+                LMCSyncHeader_6 =01;
+                LMCSyncHeader_7 =01;
+                LMCSyncHeader_8 =01;
+                LMCSyncHeader_9 =01;
+                LMCSyncHeader_10 =01;
+                LMCSyncHeader_11 =01;
+                LMCSyncHeader_12 =01;
+                LMCSyncHeader_13 =01;
+                LMCSyncHeader_14 =01;
+                LMCSyncHeader_15 =01;
+                LMCSyncHeader_16 =01;
+                count=1;
+            end
+            else begin
+                LMCSyncHeader_1 =0;
+                LMCSyncHeader_2 =0;
+                LMCSyncHeader_3 =0;
+                LMCSyncHeader_4 =0;
+                LMCSyncHeader_5 =0;
+                LMCSyncHeader_6 =0;
+                LMCSyncHeader_7 =0;
+                LMCSyncHeader_8 =0;
+                LMCSyncHeader_9 =0;
+                LMCSyncHeader_10 =0;
+                LMCSyncHeader_11 =0;
+                LMCSyncHeader_12 =0;
+                LMCSyncHeader_13 =0;
+                LMCSyncHeader_14 =0;
+                LMCSyncHeader_15 =0;
+                LMCSyncHeader_16 =0;
+
+            end
+
+        end
+        else if(PIPEWIDTH==6'b010000 && MUXSyncHeader==0 && count>0) begin
+
+            count = count + 1;
+            if(MUXSyncHeader==1 && count==9) begin
+                LMCSyncHeader_1 =01;
+                LMCSyncHeader_2 =01;
+                LMCSyncHeader_3 =01;
+                LMCSyncHeader_4 =01;
+                LMCSyncHeader_5 =01;
+                LMCSyncHeader_6 =01;
+                LMCSyncHeader_7 =01;
+                LMCSyncHeader_8 =01;
+                LMCSyncHeader_9 =01;
+                LMCSyncHeader_10 =01;
+                LMCSyncHeader_11 =01;
+                LMCSyncHeader_12 =01;
+                LMCSyncHeader_13 =01;
+                LMCSyncHeader_14 =01;
+                LMCSyncHeader_15 =01;
+                LMCSyncHeader_16 =01;
+                count=1;
+            end
+            else begin
+                LMCSyncHeader_1 =0;
+                LMCSyncHeader_2 =0;
+                LMCSyncHeader_3 =0;
+                LMCSyncHeader_4 =0;
+                LMCSyncHeader_5 =0;
+                LMCSyncHeader_6 =0;
+                LMCSyncHeader_7 =0;
+                LMCSyncHeader_8 =0;
+                LMCSyncHeader_9 =0;
+                LMCSyncHeader_10 =0;
+                LMCSyncHeader_11 =0;
+                LMCSyncHeader_12 =0;
+                LMCSyncHeader_13 =0;
+                LMCSyncHeader_14 =0;
+                LMCSyncHeader_15 =0;
+                LMCSyncHeader_16 =0;
+            end
+        end
+
+        else if(PIPEWIDTH==6'b100000 && MUXSyncHeader==0 && count>0) begin
+            count = count + 1;
+
+            if(MUXSyncHeader==1 && count==5) begin
+                LMCSyncHeader_1 =01;
+                LMCSyncHeader_2 =01;
+                LMCSyncHeader_3 =01;
+                LMCSyncHeader_4 =01;
+                LMCSyncHeader_5 =01;
+                LMCSyncHeader_6 =01;
+                LMCSyncHeader_7 =01;
+                LMCSyncHeader_8 =01;
+                LMCSyncHeader_9 =01;
+                LMCSyncHeader_10 =01;
+                LMCSyncHeader_11 =01;
+                LMCSyncHeader_12 =01;
+                LMCSyncHeader_13 =01;
+                LMCSyncHeader_14 =01;
+                LMCSyncHeader_15 =01;
+                LMCSyncHeader_16 =01;
+                count=1;
+            end
+            else begin
+                LMCSyncHeader_1 =0;
+                LMCSyncHeader_2 =0;
+                LMCSyncHeader_3 =0;
+                LMCSyncHeader_4 =0;
+                LMCSyncHeader_5 =0;
+                LMCSyncHeader_6 =0;
+                LMCSyncHeader_7 =0;
+                LMCSyncHeader_8 =0;
+                LMCSyncHeader_9 =0;
+                LMCSyncHeader_10 =0;
+                LMCSyncHeader_11 =0;
+                LMCSyncHeader_12 =0;
+                LMCSyncHeader_13 =0;
+                LMCSyncHeader_14 =0;
+                LMCSyncHeader_15 =0;
+                LMCSyncHeader_16 =0;
+
+            end  
+        end
+
+    ////////////////////////////////////////////////////
+
+  end
+
   if (~reset_n) begin
     dataout_1=0;
     dataout_2=0; 
@@ -88,6 +393,23 @@ always @(posedge pclk or negedge reset_n) begin
     data_valid_out_14=0;
     data_valid_out_15=0;
     data_valid_out_16=0;
+
+    LMCSyncHeader_1 =0;
+    LMCSyncHeader_2 =0;
+    LMCSyncHeader_3 =0;
+    LMCSyncHeader_4 =0;
+    LMCSyncHeader_5 =0;
+    LMCSyncHeader_6 =0;
+    LMCSyncHeader_7 =0;
+    LMCSyncHeader_8 =0;
+    LMCSyncHeader_9 =0;
+    LMCSyncHeader_10 =0;
+    LMCSyncHeader_11 =0;
+    LMCSyncHeader_12 =0;
+    LMCSyncHeader_13 =0;
+    LMCSyncHeader_14 =0;
+    LMCSyncHeader_15 =0;
+    LMCSyncHeader_16 =0;
 
   end
 
