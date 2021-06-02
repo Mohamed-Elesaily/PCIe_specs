@@ -33,7 +33,7 @@ module Scrambler (input wire pclk, input wire reset_n, input wire turnOff, input
 	LFSR_32_gen3 lfsr_32_gen3(.seedValue(seedValue), .scrambler_reset(patternReset), .reset_n(reset_n), .pclk(pclk), .data_out(lfsrOut_32_gen3));					
 
 
-	Master_Tx master_tx(.turnOff(turnOff), .syncHeader(LMCSyncHeader), .PIPEWIDTH(PIPEWIDTH), .masterData(dataout_1), .GEN(GEN),
+	Master_Tx master_tx(.turnOff(turnOff), .syncHeader(LMCSyncHeader_1), .PIPEWIDTH(PIPEWIDTH), .masterData(dataout_1), .GEN(GEN),
 				 .patternReset(patternReset), .LFSRSel(lfsrSel), .advance(advance), .scramblingEnable(scramblingEnable));
 
 	always@*
@@ -130,7 +130,7 @@ module Scrambler (input wire pclk, input wire reset_n, input wire turnOff, input
 
 	assign scramblerDataK = d_k_out_1;	
 	assign scramblerDataValid = data_valid_out_1;
-	assign scramblerSyncHeader = LMCSyncHeader;
+	assign scramblerSyncHeader = LMCSyncHeader_1;
 
 endmodule
 
