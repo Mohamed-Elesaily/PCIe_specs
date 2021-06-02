@@ -10,7 +10,7 @@ parameter GEN4_PIPEWIDTH = 8 ,
 parameter GEN5_PIPEWIDTH = 8 ,	
 parameter MAX_GEN = 1
 )
-(pclk,reset_n,NumberDetectLanes,pl_trdy,lp_irdy,lp_data,lp_valid,lp_dlpstart,lp_dlpend, lp_tlpstart,lp_tlpend,RxStatus,TxDetectRx_Loopback,PowerDown, PhyStatus,TxElecIdle,detected_lanes,WriteDetectLanesFlag,SetTXState,TXFinishFlag,TXExitTo,WriteLinkNum,WriteLinkNumFlag,ReadLinkNum ,TxData1,TxData2,TxData3,TxData4,TxData5,TxData6,TxData7,TxData8,TxData9,TxData10,TxData11,TxData12,TxData13,TxData14,TxData15,TxData16,TxDataValid1,TxDataValid2,TxDataValid3,TxDataValid4,TxDataValid5,TxDataValid6,TxDataValid7,TxDataValid8,TxDataValid9,TxDataValid10,TxDataValid11,TxDataValid12,TxDataValid13,TxDataValid14,TxDataValid15,TxDataValid16,TxDataK1,TxDataK2,TxDataK3,TxDataK4,TxDataK5,TxDataK6,TxDataK7,TxDataK8,TxDataK9,TxDataK10,TxDataK11,TxDataK12,TxDataK13,TxDataK14,TxDataK15,TxDataK16,TxSyncHeader1,TxSyncHeader2,TxSyncHeader3,TxSyncHeader4,TxSyncHeader5,TxSyncHeader6,TxSyncHeader7,TxSyncHeader8,TxSyncHeader9,TxSyncHeader10,TxSyncHeader11,TxSyncHeader12,TxSyncHeader13,TxSyncHeader14,TxSyncHeader15,TxSyncHeader16,rateIdIn,upConfigureCapabilityIn);
+(pclk,reset_n,NumberDetectLanes,pl_trdy,lp_irdy,lp_data,lp_valid,lp_dlpstart,lp_dlpend, lp_tlpstart,lp_tlpend,RxStatus,TxDetectRx_Loopback,PowerDown, PhyStatus,TxElecIdle,detected_lanes,WriteDetectLanesFlag,SetTXState,TXFinishFlag,TXExitTo,WriteLinkNum,WriteLinkNumFlag,ReadLinkNum ,TxData1,TxData2,TxData3,TxData4,TxData5,TxData6,TxData7,TxData8,TxData9,TxData10,TxData11,TxData12,TxData13,TxData14,TxData15,TxData16,TxDataValid1,TxDataValid2,TxDataValid3,TxDataValid4,TxDataValid5,TxDataValid6,TxDataValid7,TxDataValid8,TxDataValid9,TxDataValid10,TxDataValid11,TxDataValid12,TxDataValid13,TxDataValid14,TxDataValid15,TxDataValid16,TxDataK1,TxDataK2,TxDataK3,TxDataK4,TxDataK5,TxDataK6,TxDataK7,TxDataK8,TxDataK9,TxDataK10,TxDataK11,TxDataK12,TxDataK13,TxDataK14,TxDataK15,TxDataK16,TxSyncHeader1,TxSyncHeader2,TxSyncHeader3,TxSyncHeader4,TxSyncHeader5,TxSyncHeader6,TxSyncHeader7,TxSyncHeader8,TxSyncHeader9,TxSyncHeader10,TxSyncHeader11,TxSyncHeader12,TxSyncHeader13,TxSyncHeader14,TxSyncHeader15,TxSyncHeader16, TxStartBlock1, TxStartBlock2, TxStartBlock3, TxStartBlock4, TxStartBlock5, TxStartBlock6, TxStartBlock7, TxStartBlock8, TxStartBlock9, TxStartBlock10, TxStartBlock11,TxStartBlock12, TxStartBlock13, TxStartBlock14, TxStartBlock15, TxStartBlock16,rateIdIn,upConfigureCapabilityIn);
 
 //lane number 
 input [7:0] rateIdIn;
@@ -50,7 +50,8 @@ output [31:0] TxData1,TxData2,TxData3,TxData4,TxData5,TxData6,TxData7,TxData8,Tx
 output  TxDataValid1,TxDataValid2,TxDataValid3,TxDataValid4,TxDataValid5,TxDataValid6,TxDataValid7,TxDataValid8,TxDataValid9,TxDataValid10,TxDataValid11,TxDataValid12,TxDataValid13,TxDataValid14,TxDataValid15,TxDataValid16;
 output [3:0]  TxDataK1,TxDataK2,TxDataK3,TxDataK4,TxDataK5,TxDataK6,TxDataK7,TxDataK8,TxDataK9,TxDataK10,TxDataK11,TxDataK12,TxDataK13,TxDataK14,TxDataK15,TxDataK16;
 output [1:0] TxSyncHeader1,TxSyncHeader2,TxSyncHeader3,TxSyncHeader4,TxSyncHeader5,TxSyncHeader6,TxSyncHeader7,TxSyncHeader8,TxSyncHeader9,TxSyncHeader10,TxSyncHeader11,TxSyncHeader12,TxSyncHeader13,TxSyncHeader14,TxSyncHeader15,TxSyncHeader16;
-
+output TxStartBlock1, TxStartBlock2, TxStartBlock3, TxStartBlock4, TxStartBlock5, TxStartBlock6, TxStartBlock7, TxStartBlock8, TxStartBlock9, TxStartBlock10, TxStartBlock11,TxStartBlock12, TxStartBlock13, TxStartBlock14, TxStartBlock15, TxStartBlock16;   
+ 
  //common
 wire [2:0] gen;
 input pclk;
@@ -158,22 +159,22 @@ LMC  #(.pipe_width_gen1(GEN1_PIPEWIDTH),
  Scrambler lane15 (pclk,reset_n,turnOff,pipewidth,LMCSyncHeader15,seedValue,data_lmc15,datak_lmc15, datavalid_lmcout15,gen,scramblerDataOut15,scramblerDataK15,scramblerDataValid15,scramblerSyncHeader15);
  Scrambler lane16 (pclk,reset_n,turnOff,pipewidth,LMCSyncHeader16,seedValue,data_lmc16,datak_lmc16, datavalid_lmcout16,gen,scramblerDataOut16,scramblerDataK16,scramblerDataValid16,scramblerSyncHeader16);
 
- PIPE_Data Lane1(gen, pclk, reset_n, scramblerDataOut1, scramblerDataK1, scramblerSyncHeader1, scramblerDataValid1, TxData1, TxDataValid1, TxDataK1, TxSyncHeader1);
- PIPE_Data Lane2(gen, pclk, reset_n, scramblerDataOut2, scramblerDataK2, scramblerSyncHeader2, scramblerDataValid2, TxData2, TxDataValid2, TxDataK2, TxSyncHeader2);
- PIPE_Data Lane3(gen, pclk, reset_n, scramblerDataOut3, scramblerDataK3, scramblerSyncHeader3, scramblerDataValid3, TxData3, TxDataValid3, TxDataK3, TxSyncHeader3);
- PIPE_Data Lane4(gen, pclk, reset_n, scramblerDataOut4, scramblerDataK4, scramblerSyncHeader4, scramblerDataValid4, TxData4, TxDataValid4, TxDataK4, TxSyncHeader4);
- PIPE_Data Lane5(gen, pclk, reset_n, scramblerDataOut5, scramblerDataK5, scramblerSyncHeader5, scramblerDataValid5, TxData5, TxDataValid5, TxDataK5, TxSyncHeader5);
- PIPE_Data Lane6(gen, pclk, reset_n, scramblerDataOut6, scramblerDataK6, scramblerSyncHeader6, scramblerDataValid6, TxData6, TxDataValid6, TxDataK6, TxSyncHeader6);
- PIPE_Data Lane7(gen, pclk, reset_n, scramblerDataOut7, scramblerDataK7, scramblerSyncHeader7, scramblerDataValid7, TxData7, TxDataValid7, TxDataK7, TxSyncHeader7);
- PIPE_Data Lane8(gen, pclk, reset_n, scramblerDataOut8, scramblerDataK8, scramblerSyncHeader8, scramblerDataValid8, TxData8, TxDataValid8, TxDataK8, TxSyncHeader8);
- PIPE_Data Lane9(gen, pclk, reset_n, scramblerDataOut9, scramblerDataK9, scramblerSyncHeader9, scramblerDataValid9, TxData9, TxDataValid9, TxDataK9, TxSyncHeader9);
- PIPE_Data Lane10(gen, pclk, reset_n, scramblerDataOut10, scramblerDataK10, scramblerSyncHeader10, scramblerDataValid10, TxData10, TxDataValid10, TxDataK10, TxSyncHeader10);
- PIPE_Data Lane11(gen, pclk, reset_n, scramblerDataOut11, scramblerDataK11, scramblerSyncHeader11, scramblerDataValid11, TxData11, TxDataValid11, TxDataK11, TxSyncHeader11);
- PIPE_Data Lane12(gen, pclk, reset_n, scramblerDataOut12, scramblerDataK12, scramblerSyncHeader12, scramblerDataValid12, TxData12, TxDataValid12, TxDataK12, TxSyncHeader12);
- PIPE_Data Lane13(gen, pclk, reset_n, scramblerDataOut13, scramblerDataK13, scramblerSyncHeader13, scramblerDataValid13, TxData13, TxDataValid13, TxDataK13, TxSyncHeader13);
- PIPE_Data Lane14(gen, pclk, reset_n, scramblerDataOut14, scramblerDataK14, scramblerSyncHeader14, scramblerDataValid14, TxData14, TxDataValid14, TxDataK14, TxSyncHeader14);
- PIPE_Data Lane15(gen, pclk, reset_n, scramblerDataOut15, scramblerDataK15, scramblerSyncHeader15, scramblerDataValid15, TxData15, TxDataValid15, TxDataK15, TxSyncHeader15);
- PIPE_Data Lane16(gen, pclk, reset_n, scramblerDataOut16, scramblerDataK16, scramblerSyncHeader16, scramblerDataValid16, TxData16, TxDataValid16, TxDataK16, TxSyncHeader16);
+ PIPE_Data Lane1(gen, pclk, reset_n, scramblerDataOut1, scramblerDataK1, scramblerSyncHeader1, scramblerDataValid1, TxData1, TxDataValid1, TxDataK1, TxSyncHeader1, TxStartBlock1);
+ PIPE_Data Lane2(gen, pclk, reset_n, scramblerDataOut2, scramblerDataK2, scramblerSyncHeader2, scramblerDataValid2, TxData2, TxDataValid2, TxDataK2, TxSyncHeader2, TxStartBlock2);
+ PIPE_Data Lane3(gen, pclk, reset_n, scramblerDataOut3, scramblerDataK3, scramblerSyncHeader3, scramblerDataValid3, TxData3, TxDataValid3, TxDataK3, TxSyncHeader3, TxStartBlock3);
+ PIPE_Data Lane4(gen, pclk, reset_n, scramblerDataOut4, scramblerDataK4, scramblerSyncHeader4, scramblerDataValid4, TxData4, TxDataValid4, TxDataK4, TxSyncHeader4, TxStartBlock4);
+ PIPE_Data Lane5(gen, pclk, reset_n, scramblerDataOut5, scramblerDataK5, scramblerSyncHeader5, scramblerDataValid5, TxData5, TxDataValid5, TxDataK5, TxSyncHeader5, TxStartBlock5);
+ PIPE_Data Lane6(gen, pclk, reset_n, scramblerDataOut6, scramblerDataK6, scramblerSyncHeader6, scramblerDataValid6, TxData6, TxDataValid6, TxDataK6, TxSyncHeader6, TxStartBlock6);
+ PIPE_Data Lane7(gen, pclk, reset_n, scramblerDataOut7, scramblerDataK7, scramblerSyncHeader7, scramblerDataValid7, TxData7, TxDataValid7, TxDataK7, TxSyncHeader7, TxStartBlock7);
+ PIPE_Data Lane8(gen, pclk, reset_n, scramblerDataOut8, scramblerDataK8, scramblerSyncHeader8, scramblerDataValid8, TxData8, TxDataValid8, TxDataK8, TxSyncHeader8, TxStartBlock8);
+ PIPE_Data Lane9(gen, pclk, reset_n, scramblerDataOut9, scramblerDataK9, scramblerSyncHeader9, scramblerDataValid9, TxData9, TxDataValid9, TxDataK9, TxSyncHeader9, TxStartBlock9);
+ PIPE_Data Lane10(gen, pclk, reset_n, scramblerDataOut10, scramblerDataK10, scramblerSyncHeader10, scramblerDataValid10, TxData10, TxDataValid10, TxDataK10, TxSyncHeader10, TxStartBlock10);
+ PIPE_Data Lane11(gen, pclk, reset_n, scramblerDataOut11, scramblerDataK11, scramblerSyncHeader11, scramblerDataValid11, TxData11, TxDataValid11, TxDataK11, TxSyncHeader11, TxStartBlock11);
+ PIPE_Data Lane12(gen, pclk, reset_n, scramblerDataOut12, scramblerDataK12, scramblerSyncHeader12, scramblerDataValid12, TxData12, TxDataValid12, TxDataK12, TxSyncHeader12, TxStartBlock12);
+ PIPE_Data Lane13(gen, pclk, reset_n, scramblerDataOut13, scramblerDataK13, scramblerSyncHeader13, scramblerDataValid13, TxData13, TxDataValid13, TxDataK13, TxSyncHeader13, TxStartBlock13);
+ PIPE_Data Lane14(gen, pclk, reset_n, scramblerDataOut14, scramblerDataK14, scramblerSyncHeader14, scramblerDataValid14, TxData14, TxDataValid14, TxDataK14, TxSyncHeader14, TxStartBlock14);
+ PIPE_Data Lane15(gen, pclk, reset_n, scramblerDataOut15, scramblerDataK15, scramblerSyncHeader15, scramblerDataValid15, TxData15, TxDataValid15, TxDataK15, TxSyncHeader15, TxStartBlock15);
+ PIPE_Data Lane16(gen, pclk, reset_n, scramblerDataOut16, scramblerDataK16, scramblerSyncHeader16, scramblerDataValid16, TxData16, TxDataValid16, TxDataK16, TxSyncHeader16, TxStartBlock16);
 
 
 endmodule
