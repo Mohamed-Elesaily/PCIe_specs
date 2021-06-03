@@ -14,6 +14,9 @@ input [2047:0] orderedSets,
 input [4:0]numberOfDetectedLanes,
 input [3:0]substate,
 input [7:0]linkNumber,
+input directed_speed_change,   ///////////new
+input [63:0] TxpresetHintofUS,//////////new
+input [2:0] trainToGen,////////////new
 //input forceDetect,
 input rxElectricalIdle,
 input validOrderedSets,
@@ -27,7 +30,11 @@ output witeUpconfigureCapability,
 output writerateid,
 output writeLinkNumber,
 output disableDescrambler,
-output [3:0]lpifStatus
+output [3:0]lpifStatus,
+output [47:0] ReceiverpresetHintofOtherDevice,///////////new
+output [63:0] TransmitterPresetofOtherDevice,///////////new
+output writeReceiverpresetHint,///////////new
+output writeTransmitterPresetHint///////////new
 );
 
 wire [15:0]resetOsCheckers;
@@ -39,7 +46,8 @@ wire [79:0]countersValues;
 wire [4:0] checkValues;
 wire [15:0]comparisonValues;
 wire  enableTimer,startTimer,resetTimer,timeOut;
-wire [2:0]setTimer;
+wire [2:0]setTimer
+wire [15:0]RcvrCfgToidle;
 
 
 genvar i;
@@ -47,19 +55,30 @@ generate
    for (i=0; i <= 15; i=i+1) 
    begin
      osChecker #(.DEVICETYPE(DEVICETYPE))osChecker( 
-     clk,
-     linkNumber,
-     i[7:0],
-     orderedSets[(i*128)+127:i*128],
-     validOrderedSets,
-     substate,
-     resetOsCheckers[i],
-     countUp[i],
-     resetCounters[i],
-     rateIds[(i*8)+7:i*8],
-     linkNumbers[(i*8)+7:i*8],
-     upConfigurebits[i]);
+     .clk(clk),
+     .linkNumber(linkNumber),
+     .laneNumber(i[7:0]),
+     .orderedset(orderedSets[(i*128)+127:i*128]),
+     .valid(validOrderedSets),
+     .substate(substate),
+     .reset(resetOsCheckers[i]),
+     .directed_speed_change(directed_speed_change),
+     .gen(Gen),
+     .countup(countUp[i]),
+     .resetcounter(resetCounters[i]),
+     .rateid(rateIds[(i*8)+7:i*8]),
+     .linkNumberOut(linkNumbers[(i*8)+7:i*8]),
+     .upconfigure_capability(upConfigurebits[i]),
+     .ReceiverpresetHint(ReceiverpresetHint[(i*3)+2:i*3]),
+     .TransmitterPreset(TransmitterPreset[(i*4)+3:i*4]),
+     .RcvrCfgToidle(RcvrCfgToidle[i]),
+     .TxpresetHintofUS(TxpresetHintofUS[(i*4)+3:i*4]), //input to each os checker to compare in phase0 as downstream
+     .ReceiverpresetHintofOtherDevice(ReceiverpresetHintofOtherDevice[(i*3)+2:i*3]),
+     .TransmitterPresetofOtherDevice(TransmitterPresetofOtherDevice[(i*4)+3:i*4]) 
+         
+     );
 
+    
      counter counter(
      resetCounters[i],
      clk,
@@ -77,26 +96,27 @@ endgenerate
 
 
 masterRxLTSSM masterRxLTSSM(
-    clk,
-    numberOfDetectedLanes,
-    substate,
-    comparisonValues,
-    //forceDetect,
-    rxElectricalIdle,
-    timeOut,
-    reset,
-    finish,
-    exitTo,
-    resetOsCheckers,
-    disableDescrambler,
-    lpifStatus,
-    setTimer,
-    enableTimer,
-    startTimer,
-    resetTimer,
-    checkValues);
+    .clk(clk),
+    .numberOfDetectedLanes(numberOfDetectedLanes),
+    .substate(substate),
+    .countersComparators(comparisonValues),
+    .rxElectricalIdle(rxElectricalIdle),
+    .timeOut(timeOut),
+    .reset(reset),
+    .RcvrCfgToidle(RcvrCfgToidle),
+    .finish(finish),
+    .exitTo(exitTo),
+    .resetOsCheckers(resetOsCheckers),
+    .disableDescrambler(disableDescrambler),
+    .lpifStatus(lpifStatus),
+    .timeToWait(setTimer),
+    .enableTimer(enableTimer),
+    .startTimer(startTimer),
+    .resetTimer(resetTimer),
+    .comparatorsCount(checkValues),
+    .trainToGen(trainToGen));
+    
 
-//timer timer(clk,setTimer,enableTimer,resetTimer,timeOut);
 Timer #(
 Width,
 GEN1_PIPEWIDTH,	
@@ -120,5 +140,6 @@ assign writerateid= (finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign witeUpconfigureCapability=(finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign writeLinkNumber = (finish && (exitTo == 4'd5) && DEVICETYPE)? 1'b1:1'b0;
 assign {rateId,upConfigureCapability,linkNumberOut} = {rateIds[7:0],upConfigurebits[0],linkNumbers[7:0]};
+assign {writeReceiverpresetHint,writeTransmitterPresetHint} = (substate ==4'd13&&finish&&exitTo == 4'd12)? 2'b11:2'b00;//when in recoveryCfg and exit to recovery speed
 //assign linkUp = (substate == 4'd10)? 1'b1 : 1'b0;
 endmodule
