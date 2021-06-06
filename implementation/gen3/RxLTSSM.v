@@ -34,7 +34,9 @@ output [3:0]lpifStatus,
 output [47:0] ReceiverpresetHintofOtherDevice,///////////new
 output [63:0] TransmitterPresetofOtherDevice,///////////new
 output writeReceiverpresetHint,///////////new
-output writeTransmitterPresetHint///////////new
+output writeTransmitterPresetHint,///////////new
+output [16*6-1:0]LFOfOtherDevice,
+output [16*6-1:0]FSOfOtherDevice
 );
 
 wire [15:0]resetOsCheckers;
@@ -46,7 +48,7 @@ wire [79:0]countersValues;
 wire [4:0] checkValues;
 wire [15:0]comparisonValues;
 wire  enableTimer,startTimer,resetTimer,timeOut;
-wire [2:0]setTimer
+wire [2:0]setTimer;
 wire [15:0]RcvrCfgToidle;
 
 
@@ -69,13 +71,12 @@ generate
      .rateid(rateIds[(i*8)+7:i*8]),
      .linkNumberOut(linkNumbers[(i*8)+7:i*8]),
      .upconfigure_capability(upConfigurebits[i]),
-     .ReceiverpresetHint(ReceiverpresetHint[(i*3)+2:i*3]),
-     .TransmitterPreset(TransmitterPreset[(i*4)+3:i*4]),
      .RcvrCfgToidle(RcvrCfgToidle[i]),
      .TxpresetHintofUS(TxpresetHintofUS[(i*4)+3:i*4]), //input to each os checker to compare in phase0 as downstream
      .ReceiverpresetHintofOtherDevice(ReceiverpresetHintofOtherDevice[(i*3)+2:i*3]),
-     .TransmitterPresetofOtherDevice(TransmitterPresetofOtherDevice[(i*4)+3:i*4]) 
-         
+     .TransmitterPresetofOtherDevice(TransmitterPresetofOtherDevice[(i*4)+3:i*4]), 
+     .LFOfOtherDevice(LFOfOtherDevice[(i*6)+5:i*6]),
+     .FSOfOtherDevice(LFOfOtherDevice[(i*6)+5:i*6])    
      );
 
     

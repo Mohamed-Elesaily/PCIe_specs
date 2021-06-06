@@ -16,7 +16,9 @@ module osChecker #(parameter DEVICETYPE = 0)(
     output upconfigure_capability,
     output [2:0] ReceiverpresetHintofOtherDevice,    //I send it to mainltssm in recovery cfg
     output [3:0] TransmitterPresetofOtherDevice,     //I send it to mainltssm in recovery cfg
-    output  RcvrCfgToidle);
+    output  RcvrCfgToidle,
+    output [5:0]LFOfOtherDevice,
+    output [5:0]FSOfOtherDevice);
 
     //LOCLA VARIABLES
     reg[4:0] currentState,nextState;
@@ -34,7 +36,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
     gen3eios = 8'h66;
 
 //input substates from main ltssm
-    localparam [3:0]
+
         localparam [4:0]
 	    detectQuiet =  5'd0,
         detectActive = 5'd1,
@@ -50,10 +52,10 @@ module osChecker #(parameter DEVICETYPE = 0)(
         recoveryRcvrLock = 5'd11,
         recoveryRcvrCfg = 5'd12,
         recoverySpeed = 5'd13,
-        phase0 = 5'14,
-        phase1 = 5'15,
-        phase2 = 5'16,
-        phase3 =5'17,
+        phase0 = 5'd14,
+        phase1 = 5'd15,
+        phase2 = 5'd16,
+        phase3 =5'd17,
         recoveryIdle = 5'd18;
 
 //internal states
@@ -94,10 +96,15 @@ module osChecker #(parameter DEVICETYPE = 0)(
         phase0up1 = 6'd30,
         phase0up2 = 6'd31,
         phase0down1 = 6'd32,
-        phase0up1 = 6'd33;
+        phase0down2 = 6'd33,
+
+        phase1up1 = 6'd34,
+        phase1up2 = 6'd35,
+        phase1down1 = 6'd36,
+        phase1down2 = 6'd37,
         /***********speed******************/
-        RcvrSpeed1 = 6'd34,
-        RcvrSpeed2 = 6'35;
+        RcvrSpeed1 = 6'd38,
+        RcvrSpeed2 = 6'd39;
 
 
 reg [7:0]symbol6OfTS2;
@@ -141,11 +148,13 @@ begin
             else if (substate == configurationComplete && DEVICETYPE == 1'b0) nextState = configCompleteDown1;
             else if (substate == configurationComplete && DEVICETYPE == 1'b1) nextState = configCompleteUp1;
             else if (substate == configurationIdle) nextState = configIdle1;
-            else if (substate == recoveryRcvrLock) nextState = RcvrLock;
+            else if (substate == recoveryRcvrLock) nextState = RcvrLock1;
             else if (substate == recoveryRcvrCfg) nextState = RcvrCfg;
             else if (substate == recoverySpeed) nextState = RcvrSpeed1;
             else if (substate == phase0 && DEVICETYPE) nextState = phase0up1;
             else if (substate == phase0 && !DEVICETYPE)nextState = phase0down1;
+            else if (substate == phase1 && DEVICETYPE) nextState = phase1up1;
+            else if (substate == phase1 && !DEVICETYPE)nextState = phase1down1;
 
             else nextState = start;
         end
@@ -472,13 +481,13 @@ begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&(ts2CorrectStart||ts1CorrectStart)&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
             &&(orderedset[87:80] == TS2||orderedset[87:80] == TS1)&&orderedset[39]==directed_speed_change&&
-            orderedset[48:49] == 2'b00)
+            orderedset[49:48] == 2'b00)
             begin
-            nextState = RcvrLock_cfg;
+            nextState = RcvrLock2;
             resetcounter = 1'b1; countup = 1'b1;
             end
 
-            else nextState = RcvrLock;
+            else nextState = RcvrLock1;
         end
 
 
@@ -489,21 +498,21 @@ begin
                 begin
                     if((ts2CorrectStart||ts1CorrectStart)&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
                     &&(orderedset[87:80] == TS2||orderedset[87:80] == TS1)&&orderedset[39]==directed_speed_change&&
-                    orderedset[48:49] == 2'b00)
+                    orderedset[49:48] == 2'b00)
                     begin
                         countup = 1'b1;
-                        nextState =  RcvrLock_cfg;
+                        nextState =  RcvrLock2;
                     end
-                    else nextState =  RcvrLock;
+                    else nextState =  RcvrLock1;
                 end
-            else nextState =  RcvrLock_cfg;
+            else nextState =  RcvrLock2;
         end
 
         phase0up1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-            &&orderedset[87:80] == TS1&&orderedset[39]==1'b0&&orderedset[48:49] != 2'b00)
+            &&orderedset[87:80] == TS1&&orderedset[39]==1'b0&&orderedset[49:48] != 2'b00)
             begin
             nextState = phase0up2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -519,7 +528,7 @@ begin
             if(valid)
                 begin
                     if(DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-                    &&orderedset[87:80] == TS1&&orderedset[39]==1'b0&&orderedset[48:49] != 2'b00)
+                    &&orderedset[87:80] == TS1&&orderedset[39]==1'b0&&orderedset[49:48] != 2'b00)
                     begin
                         countup = 1'b1;
                         nextState =  phase0up2;
@@ -533,7 +542,7 @@ begin
         begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&!DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-            &&orderedset[87:80]==TS1&&orderedset[54:51]==TxpresetHintofUS&&orderedset[48:49] == 2'b00)
+            &&orderedset[87:80]==TS1&&orderedset[54:51]==TxpresetHintofUS&&orderedset[49:48]== 2'b00)
             begin
             nextState = phase0down2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -549,7 +558,7 @@ begin
             if(valid)
                 begin
                     if(!DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-                    &&orderedset[87:80] == TS1&&orderedset[54:51]==TxpresetHintofUS&&orderedset[48:49] == 2'b00)
+                    &&orderedset[87:80] == TS1&&orderedset[54:51]==TxpresetHintofUS&&orderedset[49:48]== 2'b00)
                     begin
                         countup = 1'b1;
                         nextState =  phase0down2;
@@ -557,6 +566,66 @@ begin
                     else nextState =  phase0down1;
                 end
             else nextState =  phase0down2;
+        end
+
+         phase1up1:
+        begin
+            resetcounter = 1'b0; countup = 1'b0;
+            if(valid &&DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
+            &&orderedset[87:80] == TS1&&orderedset[49:48] == 2'b10)
+            begin
+            nextState = phase1up2;
+            resetcounter = 1'b1; countup = 1'b1;
+            end
+
+            else nextState = phase1up1;
+
+        end
+
+        phase1up2:
+        begin
+            resetcounter = 1'b1; countup = 1'b0;
+            if(valid)
+                begin
+                    if(DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
+                    &&orderedset[87:80] == TS1&&orderedset[49:48] == 2'b10)
+                    begin
+                        countup = 1'b1;
+                        nextState =  phase1up2;
+                    end
+                    else nextState =  phase1up1;
+                end
+            else nextState =  phase1up2;
+        end
+
+        phase1down1:
+        begin
+            resetcounter = 1'b0; countup = 1'b0;
+            if(valid &&!DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
+            &&orderedset[87:80]==TS1&&orderedset[49:48]== 2'b01)
+            begin
+            nextState = phase1down2;
+            resetcounter = 1'b1; countup = 1'b1;
+            end
+
+            else nextState = phase1down1;
+
+        end
+
+        phase1down2:
+        begin
+            resetcounter = 1'b1; countup = 1'b0;
+            if(valid)
+                begin
+                    if(!DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
+                    &&orderedset[87:80] == TS1&&orderedset[49:48]== 2'b01)
+                    begin
+                        countup = 1'b1;
+                        nextState =  phase1down2;
+                    end
+                    else nextState =  phase1down1;
+                end
+            else nextState =  phase1down2;
         end
 
 
@@ -653,7 +722,11 @@ end
     assign ts1CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS1)? 1'b1 : 1'b0;
     assign ts2CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS2)? 1'b1 : 1'b0;
     assign RcvrCfgToidle = (currentState==RcvrCfg_idle)? 1'b1:1'b0;
-    assign ReceiverpresetHintofOtherDevice = localorderedset[50:48]; //which i receive in the rcvr_config as upstream or downstream
-    assign TransmitterPresetofOtherDevice = localorderedset[53:50];  //which i receive in the rcvr_config as upstream or downstream
+
+    /***********Information that need to be saved in mainltssm to be used later*************************/
+    assign ReceiverpresetHintofOtherDevice = localorderedset[50:48]; //which i receive in the rcvr_config as upstream or downstream in eqTS2
+    assign TransmitterPresetofOtherDevice = localorderedset[53:50];  //which i receive in the rcvr_config as upstream or downstream in eqTS2
+    assign {LFOfOtherDevice,FSOfOtherDevice} = {localorderedset[69:64],localorderedset[61:56]}; /*upstream receive them in phase0 in TS1 / 
+    dowmstream receive them in phase1 in TS1 and each of them should store them to evaluate in phase 2 / 3*/
     
 endmodule

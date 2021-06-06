@@ -43,10 +43,10 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
         recoveryRcvrLock = 5'd11,
         recoveryRcvrCfg = 5'd12,
         recoverySpeed = 5'd13,
-        phase0 = 5'14,
-        phase1 = 5'15,
-        phase2 = 5'16,
-        phase3 =5'17,
+        phase0 = 5'd14,
+        phase1 = 5'd15,
+        phase2 = 5'd16,
+        phase3 =5'd17,
         recoveryIdle = 5'd18;
 
     
@@ -114,7 +114,7 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
 		
             end
             else if (substate==configurationLinkWidthStart||substate==configurationLinkWidthAccept||
-                    substate==configurationLanenumAccept||substate==phas0||substate==phas1||substate==phas2||substate==phas3)
+                    substate==configurationLanenumAccept||substate==phase0||substate==phase1||substate==phase2||substate==phase3)
             begin
                 comparatorsCount = 5'd2;
                 timeToWait = t24ms;
