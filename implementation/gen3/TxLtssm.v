@@ -26,6 +26,11 @@ output reg[7:0] WriteLinkNum,
 output reg WriteLinkNumFlag,
 input [7:0] ReadLinkNum,
 input [2:0] TrainToGen,
+//input ReadSpeedChangeVariable,
+input ReadDirectSpeedChange,
+input [7*LANESNUMBER-1:0]ReadEqualizationControlRegisterUSP,
+input [7*LANESNUMBER-1:0]ReadEqualizationControlRegisterDSP,
+//input ReadCompleteEqualizationVariable, //////ask Emad 
 // LPIF TX control & data flow interface 
 output reg HoldFIFOData,
 input FIFOReady,
@@ -53,6 +58,7 @@ output [6* LANESNUMBER-1:0] PostCursorCoff,
 output [ LANESNUMBER-1:0] RejectCoff,
 output SpeedChange,
 output ReqEq,
+output reg EQTS2,
 //mux
 output reg MuxSel,
 //Lane Management control 
@@ -63,18 +69,30 @@ input  [ LANESNUMBER-1:0]DetectStatus,
 //scrambler
 output reg turnOff,
 output [23:0]seedValue
-
+//new
+input 	[18*LANESNUMBER -1:0]LocalTxPresetCoefficients,
+output 	[18*LANESNUMBER -1:0]TxDeemph,
+input 	[6*LANESNUMBER -1:0]LocalFS,
+input 	[6*LANESNUMBER -1:0]LocalLF,
+output 	[4*LANESNUMBER -1:0]LocalPresetIndex,
+output 	[LANESNUMBER -1:0]GetLocalPresetCoeffcients,
+input 	[LANESNUMBER -1:0]LocalTxCoefficientsValid,
+output 	[6*LANESNUMBER -1:0])OLF,
+output 	[6*LANESNUMBER -1:0]OFS,
+output 	[LANESNUMBER -1:0]RxEqEval,
+output 	[LANESNUMBER -1:0]InvalidRequest,
+input 	[6*LANESNUMBER -1:0]LinkEvaluationFeedbackDirectionChange,
 );
 
 // states encoding
- parameter  DetectQuiet = 4'b0000, DetectActive = 4'b0001, PollingActive = 4'b0010,
-	    PollingConfigration = 4'b0011, ConfigrationLinkWidthStart = 4'b0100, ConfigrationLinkWidthAccept= 4'b0101,
-            ConfigrationLaneNumWait = 4'b0110,  ConfigrationLaneNumActive = 4'b0111, ConfigrationComplete = 4'b1000,
-            ConfigrationIdle = 4'b1001,L0=4'b1010,RecoveryRcvrLock=4'b1011,RecoverySpeed=4'b1100,RecoveryRcvrCfg=4'b1101,Idle=4'b1111;
+ parameter  DetectQuiet = 5'd0, DetectActive = 5'd1, PollingActive = 5'd2,
+	    PollingConfigration = 5'd3, ConfigrationLinkWidthStart = 5'd4, ConfigrationLinkWidthAccept= 5'd5,
+            ConfigrationLaneNumWait = 5'd6,  ConfigrationLaneNumActive = 5'd7, ConfigrationComplete = 5'd8,
+            ConfigrationIdle = 5'd9,L0=5'd10,RecoveryRcvrLock=5'd11,RecoveryRcvrCfg=5'd12, RecoverySpeed=5'd13,Ph0=5'd14,Ph1=5'd15,Ph2=5'd16,Ph3=5'd17,RecoveryIdle= 5'd18, Idle=5'd31;
 //Device type 
 parameter DownStream = 0 ,UpStream = 1;
 //time 
-parameter t12ms= 3'b001,t0ms = 3'b000;
+parameter t12ms= 3'b001,t0ms = 3'b000; t1ms=3'b110;
 //Generation
 parameter Gen1 = 3'b001,Gen2 = 3'b010,Gen3 = 3'b011,Gen4 = 3'b100,Gen5 = 3'b101; // TODO edited
 //internal Register 
@@ -120,11 +138,10 @@ else if (DetectLanes[0]) NumberDetectLanes=0+1;
 else   NumberDetectLanes=0;
 end 
 //exit to logic combinational
-always @ *
-begin
+always @ * begin
 //default value for outputs (synthesis)
-ExitToState = 4'bxxxx;
-ExitToFlag  = 0 ;
+	ExitToState = 4'bxxxx;
+	ExitToFlag  = 0 ;
 
 	case(State)
 		DetectQuiet:begin
@@ -175,12 +192,45 @@ ExitToFlag  = 0 ;
 			ExitToFlag  = 1 ;
 		 end
 		end
+		RecoveryRcvrLock:begin //////////////TODO ask Emad 
+			if(OSGeneratorFinish)begin 
+				ExitToState<=RecoveryRcvrCfg;
+				ExitToFlag<=1;				
+			end
 		
+		end
+		RecoveryRcvrCfg:begin
+			if(OSGeneratorFinish)begin 
+				if(ReadDirectSpeedChange)begin
+					ExitToState<=RecoverySpeed;
+					ExitToFlag<=1;
+				end
+				else begin
+					ExitToState<=RecoveryIdle;
+					ExitToFlag<=1;
+				end
+			end
+		
+		end
+		RecoverySpeed:begin
+			if(TimeOut && OSCount >= 2)begin
+				if(TrainToGen==Gen3)begin
+					ExitToState<=Ph0;
+					ExitToFlag<=1;
+				end
+				else begin
+					ExitToState<=RecoveryRcvrLock;
+					ExitToFlag<=1;
+				end
+			end
+		end
+		Ph0:begin
+			//N/A
+		end
 	endcase
 end
 
-
-//TODO Remeber 
+integer i;
 always @(posedge Pclk) begin
 //Default values of outputs
 Gen <= CurrentGen;
@@ -189,6 +239,7 @@ DetectReq<= {LANESNUMBER{1'b0}};
 OSGeneratorStart <=0;
 WriteLinkNumFlag <=0;
 turnOff<=1;
+GetLocalPresetCoeffcients<=0;
 	case(State)
 		DetectQuiet:begin
 			HoldFIFOData <= 1;
@@ -303,6 +354,133 @@ turnOff<=1;
 			HoldFIFOData<=0;
 			MuxSel <=1; //TODO : check is it 1 or 0 for orderset
 		end
+		RecoveryRcvrLock: begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			if(!OSGeneratorBusy)begin //it is supposed that
+				OSType<=3'b000; //TS1
+				LinkNumber<=ReadLinkNum;
+				Rate<=MAX_GEN;
+				LaneNumber<=2'b01; //num_seq
+				SpeedChange<=ReadSpeedChangeVariable;
+				EC<=2'b00;
+				OSGeneratorStart<=1;
+			end
+		end
+		RecoveryRcvrCfg:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset			
+			if(!OSGeneratorBusy)begin //it is supposed that
+				OSType<=3'b001; //TS2
+				LinkNumber<=ReadLinkNum;
+				Rate<=MAX_GEN;
+				LaneNumber<=2'b01; //num_seq
+				SpeedChange<=ReadSpeedChangeVariable;
+				EC<=2'b00;
+				if (TrainToGen == Gen3 && DEVICETYPE ==DownStream )
+				begin 
+					EQTS2<=1;
+					for(i=0;i<LANESNUMBER;i=i+1)begin
+						RXPreset[3*i+2:3*i]<=ReadEqualizationControlRegisterDSP[7*i+6:7*i+4]
+						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i]
+					end 
+				end
+				OSGeneratorStart<=1;
+			end
+		end
+		RecoverySpeed:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			ElecIdleReq <= {LANESNUMBER{1'b1}};
+			if(!OSGeneratorBusy)begin 
+				OSType<=3'b011; //eios
+				OSGeneratorStart<=1;
+			end
+		end
+		Ph0:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			if(DEVICETYPE==UpStream)begin
+				
+				GetLocalPresetCoeffcients<={LaneNumber{1'b1}};
+				for(i=0;i<LaneNumber;i=i+1)begin
+					LocalPresetIndex[4*LANESNUMBER-4*i-1:4*LANESNUMBER-4*i-4]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
+				end
+				
+				if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LaneNumber{1'b1}}])begin //it is supposed that
+					OSType<=3'b000; //TS1
+					LinkNumber<=ReadLinkNum;
+					Rate<=MAX_GEN;
+					LaneNumber<=2'b01; //num_seq
+					SpeedChange<=ReadSpeedChangeVariable;
+					EC<=2'b00;
+					for(i=0;i<LANESNUMBER;i=i+1)begin
+						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
+						PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-12-1:18*LaneNumber-18*i-18];//[23:18][5:0]       [35:0][17:0]
+						CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-6-1:18*LaneNumber-18*i-12];//[29:24][11:6]
+						PostCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-1:18*LaneNumber-18*i-6];//[35:30][17:12]
+						//LF[6*i+5:6*i] <= LocalLF[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+						//FS[6*i+5:6*i] <= LocalFS[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+					end 
+					OSGeneratorStart<=1;
+				end
+			end
+		end
+		Ph1:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			if(DEVICETYPE==DownStream)begin
+				GetLocalPresetCoeffcients<={LaneNumber{1'b1}};
+				for(i=0;i<LaneNumber;i=i+1)begin
+					LocalPresetIndex[4*LANESNUMBER-4*i-1:4*LANESNUMBER-4*i-4]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
+				end
+				if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LaneNumber{1'b1}}])begin //it is supposed that
+					OSType<=3'b000; //TS1
+					LinkNumber<=ReadLinkNum;
+					Rate<=MAX_GEN;
+					LaneNumber<=2'b01; //num_seq
+					SpeedChange<=ReadSpeedChangeVariable;
+					EC<=2'b01;
+					for(i=0;i<LANESNUMBER;i=i+1)begin
+						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
+						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-12-1:18*LaneNumber-18*i-18];//[23:18][5:0]       [35:0][17:0]
+						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-6-1:18*LaneNumber-18*i-12];//[29:24][11:6]
+						PostCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-1:18*LaneNumber-18*i-6];//[35:30][17:12]
+						LF[6*i+5:6*i] <= LocalLF[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+						FS[6*i+5:6*i] <= LocalFS[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+					end 
+					OSGeneratorStart<=1;
+				end
+			end
+			else if(DEVICETYPE==upstream)begin
+				GetLocalPresetCoeffcients<={LaneNumber{1'b1}};
+				for(i=0;i<LaneNumber;i=i+1)begin
+					LocalPresetIndex[4*LANESNUMBER-4*i-1:4*LANESNUMBER-4*i-4]<=ReadEqualizationControlRegisterUSP[7*i+3:7*i];
+				end
+			if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LaneNumber{1'b1}}])begin //it is supposed that
+					OSType<=3'b000; //TS1
+					LinkNumber<=ReadLinkNum;
+					Rate<=MAX_GEN;
+					LaneNumber<=2'b01; //num_seq
+					SpeedChange<=ReadSpeedChangeVariable;
+					EC<=2'b01;
+					for(i=0;i<LANESNUMBER;i=i+1)begin
+						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterUSP[7*i+3:7*i];
+						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-12-1:18*LaneNumber-18*i-18];//[23:18][5:0]       [35:0][17:0]
+						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-6-1:18*LaneNumber-18*i-12];//[29:24][11:6]
+						PostCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-1:18*LaneNumber-18*i-6];//[35:30][17:12]
+						LF[6*i+5:6*i] <= LocalLF[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+						FS[6*i+5:6*i] <= LocalFS[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+					end 
+					OSGeneratorStart<=1;
+				end
+			
+			
+			
+			end
+		
+		
+		end
 	endcase 
 end
 
@@ -318,7 +496,6 @@ TimerStart <= 0;
 				TimerStart  <= 1;
 				TimerIntervalCode <= t12ms;
 			end
-			
 			else if (NextState == PollingActive || NextState == PollingConfigration 
 			|| NextState == ConfigrationComplete ||NextState == ConfigrationIdle)begin
 				OSCount<=0;		
@@ -397,12 +574,30 @@ TimerStart <= 0;
 				TimerStart  <= 1;
 				TimerIntervalCode <= t12ms;
 			end
+			
 			else if (NextState == PollingActive || NextState == PollingConfigration 
 			|| NextState == ConfigrationComplete )begin
 				OSCount<=0;		
 			end			
 		end		
 		
+		RecoveryRcvrCfg:begin
+			if(NextState==RecoverySpeed)begin
+				TimerEnable <= 1;
+				TimerStart  <= 1;
+				TimerIntervalCode <= t1ms;
+				OSCount<= 0;
+			end
+		end
+		
+		RecoverySpeed:begin
+			if(OSGeneratorFinish)begin
+				OSCount <= OSCount + 1;		
+			end
+			if(TimeOut)begin
+				TimerEnable <= 0;
+			end
+		end
 		default:begin
 			if(NextState == DetectQuiet || NextState == DetectActive)begin
 				TimerEnable <= 1;
@@ -410,7 +605,7 @@ TimerStart <= 0;
 				TimerIntervalCode <= t12ms;
 			end
 			else if (NextState == PollingActive || NextState == PollingConfigration 
-			|| NextState == ConfigrationComplete ||NextState == ConfigrationIdle)begin
+			|| NextState == ConfigrationComplete ||NextState == ConfigrationIdle || NextState == RecoverySpeed )begin
 				OSCount<=0;		
 			end			
 		end		
