@@ -21,7 +21,7 @@ reg [Width-1:0] Tick;
 reg [Width-1:0] TimerIntervalBase;
 reg [Width-1:0] TimerInterval;
 parameter Gen1 = 3'b001,Gen2 = 3'b010,Gen3 = 3'b011,Gen4 = 3'b100,Gen5 = 3'b101;
-parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b101,t0ms = 3'b000;
+parameter t12ms= 3'b001,t24ms = 3'b010,t48ms = 3'b011,t2ms = 3'b100,t8ms = 3'b101, t1ms= 3'b110, t0ms = 3'b000;
 always @ *
 begin
 	case({TimerIntervalCode})
@@ -43,6 +43,10 @@ begin
 		t2ms:begin  
 			TimerIntervalBase= 32'h1E848 ;//125000 cycle => Gen1 32bit width , 2ms 
 		end	
+		t1ms:begin
+			TimerIntervalBase= 32'hF424 ;//62500 cycle => Gen1 32bit width , 1ms
+			
+		end
 		t0ms:begin  
 			TimerIntervalBase= 32'h00000000;//0cycle => Gen1 32bit width , 0ms 
 		end

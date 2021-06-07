@@ -19,9 +19,9 @@ output reg [4:0] NumberDetectLanes,
 output reg [LANESNUMBER-1:0] DetectLanes,
 output reg WriteDetectLanesFlag,
 // main LTSSM interface
-input  [3:0] SetTXState,
+input  [4:0] SetTXState,
 output reg TXFinishFlag,
-output reg [3:0] TXExitTo,
+output reg [4:0] TXExitTo,
 output reg[7:0] WriteLinkNum,
 output reg WriteLinkNumFlag,
 input [7:0] ReadLinkNum,
@@ -45,19 +45,19 @@ output reg OSGeneratorStart,
 input OSGeneratorBusy,
 input OSGeneratorFinish,
 //OS generator interface equalization 
-output [1:0] EC,
-output ResetEIEOSCount,
-output [4* LANESNUMBER-1:0] TXPreset,
-output [3* LANESNUMBER-1:0] RXPreset,
-output [LANESNUMBER-1:0] UsePresetCoff,
-output [6* LANESNUMBER-1:0] FS,
-output [6* LANESNUMBER-1:0] LF,
-output [6* LANESNUMBER-1:0] PreCursorCoff,
-output [6* LANESNUMBER-1:0] CursorCoff,
-output [6* LANESNUMBER-1:0] PostCursorCoff,
-output [ LANESNUMBER-1:0] RejectCoff,
-output SpeedChange,
-output ReqEq,
+output reg [1:0] EC,
+output reg ResetEIEOSCount,
+output reg [4* LANESNUMBER-1:0] TXPreset,
+output reg [3* LANESNUMBER-1:0] RXPreset,
+output reg [LANESNUMBER-1:0] UsePresetCoff,
+output reg [6* LANESNUMBER-1:0] FS,
+output reg [6* LANESNUMBER-1:0] LF,
+output reg [6* LANESNUMBER-1:0] PreCursorCoff,
+output reg [6* LANESNUMBER-1:0] CursorCoff,
+output reg [6* LANESNUMBER-1:0] PostCursorCoff,
+output reg [ LANESNUMBER-1:0] RejectCoff,
+output reg SpeedChange,
+output reg ReqEq,
 output reg EQTS2,
 //mux
 output reg MuxSel,
@@ -68,20 +68,20 @@ output reg [ LANESNUMBER-1:0]ElecIdleReq,
 input  [ LANESNUMBER-1:0]DetectStatus,
 //scrambler
 output reg turnOff,
-output [23:0]seedValue
+output [23:0]seedValue,
 //new
 input 	[18*LANESNUMBER -1:0]LocalTxPresetCoefficients,
 output 	[18*LANESNUMBER -1:0]TxDeemph,
 input 	[6*LANESNUMBER -1:0]LocalFS,
 input 	[6*LANESNUMBER -1:0]LocalLF,
-output 	[4*LANESNUMBER -1:0]LocalPresetIndex,
-output 	[LANESNUMBER -1:0]GetLocalPresetCoeffcients,
+output reg	[4*LANESNUMBER -1:0]LocalPresetIndex,
+output reg	[LANESNUMBER -1:0]GetLocalPresetCoeffcients,
 input 	[LANESNUMBER -1:0]LocalTxCoefficientsValid,
-output 	[6*LANESNUMBER -1:0])OLF,
+output 	[6*LANESNUMBER -1:0]OLF,
 output 	[6*LANESNUMBER -1:0]OFS,
 output 	[LANESNUMBER -1:0]RxEqEval,
 output 	[LANESNUMBER -1:0]InvalidRequest,
-input 	[6*LANESNUMBER -1:0]LinkEvaluationFeedbackDirectionChange,
+input 	[6*LANESNUMBER -1:0]LinkEvaluationFeedbackDirectionChange
 );
 
 // states encoding
@@ -92,14 +92,14 @@ input 	[6*LANESNUMBER -1:0]LinkEvaluationFeedbackDirectionChange,
 //Device type 
 parameter DownStream = 0 ,UpStream = 1;
 //time 
-parameter t12ms= 3'b001,t0ms = 3'b000; t1ms=3'b110;
+parameter t12ms= 3'b001,t0ms = 3'b000 , t1ms=3'b110;
 //Generation
 parameter Gen1 = 3'b001,Gen2 = 3'b010,Gen3 = 3'b011,Gen4 = 3'b100,Gen5 = 3'b101; // TODO edited
 //internal Register 
 
-reg [3:0]State;
-wire [3:0]NextState;
-reg [3:0] ExitToState;
+reg [4:0]State;
+wire [4:0]NextState;
+reg [4:0] ExitToState;
 reg ExitToFlag;
 //internal Register 
 reg [15:0]OSCount;
@@ -140,7 +140,7 @@ end
 //exit to logic combinational
 always @ * begin
 //default value for outputs (synthesis)
-	ExitToState = 4'bxxxx;
+	ExitToState = 5'bxxxx;
 	ExitToFlag  = 0 ;
 
 	case(State)
@@ -362,7 +362,7 @@ GetLocalPresetCoeffcients<=0;
 				LinkNumber<=ReadLinkNum;
 				Rate<=MAX_GEN;
 				LaneNumber<=2'b01; //num_seq
-				SpeedChange<=ReadSpeedChangeVariable;
+				SpeedChange<=ReadDirectSpeedChange;
 				EC<=2'b00;
 				OSGeneratorStart<=1;
 			end
@@ -375,14 +375,14 @@ GetLocalPresetCoeffcients<=0;
 				LinkNumber<=ReadLinkNum;
 				Rate<=MAX_GEN;
 				LaneNumber<=2'b01; //num_seq
-				SpeedChange<=ReadSpeedChangeVariable;
+				SpeedChange<=ReadDirectSpeedChange;
 				EC<=2'b00;
 				if (TrainToGen == Gen3 && DEVICETYPE ==DownStream )
 				begin 
 					EQTS2<=1;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
-						RXPreset[3*i+2:3*i]<=ReadEqualizationControlRegisterDSP[7*i+6:7*i+4]
-						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i]
+						RXPreset[3*i+:3]<=ReadEqualizationControlRegisterDSP[7*i+4+:3];
+						TXPreset[4*i+:4]<=ReadEqualizationControlRegisterDSP[7*i+:4];
 					end 
 				end
 				OSGeneratorStart<=1;
@@ -400,28 +400,29 @@ GetLocalPresetCoeffcients<=0;
 		Ph0:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(DEVICETYPE==UpStream)begin
+			if(DEVICETYPE==UpStream || 1)begin
 				
-				GetLocalPresetCoeffcients<={LaneNumber{1'b1}};
-				for(i=0;i<LaneNumber;i=i+1)begin
-					LocalPresetIndex[4*LANESNUMBER-4*i-1:4*LANESNUMBER-4*i-4]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
+				GetLocalPresetCoeffcients<={LANESNUMBER{1'b1}};
+				for(i=0;i<LANESNUMBER;i=i+1)begin
+					LocalPresetIndex[(4*LANESNUMBER-4)-i*4+:4]<=ReadEqualizationControlRegisterDSP[7*i+:4];
 				end
-				
-				if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LaneNumber{1'b1}}])begin //it is supposed that
+				 
+				if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LANESNUMBER{1'b1}})begin //it is supposed that
 					OSType<=3'b000; //TS1
 					LinkNumber<=ReadLinkNum;
 					Rate<=MAX_GEN;
 					LaneNumber<=2'b01; //num_seq
-					SpeedChange<=ReadSpeedChangeVariable;
+					SpeedChange<=ReadDirectSpeedChange;
 					EC<=2'b00;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
-						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
-						PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-12-1:18*LaneNumber-18*i-18];//[23:18][5:0]       [35:0][17:0]
-						CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-6-1:18*LaneNumber-18*i-12];//[29:24][11:6]
-						PostCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-1:18*LaneNumber-18*i-6];//[35:30][17:12]
-						//LF[6*i+5:6*i] <= LocalLF[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
-						//FS[6*i+5:6*i] <= LocalFS[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+						TXPreset[4*i+:4]<=ReadEqualizationControlRegisterDSP[7*i+:4];
+						PreCursorCoff[6*i+:6] <=LocalTxPresetCoefficients[(18*LANESNUMBER-18)-18*i+:6];//[23:18][5:0]       [35:0][17:0]
+						CursorCoff[6*i+:6]    <=LocalTxPresetCoefficients[(18*LANESNUMBER-18)-18*i+6+:6];//[29:24][11:6]
+	 					PostCursorCoff[6*i+:6]<=LocalTxPresetCoefficients[(18*LANESNUMBER-18)-18*i+12+:6];//[35:30][17:12]
+					//	LF[6*i+:6] <= LocalLF[(6*LANESNUMBER-6)-6*i+:6];
+						//FS[6*i+:6] <= LocalFS[(6*LANESNUMBER-6)-6*i+:6];
 					end 
+
 					OSGeneratorStart<=1;
 				end
 			end
@@ -430,47 +431,47 @@ GetLocalPresetCoeffcients<=0;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(DEVICETYPE==DownStream)begin
-				GetLocalPresetCoeffcients<={LaneNumber{1'b1}};
-				for(i=0;i<LaneNumber;i=i+1)begin
-					LocalPresetIndex[4*LANESNUMBER-4*i-1:4*LANESNUMBER-4*i-4]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
+				GetLocalPresetCoeffcients<={LANESNUMBER{1'b1}};
+				for(i=0;i<LANESNUMBER;i=i+1)begin
+					LocalPresetIndex[(4*LANESNUMBER-4)-i*4+:4]<=ReadEqualizationControlRegisterDSP[7*i+:4];
 				end
-				if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LaneNumber{1'b1}}])begin //it is supposed that
+				if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LANESNUMBER{1'b1}})begin //it is supposed that
 					OSType<=3'b000; //TS1
 					LinkNumber<=ReadLinkNum;
 					Rate<=MAX_GEN;
 					LaneNumber<=2'b01; //num_seq
-					SpeedChange<=ReadSpeedChangeVariable;
-					EC<=2'b01;
+					SpeedChange<=ReadDirectSpeedChange;
+		 			EC<=2'b01;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
-						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterDSP[7*i+3:7*i];
-						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-12-1:18*LaneNumber-18*i-18];//[23:18][5:0]       [35:0][17:0]
-						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-6-1:18*LaneNumber-18*i-12];//[29:24][11:6]
-						PostCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-1:18*LaneNumber-18*i-6];//[35:30][17:12]
-						LF[6*i+5:6*i] <= LocalLF[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
-						FS[6*i+5:6*i] <= LocalFS[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+						TXPreset[4*i+:4]<=ReadEqualizationControlRegisterDSP[7*i+:4];
+						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-12-1:18*LANESNUMBER-18*i-18];//[23:18][5:0]       [35:0][17:0]
+						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-6-1:18*LANESNUMBER-18*i-12];//[29:24][11:6]
+	 					PostCursorCoff[6*i+:6] <=LocalTxPresetCoefficients[(18*LANESNUMBER-18)-18*i+12+:6];//[35:30][17:12]
+						LF[6*i+:6] <= LocalLF[(6*LANESNUMBER-6)-6*i+:6];
+						FS[6*i+:6] <= LocalFS[(6*LANESNUMBER-6)-6*i+:6];
 					end 
 					OSGeneratorStart<=1;
 				end
 			end
-			else if(DEVICETYPE==upstream)begin
-				GetLocalPresetCoeffcients<={LaneNumber{1'b1}};
-				for(i=0;i<LaneNumber;i=i+1)begin
-					LocalPresetIndex[4*LANESNUMBER-4*i-1:4*LANESNUMBER-4*i-4]<=ReadEqualizationControlRegisterUSP[7*i+3:7*i];
+			else if(DEVICETYPE==UpStream)begin
+				GetLocalPresetCoeffcients<={LANESNUMBER{1'b1}};
+				for(i=0;i<LANESNUMBER;i=i+1)begin
+					LocalPresetIndex[(4*LANESNUMBER-4)-i*4+:4]<=ReadEqualizationControlRegisterUSP[7*i+:4];
 				end
-			if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LaneNumber{1'b1}}])begin //it is supposed that
+			if(!OSGeneratorBusy && LocalTxCoefficientsValid=={LANESNUMBER{1'b1}})begin //it is supposed that
 					OSType<=3'b000; //TS1
 					LinkNumber<=ReadLinkNum;
 					Rate<=MAX_GEN;
 					LaneNumber<=2'b01; //num_seq
-					SpeedChange<=ReadSpeedChangeVariable;
+					SpeedChange<=ReadDirectSpeedChange;
 					EC<=2'b01;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
-						TXPreset[4*i+3:4*i]<=ReadEqualizationControlRegisterUSP[7*i+3:7*i];
-						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-12-1:18*LaneNumber-18*i-18];//[23:18][5:0]       [35:0][17:0]
-						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-6-1:18*LaneNumber-18*i-12];//[29:24][11:6]
-						PostCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LaneNumber-18*i-1:18*LaneNumber-18*i-6];//[35:30][17:12]
-						LF[6*i+5:6*i] <= LocalLF[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
-						FS[6*i+5:6*i] <= LocalFS[6*LANESNUMBER-6*i-1:6*LANESNUMBER-6*i-6];
+						TXPreset[4*i+:4]<=ReadEqualizationControlRegisterUSP[7*i+:4];
+						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-12-1:18*LANESNUMBER-18*i-18];//[23:18][5:0]       [35:0][17:0]
+						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-6-1:18*LANESNUMBER-18*i-12];//[29:24][11:6]
+	 					PostCursorCoff[6*i+:6] <=LocalTxPresetCoefficients[(18*LANESNUMBER-18)-18*i+12+:6];//[35:30][17:12]
+						LF[6*i+:6] <= LocalLF[(6*LANESNUMBER-6)-6*i+:6];
+						FS[6*i+:6] <= LocalFS[(6*LANESNUMBER-6)-6*i+:6];
 					end 
 					OSGeneratorStart<=1;
 				end
