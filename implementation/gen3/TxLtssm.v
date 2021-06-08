@@ -400,7 +400,7 @@ GetLocalPresetCoeffcients<=0;
 		Ph0:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(DEVICETYPE==UpStream || 1)begin
+			if(DEVICETYPE==UpStream)begin
 				
 				GetLocalPresetCoeffcients<={LANESNUMBER{1'b1}};
 				for(i=0;i<LANESNUMBER;i=i+1)begin

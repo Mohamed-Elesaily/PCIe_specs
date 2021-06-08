@@ -1,7 +1,7 @@
 module  masterRxLTSSM #(parameter MAXLANES = 16)(
     input clk,
     input [4:0]numberOfDetectedLanes,
-    input [3:0]substate,
+    input [4:0]substate,
     input [15:0]countersComparators,
     //input forceDetect,
     input rxElectricalIdle,
@@ -10,7 +10,7 @@ module  masterRxLTSSM #(parameter MAXLANES = 16)(
     input [15:0]RcvrCfgToidle,////////new
     input [2:0] trainToGen,///////////new
     output reg finish,
-    output reg [3:0]exitTo,
+    output reg [4:0]exitTo,
     output reg [15:0]resetOsCheckers,
     output reg disableDescrambler,
     output [3:0]lpifStatus,
@@ -20,7 +20,7 @@ module  masterRxLTSSM #(parameter MAXLANES = 16)(
     output reg resetTimer,
     output reg[4:0]comparatorsCount);
     
-    reg[3:0] lastState,lastState_next;
+    reg[4:0] lastState,lastState_next;
     reg[1:0] currentState,nextState;
     reg[15:0]comparatorsCondition;
 

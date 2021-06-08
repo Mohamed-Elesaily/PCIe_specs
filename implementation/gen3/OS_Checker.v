@@ -537,7 +537,7 @@ begin
                 end
             else nextState =  phase0up2;
         end
-
+                      
         phase0down1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
@@ -568,7 +568,7 @@ begin
             else nextState =  phase0down2;
         end
 
-         phase1up1:
+        phase1up1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
@@ -633,7 +633,7 @@ begin
         begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-            &&orderedset[87:80] == TS2&&orderedset[39]==1'b1)
+            &&orderedset[87:80] == TS2&&orderedset[39]==1'b1 &&orderedset[55]==1'b1)
             begin
                 nextState = RcvrCfg_speed;
                 rateidTs2 = orderedset[39:32];
@@ -641,7 +641,7 @@ begin
                 resetcounter = 1'b1; countup = 1'b1;
             end
             else if(valid &&ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-            &&orderedset[87:80] == TS2&&orderedset[39]==1'b0)
+            &&orderedset[87:80] == TS2&&orderedset[39]==1'b0 &&orderedset[55]==1'b1)
             begin
                 nextState = RcvrCfg_idle;
                 resetcounter = 1'b1; countup = 1'b1;
@@ -657,7 +657,7 @@ begin
                 begin
                     if(ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
                     &&orderedset[87:80] == TS2&&orderedset[39]==1'b1 &&orderedset[39:32]==rateidTs2
-                    &&orderedset[55:48] == symbol6OfTS2)
+                    &&orderedset[55:48] == symbol6OfTS2 &&orderedset[55]==1'b1)
                     begin
                         symbol6OfTS2 = orderedset[55:48];
                         rateidTs2 = orderedset[39:32];
@@ -676,7 +676,7 @@ begin
             if(valid)
                 begin
                     if(ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
-                    &&orderedset[87:80] == TS2&&orderedset[39]==1'b0)
+                    &&orderedset[87:80] == TS2&&orderedset[39]==1'b0 &&orderedset[55]==1'b1)
                     begin
                         resetcounter = 1'b1; countup = 1'b1;
                         countup = 1'b1;
@@ -703,7 +703,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(|orderedset == 8'h66)
+                    if(((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(|orderedset[127:8]==1'b0))))
                     begin
                         countup = 1'b1;
                         nextState =  RcvrSpeed2;
