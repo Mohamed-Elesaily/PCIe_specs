@@ -84,7 +84,6 @@ localparam[1:0]
         reset_   = 2'd0,
         active_  = 2'd1,
         retrain_ = 2'd2;
-
 integer i;
 initial
 begin
@@ -99,23 +98,26 @@ begin
     PhyStatus={16{1'b1}};
     RxStatus={16{3'b011}};
     #100
-    PhyStatus=16'd0;
-    RxStatus=0;
+    RxStatus=16'd0;
 	wait(linkUp);
 	lp_state_req = active_;
+	@(negedge CLK);
 	lp_irdy=1;
-	
 	for (i=0;i<512;i=i+1) 
 	begin
 		lp_data[i]=$random;
 		lp_tlpstart[i]=0;
 		lp_tlpend[i]=0;
+		lp_dlpend[i]=0;
+		lp_dlpstart[i]=0;
 	end
-	lp_valid={{61{1'b1}},{3{1'b0}}};
+	lp_valid={64{1'b1}};
 	lp_tlpstart[3]=1;
 	lp_tlpend[60]=1;
-	#50
+	#10
 	lp_irdy=0;
+
+
 end
 always #5 CLK = ~CLK;
 
