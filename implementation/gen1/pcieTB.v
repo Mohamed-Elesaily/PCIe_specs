@@ -89,15 +89,16 @@ initial
 begin
     CLK = 0;
     reset = 0;
-    #8
+    #20
     reset = 1;
     #10
     lp_state_req = reset_;
     #10
     wait(TxDetectRx_Loopback);
+    #10
     PhyStatus={16{1'b1}};
     RxStatus={16{3'b011}};
-    #100
+    #10
     RxStatus=16'd0;
 	wait(linkUp);
 	lp_state_req = active_;
