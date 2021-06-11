@@ -32,18 +32,18 @@ always @(posedge pclk or negedge reset_n) begin
       if (ElecIdle_req==1 || substate == DetectQuiet || substate == DetectActive) begin
             TxElecIdle=1;
       end
-      else begin
+      else if(substate > 1) begin
             TxElecIdle=0;
       end
 
       if(substate == DetectQuiet || substate  == DetectActive) begin
         PowerDown = 2;
       end
-      else begin
+      else if(substate > 1) begin
         PowerDown = 0;
       end
         
-      if (Detect_req==1) begin
+      if (Detect_req==1 && Detect_status == 0) begin
           TxDetectRx_Loopback =1;
       end
 
