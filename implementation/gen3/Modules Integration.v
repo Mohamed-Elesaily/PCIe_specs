@@ -135,6 +135,7 @@ packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWID
     .gen(GEN),
     .linkup(linkUp),
     .DK(LMCDataK),
+	.syncHeader(LMCSyncHeader),// gen3
     .numberOfDetectedLanes(numberOfDetectedLanes),
     .data_out(Data_out),
     .pl_valid   (valid),
@@ -143,6 +144,8 @@ packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWID
     .pl_tlpstart(tlpstart),
     .pl_tlpedb  (tlpedb),
     .pl_tlpend  (tlpend), 
+	.clk(clk),
+	.rst(reset),
     .w(w)  
 );
 
