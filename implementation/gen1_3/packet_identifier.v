@@ -18,7 +18,7 @@ input clk,
 input rst,
 input [4:0]numberOfDetectedLanes,
 // gen 3
-input [127:0]syncHeader,
+input [31:0]syncHeader,
 
 
 output [511:0] data_out,
