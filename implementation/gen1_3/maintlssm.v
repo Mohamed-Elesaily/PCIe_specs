@@ -75,20 +75,20 @@ parameter LANESNUMBER = 16)
     output reg[4:0] substateRx,
     output reg[1:0] width,
     output reg[2:0] trainToGen,
-    output reg pl_speedmode    
-);
+    output reg disableScrambler,
+    output reg [4:0] PCLKRate);
 //local signals
     reg [4:0] numberOfDetectedLanes;
     reg [7:0] linkNumber;
     reg [7:0] rateId;
     reg upConfigureCapability;
-    reg [1:0]currentState,nextState;
-    reg [3:0] substateTxnext,substateRxnext;
+    reg [3:0]currentState,nextState;
+    reg [4:0] substateTxnext,substateRxnext;
     integer i;
     
 //Local parameters
     //LPIF STATES
-    localparam[1:0]
+    localparam[3:0]
         reset_   = 4'd0,
         active_  = 4'd1,
         retrain_ = 4'd11;
@@ -116,7 +116,7 @@ parameter LANESNUMBER = 16)
         recoveryIdle = 5'd18;
 
     //Data resgiter handling
-    always@(posedge clk)
+   /* always@(posedge clk)
     begin
         if(writeNumberOfDetectedLanes)numberOfDetectedLanes<=numberOfDetectedLanesIn;
         if(writeLinkNumberTx)linkNumber<=linkNumberInTx;
@@ -127,15 +127,18 @@ parameter LANESNUMBER = 16)
         if(writeTransmitterPresetHintUSP) TransmitterPresetHintUSP<=TransmitterPresetHintUSPIn;
         if(writeTransmitterPresetHintDSP)TransmitterPresetHintDSP <=TransmitterPresetHintDSPIn;
         if(write_directed_speed_change) directed_speed_change <= directed_speed_change_In;
+        if(writeRateId)rateId <= rateIdIn;
     end
-
+    */
     always @(posedge clk or negedge reset)
     begin
         if(!reset || forceDetect)
         begin
             currentState <= reset_;
-            //substateTx <= detectQuiet;
-            //substateRx <= detectQuiet;
+            ReceiverpresetHintDSP<={48{1'b0}};
+            TransmitterPresetHintDSP<={64{1'b0}};
+            ReceiverpresetHintUSP<={48{1'b0}};
+            TransmitterPresetHintUSP<={64{1'b0}};
             GEN <= 3'd1;
             
         end
@@ -144,6 +147,16 @@ parameter LANESNUMBER = 16)
             currentState <= nextState;
             substateTx <= substateTxnext;
             substateRx <= substateRxnext;
+            if(writeNumberOfDetectedLanes)numberOfDetectedLanes<=numberOfDetectedLanesIn;
+            if(writeLinkNumberTx)linkNumber<=linkNumberInTx;
+            else if(writeLinkNumberRx)linkNumber<=linkNumberInRx;
+            if(writeUpconfigureCapability)upConfigureCapability<=upConfigureCapabilityIn;
+            if(writeReceiverpresetHintDSP)ReceiverpresetHintDSP <=ReceiverpresetHintDSPIn;
+            if(writeReceiverpresetHintUSP)ReceiverpresetHintUSP <=ReceiverpresetHintUSPIn;
+            if(writeTransmitterPresetHintUSP) TransmitterPresetHintUSP<=TransmitterPresetHintUSPIn;
+            if(writeTransmitterPresetHintDSP)TransmitterPresetHintDSP <=TransmitterPresetHintDSPIn;
+            if(write_directed_speed_change) directed_speed_change <= directed_speed_change_In;
+            if(writeRateId)rateId <= rateIdIn;
         end    
     end
 
@@ -229,13 +242,14 @@ end
 //output handling block
     always @(*)
     begin
+        disableScrambler = 1'b1;
        case (currentState)
         reset_:
         begin
             case ({substateTx,substateRx})
                 {detectQuiet,detectQuiet}:
                 begin
-                   if (finishTx&&finishRx&&gotoTx==detectActive&&gotoRx==detectActive) 
+                   if (/*finishTx&&*/finishRx&&/*gotoTx==detectActive&&*/gotoRx==detectActive) 
                     begin
                         {substateTxnext,substateRxnext} = {detectActive,detectActive};
                         lpifStateStatus = reset_;
@@ -347,24 +361,28 @@ end
                             lpifStateStatus = reset_;
                         end
                 {configurationIdle,configurationIdle}:
+                begin
+                    disableScrambler = 1'b0;
                     if (finishRx&&gotoRx==L0) 
                         begin
                             linkUp = 1'b1;
                             lpifStateStatus = reset_;
-                            //{substateTx,substateRx} <= {L0,L0};//ERASE THE COMMENT IF I CAN GOT TO L0 WITHOUT LPIF PERMISSION
+                            {substateTx,substateRx} <= {L0,L0};//ERASE THE COMMENT IF I CAN GOT TO L0 WITHOUT LPIF PERMISSION
                         end
                     else if((finishTx&&gotoTx==detectQuiet)||(finishRx&&gotoRx==detectQuiet))
                         begin
                             {substateTxnext,substateRxnext}= {detectQuiet,detectQuiet};
                             lpifStateStatus = reset_;
                         end
+                end
+                    
 
                 default:
                     begin
                         {substateTxnext,substateRxnext}= {detectQuiet,detectQuiet};
                         lpifStateStatus = reset_;
                         linkUp = 1'b0;
-                        pl_speedmode = 3'd0;
+                        //pl_speedmode = 3'd0;
                     end
             
             endcase
@@ -372,16 +390,17 @@ end
         active_:
         begin
             {substateTxnext,substateRxnext}= {L0,L0};
+            disableScrambler = 1'b0;
             lpifStateStatus = active_;
             linkUp = 1'b1;
-            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111) && (!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
+            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
             begin
                 directed_speed_change = 1'b1;
                 trainToGen = 3'd3;
                 {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
                 
             end
-            else if((MAX_GEN==3'd2 && rateId[3:1] == 3'b011) && (!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
+            else if((MAX_GEN==3'd2 && rateId[3:1] == 3'b011)&&(GEN<3'd2)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
             begin
                 directed_speed_change = 1'b1;
                 trainToGen = 3'd2;
@@ -416,13 +435,14 @@ end
                         {substateTxnext,substateRxnext}= {phase0,phase0};
                         directed_speed_change = 1'b0;
                         GEN = 3'd3;
-                        pl_speedmode = 3'd2; //GEN 3
+                        //pl_speedmode = 3'd2; //GEN 3
                     end
                         
 
                 end
                 {phase0,phase0}:
                 begin
+                    disableScrambler = 1'b0;
                     //mapping tx preset to coeff.
                     GetLocalPresetCoeffcients={16{1'b1}};
 				    for(i=0;i<16;i=i+1)
@@ -451,14 +471,16 @@ end
                 end
                 {phase1,phase1}:
                 begin
+                    disableScrambler = 1'b0;
                     LF = LocalLF;
                     FS = LocalFS;
-                    if(finishRx && gotoRx == recoveryRcvrLock)
+                    if(finishRx && gotoRx == phase2)
                          {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
                 end
 
                 {recoveryIdle,recoveryIdle}:
                 begin
+                    disableScrambler = 1'b0;
                     if((finishRx && gotoRx == L0) && (finishTx && gotoTx == L0))
                          {substateTxnext,substateRxnext}= {L0,L0};
                 end
@@ -471,6 +493,51 @@ end
         
     end
 
+always @ (posedge clk)
+begin
+    if(~reset) 
+    begin 
+        PCLKRate <= 0; 
+    end
+    else begin
+    if (GEN == 1)begin
+        case(GEN1_PIPEWIDTH)
+            8:PCLKRate<=2; //250
+            16:PCLKRate<=1; //125
+            32:PCLKRate<=0; //62.5
+        endcase
+    end
+    else if (GEN == 2)
+    begin
+        case(GEN2_PIPEWIDTH)
+            8:PCLKRate<=3; //500
+            16:PCLKRate<=2; //250
+            32:PCLKRate<=1; //125
+    endcase
+    end
+    else if (GEN == 3)begin
+        case(GEN3_PIPEWIDTH)
+            8:PCLKRate<=4; //1000
+            16:PCLKRate<=3; //500
+            32:PCLKRate<=2; //250
+        endcase
+    end
+    else if (GEN == 4)begin
+        case(GEN4_PIPEWIDTH)
+            8:PCLKRate<=5; //2000
+            16:PCLKRate<=4; //1000
+            32:PCLKRate<=3; //500
+        endcase
+    end
+    else if (GEN == 5)begin
+        case(GEN5_PIPEWIDTH)
+            8:PCLKRate<=6; //4000
+            16:PCLKRate<=5; //2000
+            32:PCLKRate<=4; //1000
+        endcase
+    end
+    end
+end
 
 
 

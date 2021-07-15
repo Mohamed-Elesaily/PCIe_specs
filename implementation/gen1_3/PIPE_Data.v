@@ -21,7 +21,7 @@ output reg TxDataValid, TxStartBlock;
 output reg [3:0] TxDataK;
 output reg [1:0] TxSyncHeader;
 
-always @(posedge pclk or negedge reset_n) begin
+always @(/*posedge pclk or negedge reset_n*/*) begin
   if (~reset_n) begin
   	TxData = 0;
   	TxDataK = 0;

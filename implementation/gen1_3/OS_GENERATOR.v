@@ -1,5 +1,5 @@
 module OS_GENERATOR #
-(parameter GEN1_PIPEWIDTH=16,parameter GEN3_PIPEWIDTH=8,
+(parameter GEN1_PIPEWIDTH=16,parameter GEN2_PIPEWIDTH=16,parameter GEN3_PIPEWIDTH=16,parameter GEN4_PIPEWIDTH=8,parameter GEN5_PIPEWIDTH=32,
 parameter no_of_lanes=16
 )
 (pclk, reset_n, os_type, lane_number, link_number, rate, loopback , detected_lanes, gen, start,EQ,EC,reset_EIEOS_count,tx_preset,rx_preset,use_preset_coeff,FS,LF,pre_cursor_coeff,cursor_coeff,post_cursor_coeff,rej_coeff,req_eq,speed_change, finish, Os_Out, DataK, busy, DataValid);
@@ -96,7 +96,10 @@ always@(posedge pclk,negedge reset_n) begin
    skp <= 32'h1C1C1CBC;
    EIOS <= 32'h7C7C7CBC;
    TS1[7:0] <= 8'hBC;
-   PIPE<=GEN1_PIPEWIDTH;
+   if(gen_reg==3'b001)  
+    PIPE<=GEN1_PIPEWIDTH;
+   else
+    PIPE<=GEN2_PIPEWIDTH;
    count<=no_of_lanes;
    if (link_number==8'b00000000)
     TS1[15:8] <= 8'hF7;
@@ -110,16 +113,16 @@ always@(posedge pclk,negedge reset_n) begin
      TS1[38:32] <= 7'b0000010;
 	
    else if ( rate == 3'b010) 
-     TS1[38:32] <= 7'b0000100;
+     TS1[38:32] <= 7'b0000110;
 	 
    else if ( rate == 3'b011) 
-     TS1[38:32] <= 7'b0001000;
+     TS1[38:32] <= 7'b0001110;
 	 
    else if ( rate == 3'b100) 
-     TS1[38:32] <= 7'b0010000;
+     TS1[38:32] <= 7'b0011110;
 	 
    else  
-     TS1[38:32] <= 7'b0100000;
+     TS1[38:32] <= 7'b0111110;
    TS1[39]<=speed_change;
 	 
    if(loopback)
@@ -161,16 +164,16 @@ always@(posedge pclk,negedge reset_n) begin
      TS2[38:32] <= 7'b0000010;
 	
    else if ( rate == 3'b010) 
-     TS2[38:32] <= 7'b0000100;
+     TS2[38:32] <= 7'b0000110;
 	 
    else if ( rate == 3'b011) 
-     TS2[38:32] <= 7'b0001000;
+     TS2[38:32] <= 7'b0001110;
 	 
    else if ( rate == 3'b100) 
-     TS2[38:32] <= 7'b0010000;
+     TS2[38:32] <= 7'b0011110;
 	 
    else  
-     TS2[38:32] <= 7'b0100000;
+     TS2[38:32] <= 7'b0111110;
    TS2[39]<=speed_change; 
    if(loopback)
      TS2[47:40] <= 8'b00000100;
@@ -202,7 +205,7 @@ always@(posedge pclk,negedge reset_n) begin
    TS2[127:56] <= 72'h454545454545454545;
    end
    
-  else begin //Generation 3
+  else begin //Generation 3&4&5
    os_type_reg <= os_type; // storing the type of the order set
    lane_number_reg <= lane_number; // storing the type of lanes 
    gen_reg <= gen; // storing the PCIe generation 
@@ -226,7 +229,12 @@ always@(posedge pclk,negedge reset_n) begin
    rej_coeff_reg<=rej_coeff;
    symbol <= 4'b0000; // flag which detects which symbol to be sent 
    send <= 1'b1; // in order to know that there will be an order to send
-   PIPE<=GEN3_PIPEWIDTH;
+   if(gen_reg==3'b011)  
+    PIPE<=GEN3_PIPEWIDTH;
+   else if(gen_reg==3'b100)
+    PIPE<=GEN4_PIPEWIDTH;
+   else
+    PIPE<=GEN5_PIPEWIDTH;
    count<=no_of_lanes;
    skp_G3<=24'h00E1AA;
    EIOS_G3<=8'h66;
@@ -244,16 +252,16 @@ always@(posedge pclk,negedge reset_n) begin
      TS1[38:32] <= 7'b0000010;
 	
    else if ( rate == 3'b010) 
-     TS1[38:32] <= 7'b0000100;
+     TS1[38:32] <= 7'b0000110;
 	 
    else if ( rate == 3'b011) 
-     TS1[38:32] <= 7'b0001000;
+     TS1[38:32] <= 7'b0001110;
 	 
    else if ( rate == 3'b100) 
-     TS1[38:32] <= 7'b0010000;
+     TS1[38:32] <= 7'b0011110;
 	 
    else  
-     TS1[38:32] <= 7'b0100000;
+     TS1[38:32] <= 7'b0111110;
    TS1[39]<=speed_change;   
    if(loopback)
      TS1[47:40] <= 8'b00000100;
@@ -377,16 +385,16 @@ always@(posedge pclk,negedge reset_n) begin
      TS2[38:32] <= 7'b0000010;
 	
    else if ( rate == 3'b010) 
-     TS2[38:32] <= 7'b0000100;
+     TS2[38:32] <= 7'b0000110;
 	 
    else if ( rate == 3'b011) 
-     TS2[38:32] <= 7'b0001000;
+     TS2[38:32] <= 7'b0001110;
 	 
    else if ( rate == 3'b100) 
-     TS2[38:32] <= 7'b0010000;
+     TS2[38:32] <= 7'b0011110;
 	 
    else  
-     TS2[38:32] <= 7'b0100000;
+     TS2[38:32] <= 7'b0111110;
    TS2[39]<=speed_change;   
    if(loopback)
      TS2[47:40] <= 8'b00000100;
@@ -1349,9 +1357,9 @@ always@(posedge pclk,negedge reset_n) begin
 		 end
 	  end
 	 
-//*************************************************************GENERATION3*************************************************************		 
+//*************************************************************GENERATION 3&4&5*************************************************************		 
 //*************************************************************pipewidth=8********************************************************** 
- else if (PIPE==6'b001000 && gen_reg==3'b011)begin
+ else if (PIPE==6'b001000 && (gen_reg==3'b011 || gen_reg==3'b100 || gen_reg==3'b101))begin
 	if(send)begin//if there are order sets available to be sent
 	  finish<=1'b0;
 	  DataValid <= {no_of_lanes{valid}};
@@ -1527,7 +1535,7 @@ always@(posedge pclk,negedge reset_n) begin
 		else if(symbol==4'b0111||symbol==4'b1000||symbol==4'b1001||symbol==4'b1010||symbol==4'b1011||symbol==4'b1100||symbol==4'b1101||symbol==4'b1110) // checking if symbol  7 or 8 or 9 or 10 or 11 or 12 or 13 or 14  is to be sent
 		    Os_Out <={no_of_lanes{TS2[63:56]}};
 			
-		else  begin // checking if symbol 15 is to be sent
+		else begin // checking if symbol 15 is to be sent
 		    Os_Out<={no_of_lanes{TS2[63:56]}};
 			send<=1'b0;
 			finish<=1'b1;
@@ -1537,7 +1545,7 @@ always@(posedge pclk,negedge reset_n) begin
 		  end 
 		   // ******************************************************checking if skip order sets to be sent********************************************
       else if (os_type_reg==3'b010)begin
-		
+		 if(gen_reg==3'b011 || gen_reg== 3'b100)begin
 		  if(symbol==4'b0000 || symbol==4'b0001 || symbol==4'b0010 || symbol==4'b0011 || symbol==4'b0100 || symbol==4'b0101 || symbol==4'b0110 || symbol==4'b0111 || symbol==4'b1000 || symbol==4'b1001|| symbol==4'b1010 || symbol==4'b1011)// checking if symbols 0 or 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or 11
 		    Os_Out<={no_of_lanes{skp_G3[7:0]}};
 			
@@ -1553,11 +1561,29 @@ always@(posedge pclk,negedge reset_n) begin
 			finish<=1'b1;
 			busy<=1'b0;
 			end
-			symbol<=symbol+1; 
+			symbol<=symbol+1;
+			end
+		 else if(gen_reg==3'b101)begin
+		  if(symbol==4'b0000 || symbol==4'b0001 || symbol==4'b0010 || symbol==4'b0011 || symbol==4'b0100 || symbol==4'b0101 || symbol==4'b0110 || symbol==4'b0111 || symbol==4'b1000 || symbol==4'b1001|| symbol==4'b1010 || symbol==4'b1011)// checking if symbols 0 or 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or 11
+		    Os_Out<={no_of_lanes{8'h99}};
+			
+		  else if(symbol==4'b1100)  // checking if symbol 12 is to be sent
+		    Os_Out<={no_of_lanes{skp_G3[15:8]}};
+			
+		  else if(symbol==4'b1101 || symbol==4'b1110)  // checking if symbols 13 or 14 is to be sent
+		    Os_Out<={no_of_lanes{skp_G3[23:16]}};
+			
+		  else  begin // checking if symbol 15 is to be sent
+		    Os_Out<={no_of_lanes{skp_G3[23:16]}};
+			send <=1'b0;
+			finish<=1'b1;
+			busy<=1'b0;
+			end
+			symbol<=symbol+1;
+			end
 		  end 
 		  // ******************************************************checking if EIOS order sets to be sent********************************************
       else if (os_type_reg==3'b011) begin
-		
 		  if(symbol!=4'b1111) // checking if symbol 0 or 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or 11 or 12 or 13 or 14  is to be sent
 		    Os_Out<={no_of_lanes{EIOS_G3[7:0]}};
 			
@@ -1568,7 +1594,7 @@ always@(posedge pclk,negedge reset_n) begin
 			busy<=1'b0;
 			end
 			symbol<=symbol+1; 
-		   end
+		  end
 		   // ******************************************************checking if IDLE to be sent********************************************
 		 else if (os_type_reg==3'b100) begin
 		  Os_Out<={no_of_lanes*GEN3_PIPEWIDTH{1'b0}};
@@ -1577,7 +1603,8 @@ always@(posedge pclk,negedge reset_n) begin
 		  busy<= 1'b0;
 		  end
 		  //***************************************************checking if EIEOS is sent*********************************************
-		 else if (os_type_reg==3'b101) begin
+		else if (os_type_reg==3'b101) begin
+		 if (gen_reg==3'b011)begin
 		  if(symbol!=4'b1111)
 		    Os_Out<={no_of_lanes{EIEOS[7:0]}};
 		  else begin
@@ -1589,6 +1616,33 @@ always@(posedge pclk,negedge reset_n) begin
 		  EIEOS<=~EIEOS;
 		  symbol<=symbol+1;
 		  end
+		 else if(gen_reg==3'b100)begin
+		   if(symbol==4'b0000 || symbol== 4'b0001 || symbol == 4'b0100 || symbol == 4'b0101 || symbol == 4'b1000 || symbol ==4'b1001 || symbol == 4'b1100 || symbol == 4'b1101)
+		    Os_Out<={no_of_lanes{8'b0}};
+		   else if(symbol==4'b0010 || symbol== 4'b0011 || symbol == 4'b0110 || symbol == 4'b0111 || symbol == 4'b1010 || symbol ==4'b1011 || symbol == 4'b1110)
+		    Os_Out<={no_of_lanes{8'b11111111}};
+		   else begin
+			 Os_Out<={no_of_lanes{8'b11111111}};
+		     send<=1'b0;
+		     finish<=1'b1;
+		     busy<= 1'b0;
+		   end
+		   symbol<=symbol+1;
+		  end
+		  else if(gen_reg==3'b101)begin
+		   if(symbol==4'b0000 || symbol== 4'b0001 || symbol == 4'b0010 || symbol == 4'b0011 || symbol == 4'b1000 || symbol ==4'b1001 || symbol == 4'b1010 || symbol == 4'b1011)
+		    Os_Out<={no_of_lanes{8'b0}};
+		   else if(symbol==4'b0100 || symbol== 4'b0101 || symbol == 4'b0110 || symbol == 4'b0111 || symbol == 4'b1100 || symbol ==4'b1101 || symbol == 4'b1110)
+		    Os_Out<={no_of_lanes{8'b11111111}};
+		   else begin
+			 Os_Out<={no_of_lanes{8'b11111111}};
+		     send<=1'b0;
+		     finish<=1'b1;
+		     busy<= 1'b0;
+		   end
+		   symbol<=symbol+1;
+		  end
+		 end
 		  //***************************************************checking if SDS is sent*********************************************
 		  else begin
 		   if(symbol==4'b0000) 
@@ -1613,7 +1667,7 @@ always@(posedge pclk,negedge reset_n) begin
 		 end
 	   end 
 	  //*************************************************pipewidth=16***************************************************************** 
-    else if (PIPE==6'b010000 && gen_reg==3'b011)begin
+    else if (PIPE==6'b010000 &&(gen_reg==3'b011 || gen_reg==3'b100 || gen_reg==3'b101))begin
 	if(send)begin//if there are order sets available to be sent
 	  finish<=1'b0;
 	  DataValid <= {{no_of_lanes{valid}},{no_of_lanes{valid}}};
@@ -1755,7 +1809,7 @@ always@(posedge pclk,negedge reset_n) begin
 		  end 
 		   // ******************************************************checking if skip order sets to be sent********************************************
       else if (os_type_reg==3'b010)begin
-		
+		if(gen_reg==3'b011 || gen_reg== 3'b100)begin
 		  if(symbol==4'b0000 || symbol==4'b0010 || symbol==4'b0100 || symbol==4'b0110 || symbol==4'b1000 || symbol==4'b1010)// checking if symbols 0,1 or 2,3 or 4,5 or 6,7 or 8,9 or 10,11 are to be sent
 		    Os_Out<={{no_of_lanes{skp_G3[7:0]}},{no_of_lanes{skp_G3[7:0]}}};
 			
@@ -1769,6 +1823,22 @@ always@(posedge pclk,negedge reset_n) begin
 			busy<=1'b0;
 			end
 			symbol<=symbol+2; 
+		   end
+		 else if(gen_reg==3'b101)begin
+		  if(symbol==4'b0000 || symbol==4'b0010 || symbol==4'b0100 || symbol==4'b0110 || symbol==4'b1000 || symbol==4'b1010)// checking if symbols 0,1 or 2,3 or 4,5 or 6,7 or 8,9 or 10,11 are to be sent
+		    Os_Out<={{no_of_lanes{8'h99}},{no_of_lanes{8'h99}}};
+			
+		  else if(symbol==4'b1100)  // checking if symbol 12,13 is to be sent
+		    Os_Out<={{no_of_lanes{skp_G3[23:16]}},{no_of_lanes{skp_G3[15:8]}}};
+			
+		  else  begin // checking if symbol 14,15 are to be sent
+		    Os_Out<={{no_of_lanes{skp_G3[23:16]}},{no_of_lanes{skp_G3[23:16]}}};
+			send <=1'b0;
+			finish<=1'b1;
+			busy<=1'b0;
+			end
+			symbol<=symbol+2; 
+		   end
 		  end 
 		  // ******************************************************checking if EIOS order sets to be sent********************************************
       else if (os_type_reg==3'b011) begin
@@ -1792,7 +1862,8 @@ always@(posedge pclk,negedge reset_n) begin
 		  busy<= 1'b0;
 		  end
 		  //***************************************************checking if EIEOS is sent*********************************************
-		 else if (os_type_reg==3'b101) begin
+		else if (os_type_reg==3'b101) begin
+		 if (gen_reg==3'b011)begin
 		  if(symbol!=4'b1110)
 		    Os_Out<={{no_of_lanes{~EIEOS[7:0]}},{no_of_lanes{EIEOS[7:0]}}};
 		  else begin
@@ -1803,6 +1874,33 @@ always@(posedge pclk,negedge reset_n) begin
 		  end
 		  symbol<=symbol+2;
 		  end
+		 else if (gen_reg==3'b100)begin
+		  if(symbol==4'b0000 || symbol== 4'b0100 || symbol== 4'b1000 || symbol== 4'b1100)
+		    Os_Out<={{no_of_lanes{8'b0}},{no_of_lanes{8'b0}}};
+		  else if (symbol==4'b0010 || symbol==4'b0110 || symbol == 4'b1010)
+		    Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}}};
+		  else begin
+		   Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}}};
+		   send<=1'b0;
+		   finish<=1'b1;
+		   busy<= 1'b0;
+		  end
+		  symbol<=symbol+2;
+		  end
+		  else if (gen_reg==3'b101)begin
+		  if(symbol==4'b0000 || symbol== 4'b0010 || symbol== 4'b1000 || symbol== 4'b1010)
+		    Os_Out<={{no_of_lanes{8'b0}},{no_of_lanes{8'b0}}};
+		  else if (symbol==4'b0100 || symbol==4'b0110 || symbol == 4'b1100)
+		    Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}}};
+		  else begin
+		   Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}}};
+		   send<=1'b0;
+		   finish<=1'b1;
+		   busy<= 1'b0;
+		  end
+		  symbol<=symbol+2;
+		  end
+		 end
 		  //***************************************************checking if SDS is sent*********************************************
 		  else begin
 		   if(symbol==4'b0000) 
@@ -1827,7 +1925,7 @@ always@(posedge pclk,negedge reset_n) begin
 		 end
 	   end 
 	   //*************************************************pipewidth=32***************************************************************** 
-    else if (PIPE==6'b100000 && gen_reg==3'b011)begin
+    else if (PIPE==6'b100000 && (gen_reg==3'b011 || gen_reg==3'b100 || gen_reg==3'b101))begin
 	if(send)begin//if there are order sets available to be sent
 	  finish<=1'b0;
 	  DataValid <= {{no_of_lanes{valid}},{no_of_lanes{valid}},{no_of_lanes{valid}},{no_of_lanes{valid}}};
@@ -1952,7 +2050,7 @@ always@(posedge pclk,negedge reset_n) begin
 		  end 
 		   // ******************************************************checking if skip order sets to be sent********************************************
       else if (os_type_reg==3'b010)begin
-		
+		 if (gen_reg==3'b011 || gen_reg== 3'b100)begin
 		  if(symbol==4'b0000 ||  symbol==4'b0100 || symbol==4'b1000 )// checking if symbols 0,1,2,3 or 4,5,6,7 or 8,9,10,11 are to be sent
 		    Os_Out<={{no_of_lanes{skp_G3[7:0]}},{no_of_lanes{skp_G3[7:0]}},{no_of_lanes{skp_G3[7:0]}},{no_of_lanes{skp_G3[7:0]}}};
 			
@@ -1963,6 +2061,19 @@ always@(posedge pclk,negedge reset_n) begin
 			busy<=1'b0;
 			end
 			symbol<=symbol+4; 
+		   end
+		 else if (gen_reg==3'b101)begin
+		  if(symbol==4'b0000 ||  symbol==4'b0100 || symbol==4'b1000 )// checking if symbols 0,1,2,3 or 4,5,6,7 or 8,9,10,11 are to be sent
+		    Os_Out<={{no_of_lanes{8'h99}},{no_of_lanes{8'h99}},{no_of_lanes{8'h99}},{no_of_lanes{8'h99}}};
+			
+		  else  begin // checking if symbol 14,15 are to be sent
+		    Os_Out<={{no_of_lanes{skp_G3[23:16]}},{no_of_lanes{skp_G3[23:16]}},{no_of_lanes{skp_G3[23:16]}},{no_of_lanes{skp_G3[15:8]}}};
+			send <=1'b0;
+			finish<=1'b1;
+			busy<=1'b0;
+			end
+			symbol<=symbol+4; 
+		   end
 		  end 
 		  // ******************************************************checking if EIOS order sets to be sent********************************************
       else if (os_type_reg==3'b011) begin
@@ -1986,7 +2097,8 @@ always@(posedge pclk,negedge reset_n) begin
 		  busy<= 1'b0;
 		  end
 		  //***************************************************checking if EIEOS is sent*********************************************
-		 else if (os_type_reg==3'b101) begin
+		else if (os_type_reg==3'b101) begin
+		 if (gen_reg==3'b011)begin
 		  if(symbol!=4'b1100)
 		    Os_Out<={{no_of_lanes{~EIEOS[7:0]}},{no_of_lanes{EIEOS[7:0]}},{no_of_lanes{~EIEOS[7:0]}},{no_of_lanes{EIEOS[7:0]}}};
 		  else begin
@@ -1997,6 +2109,31 @@ always@(posedge pclk,negedge reset_n) begin
 		  end
 		  symbol<=symbol+4;
 		  end
+		 else if (gen_reg==3'b100)begin
+		   if(symbol!=4'b1100)
+		     Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}},{no_of_lanes{8'b0}},{no_of_lanes{8'b0}}};
+		   else begin
+		     Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}},{no_of_lanes{8'b0}},{no_of_lanes{8'b0}}};
+		     send<=1'b0;
+		     finish<=1'b1;
+		     busy<= 1'b0;
+		   end
+		  symbol<=symbol+4;
+		 end
+		 else if (gen_reg==3'b101)begin
+		   if(symbol==4'b0000 || symbol==4'b1000)
+		     Os_Out<={{no_of_lanes{8'b0}},{no_of_lanes{8'b0}},{no_of_lanes{8'b0}},{no_of_lanes{8'b0}}};
+		   else if(symbol==4'b0100)
+		     Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}}};
+		   else begin
+		     Os_Out<={{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}},{no_of_lanes{8'b11111111}}};
+		     send<=1'b0;
+		     finish<=1'b1;
+		     busy<= 1'b0;
+		   end
+		  symbol<=symbol+4;
+		 end
+		end
 		  //***************************************************checking if SDS is sent*********************************************
 		  else begin
 		   if(symbol==4'b0000) 

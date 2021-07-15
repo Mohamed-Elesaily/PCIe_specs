@@ -1,4 +1,4 @@
-module  masterRxLTSSM #(parameter MAXLANES = 16)(
+module  masterRxLTSSM #(parameter MAXLANES = 16 , DEVICETYPE = 0)(
     input clk,
     input [4:0]numberOfDetectedLanes,
     input [4:0]substate,
@@ -12,7 +12,6 @@ module  masterRxLTSSM #(parameter MAXLANES = 16)(
     output reg finish,
     output reg [4:0]exitTo,
     output reg [15:0]resetOsCheckers,
-    output reg disableDescrambler,
     output [3:0]lpifStatus,
     output reg [2:0]timeToWait,
     output reg enableTimer,
@@ -78,18 +77,18 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
 
     always @(*)
     begin
-        disableDescrambler = 1'b1;
         case(currentState)
         start:
         begin
     
           if(substate != lastState) //ensure that this is a new request
-         begin
+            begin
+            lastState_next = substate;
             resetOsCheckers = {16{1'b1}};
             if(substate == detectQuiet)
             begin
                 comparatorsCount = 5'd0;
-                timeToWait = t12ms;
+                timeToWait = t0ms;
                 nextState = counting;
                 startTimer = 1'b1;
                 enableTimer = 1'b1;
@@ -143,7 +142,7 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
             end
  	    else if (substate==configurationIdle)
             begin
-                comparatorsCount=5'd2;
+                comparatorsCount=5'd1;
                 timeToWait = t2ms;
                 nextState = counting;
                 startTimer = 1'b1;
@@ -151,9 +150,9 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
 		
             end
 
-        else if (substate==configurationIdle)
+        else if (substate==recoveryIdle)
             begin
-                comparatorsCount=5'd8;
+                comparatorsCount=5'd1;
                 timeToWait = t2ms;
                 nextState = counting;
                 startTimer = 1'b1;
@@ -171,9 +170,8 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
 		
             end
         
-        else if (substate == L0) 
+        else if (substate == L0 && DEVICETYPE) 
             begin
-                disableDescrambler = 1'b0;
                 comparatorsCount=5'd1;
                 timeToWait = t1ms;
                 nextState = counting;
@@ -181,7 +179,7 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
                 enableTimer = 1'b0;
 			end
 		
-        end
+       end
         
        else 
         begin
@@ -220,21 +218,20 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
     end
     success:
     begin
-        lastState_next = substate;
-        resetOsCheckers = 16'b0;
-        enableTimer = 1'b0;
-        resetTimer = 1'b0;
-        finish = 1'b1;
-        nextState = start;
         if(RcvrCfgToidle[0])exitTo = recoveryIdle;
         else if(substate == phase1 && detailedRecoverySubstates[0])exitTo = recoveryRcvrLock;
         else if(substate == recoveryIdle)exitTo = L0;
         else if(substate==recoverySpeed && trainToGen!=3'd3)exitTo=recoveryRcvrLock;
         else exitTo = substate+1'b1;
+        resetOsCheckers = 16'b0;
+        enableTimer = 1'b0;
+        resetTimer = 1'b0;
+        finish = 1'b1;
+        nextState = start;
     end
     failed:
     begin
-        lastState_next = substate;
+        //lastState_next = substate;
         resetOsCheckers = 16'b0;
         enableTimer = 1'b0;
         resetTimer = 1'b0;

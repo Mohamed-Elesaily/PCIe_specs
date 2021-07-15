@@ -4,7 +4,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
     input [7:0]laneNumber,
     input [127:0]orderedset,
     input valid,
-    input [3:0]substate,
+    input [4:0]substate,
     input reset,
     input directed_speed_change,
     input [2:0]gen,
@@ -13,7 +13,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
     output [7:0] rateid,
     output [7:0] linkNumberOut,
     output upconfigure_capability,
-    output  RcvrCfgToidle,
+    output reg RcvrCfgToidle,
     output reg[5:0]LFDSP,
     output reg[5:0]FSDSP,
     output reg [2:0] ReceiverpresetHintDSPout,
@@ -30,10 +30,10 @@ module osChecker #(parameter DEVICETYPE = 0)(
     input [5:0]PostCursorCoff);
 
     //LOCLA VARIABLES
-    reg[4:0] currentState,nextState;
+    reg[5:0] currentState,nextState;
     reg[127:0] localorderedset;
     reg notEqual;
-    reg linkNumberReg;
+    reg [7:0]linkNumberReg;
     wire ts1CorrectStart,ts2CorrectStart;
     localparam [7:0]
     PAD = 8'hF7, 
@@ -42,7 +42,8 @@ module osChecker #(parameter DEVICETYPE = 0)(
     COM = 	8'hBC, //BC
     gen3TS1 = 8'h1E,
     gen3TS2 = 8'h2D,
-    gen3eios = 8'h66;
+    gen3eios = 8'h66,
+    idle = 8'h7c;
 
 //input substates from main ltssm
 
@@ -68,7 +69,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
         recoveryIdle = 5'd18;
 
 //internal states
-    localparam [6:0]
+    localparam [5:0]
         start = 6'd0,
         pollingActive1= 6'd1,
         pollingActive2= 6'd2,
@@ -121,7 +122,7 @@ module osChecker #(parameter DEVICETYPE = 0)(
 
 
 reg [7:0]symbol6OfTS2;
-reg rateidTs2;
+reg [7:0]rateidTs2;
 //CURRENT STATE FF
 always @(posedge clk or negedge reset)
 begin
@@ -168,6 +169,7 @@ begin
             else if (substate == phase0 && !DEVICETYPE)nextState = phase0down1;
             else if (substate == phase1 && DEVICETYPE) nextState = phase1up1;
             else if (substate == phase1 && !DEVICETYPE)nextState = phase1down1;
+            else if (substate == recoveryIdle)nextState = RcvrIdle1;
 
             else nextState = start;
         end
@@ -494,7 +496,7 @@ begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&(ts2CorrectStart||ts1CorrectStart)&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
             &&(orderedset[87:80] == TS2||orderedset[87:80] == TS1)&&orderedset[39]==directed_speed_change&&
-            orderedset[49:48] == 2'b00)
+            ((orderedset[49:48] == 2'b00&&gen == 3'd3)||(orderedset[55:48] == TS1 ||orderedset[55:48] == TS2)))
             begin
             nextState = RcvrLock2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -511,7 +513,7 @@ begin
                 begin
                     if((ts2CorrectStart||ts1CorrectStart)&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
                     &&(orderedset[87:80] == TS2||orderedset[87:80] == TS1)&&orderedset[39]==directed_speed_change&&
-                    orderedset[49:48] == 2'b00)
+                    ((orderedset[49:48] == 2'b00&&gen == 3'd3)||(orderedset[55:48] == TS1 ||orderedset[55:48] == TS2)))
                     begin
                         countup = 1'b1;
                         nextState =  RcvrLock2;
@@ -708,12 +710,12 @@ begin
                 if(DEVICETYPE)
                 begin
                     ReceiverpresetHintDSPout = localorderedset[50:48];
-                    TransmitterPresetHintDSPout = localorderedset[53:50];
+                    TransmitterPresetHintDSPout = localorderedset[54:51];
                 end
                 else if(!DEVICETYPE)
                 begin
                     ReceiverpresetHintUSPout = localorderedset[50:48];
-                    TransmitterPresetHintUSPout = localorderedset[53:50];
+                    TransmitterPresetHintUSPout = localorderedset[54:51];
                 end
             end
             else if(valid &&ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
@@ -733,13 +735,24 @@ begin
                 begin
                     if(ts2CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
                     &&orderedset[87:80] == TS2&&orderedset[39]==1'b1 &&orderedset[39:32]==rateidTs2
-                    &&orderedset[55:48] == symbol6OfTS2 &&orderedset[55]==1'b1)
+                    &&orderedset[55:48]==symbol6OfTS2&&orderedset[55]==1'b1)
                     begin
                         symbol6OfTS2 = orderedset[55:48];
                         rateidTs2 = orderedset[39:32];
                         resetcounter = 1'b1; countup = 1'b1;
                         countup = 1'b1;
                         nextState =  RcvrCfg_speed;
+                        RcvrCfgToidle = 1'b0;
+                        if(DEVICETYPE)
+                            begin
+                                ReceiverpresetHintDSPout = localorderedset[50:48];
+                                TransmitterPresetHintDSPout = localorderedset[54:51];
+                            end
+                        else if(!DEVICETYPE)
+                            begin
+                                ReceiverpresetHintUSPout = localorderedset[50:48];
+                                TransmitterPresetHintUSPout = localorderedset[54:51];
+                            end
                     end
                     else nextState =  RcvrCfg;
                 end
@@ -757,6 +770,7 @@ begin
                         resetcounter = 1'b1; countup = 1'b1;
                         countup = 1'b1;
                         nextState =  RcvrCfg_idle;
+                        RcvrCfgToidle = 1'b1;
                     end
                     else nextState =  RcvrCfg;
                 end
@@ -766,10 +780,11 @@ begin
         RcvrSpeed1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid &&((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(|orderedset[127:8]==1'b0))))
+            if(valid &&((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[15:8]==idle))))
             begin
             nextState = RcvrSpeed2;
             resetcounter = 1'b1; countup = 1'b1;
+            RcvrCfgToidle = 1'b0;
             end
             else nextState = RcvrSpeed1;
         end
@@ -779,10 +794,11 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(|orderedset[127:8]==1'b0))))
+                    if(((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[15:8]==idle))))
                     begin
                         countup = 1'b1;
                         nextState =  RcvrSpeed2;
+                        RcvrCfgToidle = 1'b0;
                     end
                     else nextState =  RcvrSpeed1;
                 end
@@ -796,6 +812,7 @@ begin
             begin
             nextState = RcvrIdle2;
             resetcounter = 1'b1; countup = 1'b1;
+            RcvrCfgToidle = 1'b0;
             end
             else nextState = RcvrIdle1;
         end
@@ -809,6 +826,7 @@ begin
                     begin
                         countup = 1'b1;
                         nextState =  RcvrIdle2;
+                        RcvrCfgToidle = 1'b0;
                     end
                     else nextState =  RcvrIdle1;
                 end
@@ -822,7 +840,7 @@ end
     assign upconfigure_capability = localorderedset[42];
     assign ts1CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS1)? 1'b1 : 1'b0;
     assign ts2CorrectStart = (orderedset[7:0]==COM || orderedset[7:0]==gen3TS2)? 1'b1 : 1'b0;
-    assign RcvrCfgToidle = (currentState==RcvrCfg_idle)? 1'b1:1'b0;
+    
 
     
 endmodule

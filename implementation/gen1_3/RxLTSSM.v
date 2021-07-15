@@ -26,12 +26,11 @@ output [4:0]exitTo,
 output witeUpconfigureCapability,
 output writerateid,
 output writeLinkNumber,
-output disableDescrambler,
 output [3:0]lpifStatus,
-output reg [3*16-1:0] ReceiverpresetHintDSPout,
-output reg [4*16-1:0] TransmitterPresetHintDSPout,
-output reg [3*16-1:0] ReceiverpresetHintUSPout,
-output reg [4*16-1:0] TransmitterPresetHintUSPout,
+output [3*16-1:0] ReceiverpresetHintDSPout,
+output [4*16-1:0] TransmitterPresetHintDSPout,
+output [3*16-1:0] ReceiverpresetHintUSPout,
+output [4*16-1:0] TransmitterPresetHintUSPout,
 input [3*16-1:0] ReceiverpresetHintDSP,
 input [4*16-1:0] TransmitterPresetHintDSP,
 input [3*16-1:0] ReceiverpresetHintUSP,
@@ -113,7 +112,7 @@ generate
 endgenerate
 
 
-masterRxLTSSM masterRxLTSSM(
+masterRxLTSSM#(.DEVICETYPE(DEVICETYPE)) masterRxLTSSM(
     .clk(clk),
     .numberOfDetectedLanes(numberOfDetectedLanes),
     .substate(substate),
@@ -126,7 +125,6 @@ masterRxLTSSM masterRxLTSSM(
     .finish(finish),
     .exitTo(exitTo),
     .resetOsCheckers(resetOsCheckers),
-    .disableDescrambler(disableDescrambler),
     .lpifStatus(lpifStatus),
     .timeToWait(setTimer),
     .enableTimer(enableTimer),

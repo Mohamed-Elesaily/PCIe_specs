@@ -13,7 +13,7 @@ input [15:0]RxElectricalIdle,
 input [511:0]RxData, 
 input [63:0]RxDataK,
 input [4:0]numberOfDetectedLanes,
-input [3:0]substate,
+input [4:0]substate,
 input [7:0]linkNumber,
 output [63:0]pl_tlpstart, 
 output [63:0]pl_dllpstart, 
@@ -27,7 +27,7 @@ output [7:0] rateid,
 output [7:0] linkNumberOut,
 output upConfigureCapability,
 output finish,
-output [3:0]exitTo,
+output [4:0]exitTo,
 output witeUpconfigureCapability,
 output writerateid,
 output writeLinkNumber,
@@ -44,7 +44,13 @@ output writeTransmitterPresetHintUSP,
 output writeReceiverpresetHintDSP,
 output writeTransmitterPresetHintDSP,
 output [16*6-1:0]LFDSP,
-output [16*6-1:0]FSDSP);
+output [16*6-1:0]FSDSP,
+input  [6*16-1:0]CursorCoff,
+input  [6*16-1:0]PreCursorCoff,
+input  [6*16-1:0]PostCursorCoff,
+input directed_speed_change,
+input [2:0] trainToGen,
+input disableScrambler);
 	
 wire [5:0]PIPEWIDTH;
 wire [511:0]PIPEData, descramblerData, LMCData;
@@ -55,7 +61,6 @@ wire [31:0]PIPESyncHeader, descramblerSyncHeader, LMCSyncHeader;
 wire [2047:0] orderedSets;
 wire [15:0]rxElectricalIdle;
 wire validOrderedSets;
-wire disableDescrambler;
 wire [3:0]lpifStatus;	
 wire [511:0]Data_out;
 wire w;
@@ -88,7 +93,7 @@ wire [63:0]tlpend    ;
 							.RxData(RxData[m+:32]), .RxDataK(RxDataK[l+:4]), .RxStartBlock(RxStartBlock[i]), .RxSyncHeader(RxSyncHeader[j+:2]), .PIPEWIDTH(PIPEWIDTH),
 							.PIPESyncHeader(PIPESyncHeader[j+:2]), .PIPEDataValid(PIPEDataValid[i]), .PIPEData(PIPEData[m+:32]), .PIPEDataK(PIPEDataK[l+:4]),.PIPEElectricalIdle(rxElectricalIdle[i]));
 							
-			Descrambler descrambler(.clk(clk), .reset(reset), .turnOff(disableDescrambler), .PIPEDataValid(PIPEDataValid[i]), .PIPEWIDTH(PIPEWIDTH), 
+			Descrambler descrambler(.clk(clk), .reset(reset), .turnOff(disableScrambler), .PIPEDataValid(PIPEDataValid[i]), .PIPEWIDTH(PIPEWIDTH), 
 								.PIPESyncHeader(PIPESyncHeader[j+:2]), .seedValue(seedValue[s+:24]), .PIPEData(PIPEData[m+:32]), .PIPEDataK(PIPEDataK[l+:4]), .GEN(GEN),
 								.descramblerDataValid(descramblerDataValid[i]), .descramblerData(descramblerData[m+:32]), .descramblerDataK(descramblerDataK[l+:4]), 
 								.descramblerSyncHeader(descramblerSyncHeader[j+:2]));	
@@ -97,8 +102,8 @@ wire [63:0]tlpend    ;
 	
 	LMC_RX #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))  
 		lmc (.clk(clk), .reset(reset), .GEN(GEN), .descramblerSyncHeader(descramblerSyncHeader), .descramblerDataValid(descramblerDataValid),
-			.LANESNUMBER(numberOfDetectedLanes), .LMCIn(descramblerData), .descramblerDataK(descramblerDataK), .LMCValid(LMCValid), .LMCSyncHeader(LMCSyncHeader), .LMCDataK(LMCDataK),.LMCData(LMCData));
-										
+			.LANESNUMBER(numberOfDetectedLanes), .LMCIn(descramblerData), .descramblerDataK(descramblerDataK), .LMCValid(LMCValid), .LMCSyncHeader(LMCSyncHeader), .LMCDataK(LMCDataK),.LMCData(LMCData));									
+	
 	osDecoder#(.Width(32),.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
 	 os(
 	clk,
@@ -120,6 +125,8 @@ wire [63:0]tlpend    ;
 	numberOfDetectedLanes,
 	substate,
 	linkNumber,
+	directed_speed_change,
+	trainToGen,
 	rxElectricalIdle[0],
 	validOrderedSets,
 	rateid,
@@ -130,7 +137,6 @@ wire [63:0]tlpend    ;
 	witeUpconfigureCapability,
 	writerateid,
 	writeLinkNumber,
-	disableDescrambler,
 	lpifStatus,
 	ReceiverpresetHintDSPout,
 	TransmitterPresetHintDSPout,
@@ -145,8 +151,12 @@ wire [63:0]tlpend    ;
 	writeReceiverpresetHintUSP,
 	writeTransmitterPresetHintUSP,
 	LFDSP,
-	FSDSP
+	FSDSP,
+	CursorCoff,
+    PreCursorCoff,
+    PostCursorCoff
 	);
+
 
 packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWIDTH), .GEN3_PIPEWIDTH(GEN3_PIPEWIDTH), .GEN4_PIPEWIDTH(GEN4_PIPEWIDTH), .GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
     packet_identifier(   
@@ -155,6 +165,7 @@ packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWID
     .gen(GEN),
     .linkup(linkUp),
     .DK(LMCDataK),
+	.syncHeader(LMCSyncHeader),// gen3
     .numberOfDetectedLanes(numberOfDetectedLanes),
     .data_out(Data_out),
     .pl_valid   (valid),
@@ -163,9 +174,10 @@ packet_identifier#(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH), .GEN2_PIPEWIDTH(GEN2_PIPEWID
     .pl_tlpstart(tlpstart),
     .pl_tlpedb  (tlpedb),
     .pl_tlpend  (tlpend), 
+	.clk(clk),
+	.rst(reset),
     .w(w)  
 );
-
 LPIF_RX_Control_DataFlow lpif(.clk(clk),  .reset(reset), .tlpstart(tlpstart), .dllpstart(dlpstart), .tlpend(tlpend), .dllpend(dlpend), .edb(tlpedb), 
 			      .packetValid(valid), .packetData(Data_out)/*, .lp_force_detect(lp_force_detect)*/, .GEN(GEN), /*.state(lpifStatus),*/ 
 			      .pl_tlpstart(pl_tlpstart), .pl_dllpstart(pl_dllpstart), .pl_tlpend(pl_tlpend), .pl_dllpend(pl_dllpend), 

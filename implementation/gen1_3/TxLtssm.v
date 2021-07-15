@@ -73,23 +73,7 @@ output reg MuxSel,
 //PIPE TX Control
 output reg [ LANESNUMBER-1:0]DetectReq,
 output reg [ LANESNUMBER-1:0]ElecIdleReq,
-input  [ LANESNUMBER-1:0]DetectStatus,
-//scrambler
-output reg turnOff,
-output [23:0]seedValue,
-//new
-input 	[18*LANESNUMBER -1:0]LocalTxPresetCoefficients,
-output 	[18*LANESNUMBER -1:0]TxDeemph,
-input 	[6*LANESNUMBER -1:0]LocalFS,
-input 	[6*LANESNUMBER -1:0]LocalLF,
-output reg	[4*LANESNUMBER -1:0]LocalPresetIndex,
-output reg	[LANESNUMBER -1:0]GetLocalPresetCoeffcients,
-input 	[LANESNUMBER -1:0]LocalTxCoefficientsValid,
-output 	[6*LANESNUMBER -1:0]OLF,
-output 	[6*LANESNUMBER -1:0]OFS,
-output 	[LANESNUMBER -1:0]RxEqEval,
-output 	[LANESNUMBER -1:0]InvalidRequest,
-input 	[6*LANESNUMBER -1:0]LinkEvaluationFeedbackDirectionChange
+input  [ LANESNUMBER-1:0]DetectStatus
 );
 
 // states encoding
@@ -183,7 +167,7 @@ always @ * begin
 		 end
 		end
 		ConfigrationLinkWidthAccept:begin
-		if(DEVICETYPE==DownStream && OSGeneratorFinish)begin
+		if(OSGeneratorFinish)begin
 			ExitToState = ConfigrationLaneNumWait;
 			ExitToFlag  = 1 ;
 		end
@@ -249,8 +233,11 @@ ElecIdleReq <= {LANESNUMBER{1'b0}};
 DetectReq<= {LANESNUMBER{1'b0}};
 OSGeneratorStart <=0;
 WriteLinkNumFlag <=0;
-turnOff<=1;
-GetLocalPresetCoeffcients<=0;
+SpeedChange<=1'b0;
+UsePresetCoff<=1'b0;
+ResetEIEOSCount<=1'b0;
+RejectCoff<=1'b0;
+ReqEq <= 1'b0;
 	case(State)
 		DetectQuiet:begin
 			HoldFIFOData <= 1;
@@ -361,7 +348,6 @@ GetLocalPresetCoeffcients<=0;
 			end
 		end
 		L0:begin
-			turnOff<=0;
 			HoldFIFOData<=0;
 			MuxSel <=1; //TODO : check is it 1 or 0 for orderset
 		end
@@ -423,7 +409,7 @@ input  PostCursorCoff,
 		Ph0:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(DEVICETYPE==UpStream)begin
+			if(DEVICETYPE==DownStream)begin/////////////////****************************************************************////////
 				if(!OSGeneratorBusy)begin //it is supposed that
 					OSType<=3'b000; //TS1
 					LinkNumber<=ReadLinkNum;
@@ -457,7 +443,7 @@ input  PostCursorCoff,
 					SpeedChange<=ReadDirectSpeedChange;
 		 			EC<=2'b01;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
-						TXPreset[4*i+:4]<=TransmitterPresetHintDSP[7*i+:4];
+						TXPreset[4*i+:4]<=TransmitterPresetHintDSP[4*i+:4];
 						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-12-1:18*LANESNUMBER-18*i-18];//[23:18][5:0]       [35:0][17:0]
 						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-6-1:18*LANESNUMBER-18*i-12];//[29:24][11:6]
 	 					PostCursorCoff[6*i+:6] <=PostCursorCoff_register[6*i+:6];//[35:30][17:12]
@@ -476,7 +462,7 @@ input  PostCursorCoff,
 					SpeedChange<=ReadDirectSpeedChange;
 					EC<=2'b01;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
-						TXPreset[4*i+:4]<=TransmitterPresetHintUSP[7*i+:4];
+						TXPreset[4*i+:4]<=TransmitterPresetHintUSP[4*i+:4];
 						//PreCursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-12-1:18*LANESNUMBER-18*i-18];//[23:18][5:0]       [35:0][17:0]
 						//CursorCoff[6*i+5:6*i] <=LocalTxPresetCoefficients[18*LANESNUMBER-18*i-6-1:18*LANESNUMBER-18*i-12];//[29:24][11:6]
 	 					PostCursorCoff[6*i+:6] <=PostCursorCoff_register[6*i+:6];//[35:30][17:12]
@@ -497,7 +483,7 @@ input  PostCursorCoff,
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			ElecIdleReq <= {LANESNUMBER{1'b1}};
 			if(!OSGeneratorBusy)begin 
-				OSType<=3'b011; //eios
+				OSType<=3'b100; //idle
 				OSGeneratorStart<=1;
 			end
 			
@@ -607,7 +593,7 @@ TimerStart <= 0;
 			if(NextState==RecoverySpeed)begin
 				TimerEnable <= 1;
 				TimerStart  <= 1;
-				TimerIntervalCode <= t1ms;
+				TimerIntervalCode <= t0ms;
 				OSCount<= 0;
 			end
 			else if (NextState==RecoveryIdle)begin

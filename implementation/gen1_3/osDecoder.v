@@ -37,6 +37,30 @@ STP = 8'b11111011,
 SDP = 8'b01011100,
 SDS = 8'hE1;
 
+
+localparam [4:0]
+	detectQuiet =  5'd0,
+	detectActive = 5'd1,
+	pollingActive= 5'd2,
+	pollingConfiguration= 5'd3,
+	configurationLinkWidthStart = 5'd4,
+	configurationLinkWidthAccept = 5'd5,
+	configurationLanenumWait = 5'd6,
+	configurationLanenumAccept = 5'd7,
+	configurationComplete = 5'd8,
+	configurationIdle = 5'd9,
+	L0 = 5'd10,
+	recoveryRcvrLock = 5'd11,
+	recoveryRcvrCfg = 5'd12,
+	recoverySpeed = 5'd13,
+	phase0 = 5'd14,
+	phase1 = 5'd15,
+	phase2 = 5'd16,
+	phase3 =5'd17,
+	recoveryIdle = 5'd18;
+
+
+
 parameter [175:0] lanesOffsets ={11'd1920,11'd1792,11'd1664,11'd1536,11'd1408,11'd1280,11'd1152
 ,11'd1024,11'd896,11'd768,11'd640,11'd512,11'd384,11'd256,11'd128,11'd0};
 always@(posedge clk or negedge reset)
@@ -67,10 +91,10 @@ begin
 		begin
 			for(i=504;i>=0;i=i-8)
 			begin	
-				if(data[i+:8]==COM&&!found/*||data[i+:8]==gen3TS1||data[i+:8]==gen3TS2||data[i+:8]==gen3SKIP*/)
+				if((data[i+:8]==COM||data[i+:8]==gen3TS1||data[i+:8]==gen3TS2||data[i+:8]==gen3SKIP)&&!found)
 				begin
 				found = 1'b1;
-				if(capacity+i-((numberOfDetectedLanes-1)<<3) >= 128<<numberOfShifts)
+				if((substate !=recoverySpeed && capacity+i-((numberOfDetectedLanes-1)<<3) >= 128<<numberOfShifts)||(substate==recoverySpeed &&capacity+i-((numberOfDetectedLanes-1)<<3) >= 32<<numberOfShifts))
 				begin
 				validnext = 1'b1;
 				out = orderedSets|(data)<<capacity;
@@ -84,7 +108,7 @@ begin
 			begin
 				orderedSetsnext = orderedSets|((2048'b0|data) << capacity);
 				capacitynext = capacity + width;
-				if(capacity>= (128<<numberOfShifts))
+				if((substate==recoverySpeed && capacity>= (32<<numberOfShifts))||(substate !=recoverySpeed && capacity>= (128<<numberOfShifts)))
 				begin
 				validnext = 1'b1;
 				out = orderedSets;
