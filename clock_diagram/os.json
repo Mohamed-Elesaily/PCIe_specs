@@ -1,0 +1,12 @@
+{ "signal" : [
+  
+    { "name": "clk", "wave": "P..|..........." ,"period":3},
+    { "name": "LMCValid", "wave": "0.1..............." },
+    { "name": "rst", "wave": "1..................." },
+    { "name": "DK", "wave": "2.2..2..2|..2..2..", "data":["","ones","zeros","zeros","zeros"] },
+    { "name": "valid", "wave": "0..............1.0" },
+    { "name": "data_in", "wave": "2.2..2..2|..2..2..", "data":["","COM in 8 lanes","first byte in TS1","second byte in TS1","16 byte in TS1"] },
+    { "name": "os", "wave": "2..............2...2","data":["0","TS1"] }
+  ] }
+  
+  

@@ -1,0 +1,19 @@
+{ "signal" : [
+  
+    { "name": "clk", "wave": "P.............","period":4 },
+    { "name": "reset", "wave": "0..1............" },
+    { "name": "valid", "wave": "0..1.........0...." },
+    { "name": "linkup", "wave": "0..1................" },
+    { "name": "gen", "wave": "0..2...........2..","data":["1"] },
+    { "name": "numberOfDetectedLanes", "wave": "0..2...........2..","data":["8"] },
+    
+    { "name": "DK","wave": "2....2...2...2.......","data":["1","0","63 bits(0)+ 1 bit(1)","0"]},
+    { "name": "Data_in", "wave": "2..2..2...2..2..2", "data":["don't care","STP + 63 Bytes","64 Bytes","63 Bytes + END","don't care"] },
+    { "name": "Bytetype", "wave": "2..2..2...2...2..2" ,"data":["don't care","STP+valid data","valid data","valid data + END_STP","not_valid"]},
+    
+    { "name": "Data_out","wave": "2..2..2...2..2..2", "data":["don't care","STP + 63 Bytes","64 Bytes","63 Bytes + END","don't care"]}
+   
+  
+  ] }
+  
+   
