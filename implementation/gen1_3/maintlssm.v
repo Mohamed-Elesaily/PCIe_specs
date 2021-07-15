@@ -393,7 +393,7 @@ end
             disableScrambler = 1'b0;
             lpifStateStatus = active_;
             linkUp = 1'b1;
-            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
+            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b100)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
             begin
                 directed_speed_change = 1'b1;
                 trainToGen = 3'd3;

@@ -593,5 +593,5 @@ pl_linkUp,
 M2P_MessageBus,
 P2M_MessageBus
 );
-assign {RxData,RxDataValid,RxDataK,RxValid} = {TxData,TxDataValid,TxDataK,TxDataValid}; 
+assign {RxData,RxDataValid,RxDataK,RxValid,RxSyncHeader,RxStartBlock} = {TxData,TxDataValid,TxDataK,TxDataValid,TxSyncHeader,TxStartBlock}; 
 endmodule
