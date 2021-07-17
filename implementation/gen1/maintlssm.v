@@ -25,6 +25,7 @@ parameter GEN5_PIPEWIDTH = 8)
     input [3:0] gotoTx,
     input [3:0] gotoRx,
     input forceDetect,
+    input turnOffScrambler_flag,
     output reg linkUp,
     output reg[2:0] GEN,
     output [4:0] numberOfDetectedLanesOut,
@@ -35,7 +36,8 @@ parameter GEN5_PIPEWIDTH = 8)
     output reg[3:0] lpifStateStatus,
     output reg[3:0] substateTx,
     output reg[3:0] substateRx,
-    output reg[1:0] width    
+    output reg[1:0] width,
+    output reg disableScrambler    
 );
 
 
@@ -68,6 +70,11 @@ parameter GEN5_PIPEWIDTH = 8)
         configurationIdle = 4'd9,
         L0 = 4'd10;
 
+    always @(posedge clk) 
+    begin
+        if(turnOffScrambler_flag)disableScrambler<=1'b1;
+        else disableScrambler<=1'b0;      
+    end
     //Data resgiter handling
     always@(posedge clk)
     begin
@@ -82,8 +89,6 @@ parameter GEN5_PIPEWIDTH = 8)
         if(!reset || forceDetect)
         begin
             currentState <= reset_;
-            //substateTx <= detectQuiet;
-            //substateRx <= detectQuiet;
             GEN <= 3'd1;
             
         end
@@ -97,7 +102,7 @@ parameter GEN5_PIPEWIDTH = 8)
 
 //next LPIF state handling
     always @(*)
-    begin
+    begin 
        case (currentState)
         reset_:
         begin
@@ -174,6 +179,7 @@ end
 //output handling block
     always @(*)
     begin
+        //disableScrambler = 1'b1;
        case (currentState)
         reset_:
         begin
@@ -292,6 +298,8 @@ end
                             lpifStateStatus = reset_;
                         end
                 {configurationIdle,configurationIdle}:
+                begin
+                    //disableScrambler = 1'b0;
                     if (finishRx&&gotoRx==L0) 
                         begin
                             linkUp = 1'b1;
@@ -303,6 +311,7 @@ end
                             {substateTxnext,substateRxnext}= {detectQuiet,detectQuiet};
                             lpifStateStatus = reset_;
                         end
+                end                   
                 default:
                     begin
                         {substateTxnext,substateRxnext}= {detectQuiet,detectQuiet};
@@ -314,12 +323,13 @@ end
         end
         active_:
         begin
+            //disableScrambler = 1'b0;
             {substateTxnext,substateRxnext}= {L0,L0};
             lpifStateStatus = active_;
         end
         retrain_:
         begin
-           lpifStateStatus = retrain_; //RECOVERY
+           lpifStateStatus = retrain_;
         end 
         default:
             nextState = reset_;

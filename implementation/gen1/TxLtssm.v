@@ -60,9 +60,8 @@ output reg [ LANESNUMBER-1:0]DetectReq,
 output reg [ LANESNUMBER-1:0]ElecIdleReq,
 input  [ LANESNUMBER-1:0]DetectStatus,
 //scrambler
-output reg turnOff,
-output [23:0]seedValue
-
+output [23:0]seedValue,
+output reg turnOffScrambler_flag
 );
 
 // states encoding
@@ -91,6 +90,7 @@ reg WriteDetectLanesFlagReg;
 reg TimerEnable;
 reg TimerStart;
 reg [2:0]TimerIntervalCode;
+reg turnOffScrambler_flag_next,turnOffScrambler_flag_next2;
 wire TimeOut;
 Timer #(.Width(32)) T(.Gen(Gen),.Reset(Reset),.Pclk(Pclk),.Enable(TimerEnable),.Start(TimerStart),.TimerIntervalCode(TimerIntervalCode),.TimeOut(TimeOut));
 
@@ -122,7 +122,7 @@ end
 always @ *
 begin
 //default value for outputs (synthesis)
-ExitToState = 4'bxxxx;
+ExitToState = 4'd0;
 ExitToFlag  = 0 ;
 
 	case(State)
@@ -157,7 +157,7 @@ ExitToFlag  = 0 ;
 		 end
 		end
 		ConfigrationLinkWidthAccept:begin
-		if(DEVICETYPE==DownStream && OSGeneratorFinish)begin
+		if(OSGeneratorFinish)begin
 			ExitToState = ConfigrationLaneNumWait;
 			ExitToFlag  = 1 ;
 		end
@@ -169,7 +169,7 @@ ExitToFlag  = 0 ;
 		 end
 		end
 		ConfigrationIdle:begin
-		if(OSCount >= 16)begin
+		if(OSGeneratorFinish)begin
 			ExitToState = L0;
 			ExitToFlag  = 1 ;
 		 end
@@ -187,13 +187,14 @@ ElecIdleReq <= {LANESNUMBER{1'b0}};
 DetectReq<= {LANESNUMBER{1'b0}};
 OSGeneratorStart <=0;
 WriteLinkNumFlag <=0;
-turnOff<=1;
 	case(State)
 		DetectQuiet:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData <= 1;
 			ElecIdleReq <= {LANESNUMBER{1'b1}};
 		end
 		DetectActive:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			//DetectReq<= {LANESNUMBER{1'b1}};
 			if (DetectStatus == {LANESNUMBER{1'b1}} || DetectLanes == {LANESNUMBER{1'b1}} )begin
@@ -204,6 +205,7 @@ turnOff<=1;
 				end
 		end
 		 PollingActive:begin
+			 turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
@@ -216,6 +218,7 @@ turnOff<=1;
 			end
 		end
 		PollingConfigration:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
@@ -227,6 +230,7 @@ turnOff<=1;
 			end
 		end
 		ConfigrationLinkWidthStart:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
@@ -246,6 +250,7 @@ turnOff<=1;
 		end
 		
 		ConfigrationLinkWidthAccept:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
@@ -262,6 +267,7 @@ turnOff<=1;
 			end
 		end
 		ConfigrationLaneNumWait:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
@@ -273,6 +279,7 @@ turnOff<=1;
 			end
 		end
 		ConfigrationLaneNumActive:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
 			if(!OSGeneratorBusy)begin //it is supposed that
@@ -285,9 +292,10 @@ turnOff<=1;
 		end
 		
 		ConfigrationComplete:begin
+			turnOffScrambler_flag_next<=1'b1;
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(!OSGeneratorBusy)begin //it is supposed that
+			if(!OSGeneratorBusy && OSCount < 15)begin //it is supposed that
 			OSType<=2'b01; //TS2
 		   LinkNumber<=ReadLinkNum;
 			Rate<=MAX_GEN;
@@ -298,13 +306,14 @@ turnOff<=1;
 		ConfigrationIdle:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(!OSGeneratorBusy)begin //it is supposed that
+			if(!OSGeneratorBusy && OSCount < 1 && !OSGeneratorFinish)begin //it is supposed that
+			turnOffScrambler_flag_next<=1'b0;
 			OSType<=3'b100; //IDLE
 			OSGeneratorStart<=1;
 			end
 		end
 		L0:begin
-			turnOff <= 0;
+			turnOffScrambler_flag<=1'b0;
 			HoldFIFOData<=0;
 			MuxSel <=1; //TODO : check is it 1 or 0 for orderset
 		end
@@ -409,8 +418,6 @@ TimerStart <= 0;
 			|| NextState == ConfigrationComplete )begin
 				OSCount<=0;		
 			end			
-			else if(NextState == L0)
-				turnOff <= 0;
 		end		
 		
 		default:begin
@@ -430,6 +437,7 @@ end
 always @ (posedge Pclk)
 begin
 	if(!Reset) begin
+		turnOffScrambler_flag<= 1'b1;
 		State <= Idle;
 		TXExitTo <= DetectQuiet;
 		TXFinishFlag <= 0;
@@ -437,22 +445,13 @@ begin
 		WriteDetectLanesFlag<=0;
 	end
 	else begin
+		turnOffScrambler_flag <= turnOffScrambler_flag_next2;
+		turnOffScrambler_flag_next2<=turnOffScrambler_flag_next;
 		State   <= NextState;
 		TXExitTo<= ExitToState;
 		TXFinishFlag <= ExitToFlag;
 		WriteDetectLanesFlag<=WriteDetectLanesFlagReg;
 	end
 end
-
-always @ * begin
-
-if(NextState == L0)begin
-turnOff=1'b0;
-end
-else begin
-turnOff =1'b1;
-end
-end
-//assign turnOff = (NextState == L0)? 1'b0 : 1'b1;
 
 endmodule
