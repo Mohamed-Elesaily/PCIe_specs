@@ -518,8 +518,10 @@ begin
 		lp_dlpstart[i]=0;
 	end
 	lp_valid={2'b00, {62{1'b1}}};
-	lp_tlpstart[3]=1;
-	lp_dlpend[10]=1;
+	lp_tlpstart[0]=1;
+	lp_tlpend[7]=1;
+    // lp_dlpstart[0]=1;
+    // lp_dlpend[5]=1;
 	#10
 	lp_irdy=0;
 end
