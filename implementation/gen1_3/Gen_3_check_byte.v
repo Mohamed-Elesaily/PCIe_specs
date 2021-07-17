@@ -67,7 +67,7 @@ always @(*) begin
     else
     begin
      
-        if(valid  & (syncHeader == 2'b10))
+        if(valid  & (syncHeader == 2'b01))
         begin
            if(data_in == SDP_byte1 & byte_header_in == 2'b00)
         begin

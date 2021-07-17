@@ -421,12 +421,12 @@ wire [(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]TxDataK;
 wire [2*LANESNUMBER -1:0]TxSyncHeader;
 wire [LANESNUMBER-1:0]TxDetectRx_Loopback;
 //RX_signals
-reg [MAXPIPEWIDTH*LANESNUMBER-1:0]RxData;
-reg [LANESNUMBER-1:0]RxDataValid;////////////////////////////////////////
-reg	[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
-reg	[LANESNUMBER-1:0]RxStartBlock;
-reg	[2*LANESNUMBER -1:0]RxSyncHeader;
-reg	[LANESNUMBER-1:0]RxValid;
+wire [MAXPIPEWIDTH*LANESNUMBER-1:0]RxData;
+wire [LANESNUMBER-1:0]RxDataValid;////////////////////////////////////////
+wire[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
+wire[LANESNUMBER-1:0]RxStartBlock;
+wire[2*LANESNUMBER -1:0]RxSyncHeader;
+wire[LANESNUMBER-1:0]RxValid;
 reg	[3*LANESNUMBER -1:0]RxStatus;
 reg [15:0]RxElectricalIdle;
 //commands and status signals
@@ -480,6 +480,7 @@ localparam[1:0]
         reset_   = 2'd0,
         active_  = 2'd1,
         retrain_ = 2'd2;
+integer i;
 
 initial
 begin
@@ -504,6 +505,23 @@ begin
     LocalTxPresetCoefficients={16*18{1'b1}};
     LocalLF={16*6{1'b1}};
     LocalFS={16*6{1'b1}};
+	wait(pl_linkUp && pl_speedmode==2'b10 && pl_state_sts==active_);
+	lp_state_req = active_;
+	@(negedge CLK);
+	lp_irdy=1;
+	for (i=0;i<512;i=i+1) 
+	begin
+		lp_data[i]=$random;
+		lp_tlpstart[i]=0;
+		lp_tlpend[i]=0;
+		lp_dlpend[i]=0;
+		lp_dlpstart[i]=0;
+	end
+	lp_valid={2'b00, {62{1'b1}}};
+	lp_tlpstart[3]=1;
+	lp_dlpend[10]=1;
+	#10
+	lp_irdy=0;
 end
 always #5 CLK = ~CLK;
 
