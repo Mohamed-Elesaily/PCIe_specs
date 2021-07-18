@@ -21,7 +21,6 @@ wire [11:0]count_limit[0:64];
 wire [11:0]count_byte[0:64]; 
 wire [2:0]header_byte[0:64];
 reg [127:0]syncHeader1;
-assign syncHeader1 = syncHeader;
 assign Data_out = Data_in;
 reg h;
 integer j=0;
