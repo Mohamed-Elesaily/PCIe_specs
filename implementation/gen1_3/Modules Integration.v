@@ -73,7 +73,8 @@ wire [63:0]tlpend    ;
 
 	
 	//=== seed values for Gen 3 descrambler ===
-	reg [191:0]seedValue = {24'h1dbfbc, 24'h0607bb, 24'h1ec760, 24'h18c0db, 24'h010f12, 24'h19cfc9, 24'h0277ce, 24'h1bb807};
+	//reg [191:0]seedValue = {24'h1dbfbc, 24'h0607bb, 24'h1ec760, 24'h18c0db, 24'h010f12, 24'h19cfc9, 24'h0277ce, 24'h1bb807};
+	reg [191:0]seedValue = {24'h1bb807, 24'h0277ce, 24'h19cfc9, 24'h010f12, 24'h18c0db, 24'h1ec760, 24'h0607bb, 24'h1dbfbc};
 
 
 	
