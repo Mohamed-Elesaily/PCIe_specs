@@ -235,22 +235,22 @@ $display("second condition");
    temp3_comb[117:112]=cursor_coeff_comb[89:84];
    temp3_comb[125:120]=cursor_coeff_comb[95:90];
    end
-   temp4[6:0]={rej_coeff_comb[0],post_cursor_coeff_comb[5:0]};
-   temp4[14:8]={rej_coeff_comb[1],post_cursor_coeff_comb[11:6]};
-   temp4[22:16]={rej_coeff_comb[1],post_cursor_coeff_comb[17:12]};
-   temp4[30:24]={rej_coeff_comb[3],post_cursor_coeff_comb[23:18]};
-   temp4[38:32]={rej_coeff_comb[4],post_cursor_coeff_comb[29:24]};
-   temp4[46:40]={rej_coeff_comb[5],post_cursor_coeff_comb[35:30]};
-   temp4[54:48]={rej_coeff_comb[6],post_cursor_coeff_comb[41:36]};
-   temp4[62:56]={rej_coeff_comb[7],post_cursor_coeff_comb[47:42]};
-   temp4[70:64]={rej_coeff_comb[8],post_cursor_coeff_comb[53:48]};
-   temp4[78:72]={rej_coeff_comb[9],post_cursor_coeff_comb[59:54]};
-   temp4[86:80]={rej_coeff_comb[10],post_cursor_coeff_comb[65:60]};
-   temp4[94:88]={rej_coeff_comb[11],post_cursor_coeff_comb[71:66]};
-   temp4[102:96]={rej_coeff_comb[12],post_cursor_coeff_comb[77:72]};
-   temp4[110:104]={rej_coeff_comb[13],post_cursor_coeff_comb[83:78]};
-   temp4[118:112]={rej_coeff_comb[14],post_cursor_coeff_comb[89:84]};
-   temp4[126:120]={rej_coeff_comb[15],post_cursor_coeff_comb[95:90]};
+   temp4_comb[6:0]={rej_coeff_comb[0],post_cursor_coeff_comb[5:0]};
+   temp4_comb[14:8]={rej_coeff_comb[1],post_cursor_coeff_comb[11:6]};
+   temp4_comb[22:16]={rej_coeff_comb[2],post_cursor_coeff_comb[17:12]};
+   temp4_comb[30:24]={rej_coeff_comb[3],post_cursor_coeff_comb[23:18]};
+   temp4_comb[38:32]={rej_coeff_comb[4],post_cursor_coeff_comb[29:24]};
+   temp4_comb[46:40]={rej_coeff_comb[5],post_cursor_coeff_comb[35:30]};
+   temp4_comb[54:48]={rej_coeff_comb[6],post_cursor_coeff_comb[41:36]};
+   temp4_comb[62:56]={rej_coeff_comb[7],post_cursor_coeff_comb[47:42]};
+   temp4_comb[70:64]={rej_coeff_comb[8],post_cursor_coeff_comb[53:48]};
+   temp4_comb[78:72]={rej_coeff_comb[9],post_cursor_coeff_comb[59:54]};
+   temp4_comb[86:80]={rej_coeff_comb[10],post_cursor_coeff_comb[65:60]};
+   temp4_comb[94:88]={rej_coeff_comb[11],post_cursor_coeff_comb[71:66]};
+   temp4_comb[102:96]={rej_coeff_comb[12],post_cursor_coeff_comb[77:72]};
+   temp4_comb[110:104]={rej_coeff_comb[13],post_cursor_coeff_comb[83:78]};
+   temp4_comb[118:112]={rej_coeff_comb[14],post_cursor_coeff_comb[89:84]};
+   temp4_comb[126:120]={rej_coeff_comb[15],post_cursor_coeff_comb[95:90]};
    end
   end
   end
@@ -365,7 +365,7 @@ always@(posedge pclk,negedge reset_n) begin
    gen_reg <= gen; // storing the PCIe generation 
    send <= 1'b1;
    busy<=1'b1;
-   tx_preset_comb<=0;
+   /*tx_preset_comb<=0;
    tx_preset_comb<=tx_preset;
    use_preset_coeff_comb<=0;
    use_preset_coeff_comb<=use_preset_coeff;
@@ -380,7 +380,7 @@ always@(posedge pclk,negedge reset_n) begin
    post_cursor_coeff_comb<=0;
    post_cursor_coeff_comb<=post_cursor_coeff;
    rej_coeff_comb<=0;
-   rej_coeff_comb<=rej_coeff;
+   rej_coeff_comb<=rej_coeff;*/
    symbol <= 4'b0000; // flag which detects which symbol to be sent 
    //send <= 1'b1; // in order to know that there will be an order to send
    //count<=no_of_lanes;
