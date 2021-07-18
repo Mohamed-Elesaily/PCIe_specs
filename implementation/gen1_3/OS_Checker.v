@@ -43,7 +43,8 @@ module osChecker #(parameter DEVICETYPE = 0)(
     gen3TS1 = 8'h1E,
     gen3TS2 = 8'h2D,
     gen3eios = 8'h66,
-    idle = 8'h7c;
+    idle = 8'h7c,
+    gen1eieos = 8'hC4;
 
 //input substates from main ltssm
 
@@ -66,7 +67,9 @@ module osChecker #(parameter DEVICETYPE = 0)(
         phase1 = 5'd15,
         phase2 = 5'd16,
         phase3 =5'd17,
-        recoveryIdle = 5'd18;
+        recoveryIdle = 5'd18,
+        recoverySpeedeieos = 5'd19,
+        recoverywait = 5'd20;
 
 //internal states
     localparam [5:0]
@@ -118,7 +121,9 @@ module osChecker #(parameter DEVICETYPE = 0)(
         RcvrIdle1 = 6'd40,
         RcvrIdle2 = 6'd41,
         L0up1 = 6'd42,
-        L0up2 = 6'd43;
+        L0up2 = 6'd43,
+        RcvrSpeedeieos1 = 6'd45,
+        RcvrSpeedeieos2 = 6'd46;
 
 
 reg [7:0]symbol6OfTS2;
@@ -170,6 +175,7 @@ begin
             else if (substate == phase1 && DEVICETYPE) nextState = phase1up1;
             else if (substate == phase1 && !DEVICETYPE)nextState = phase1down1;
             else if (substate == recoveryIdle)nextState = RcvrIdle1;
+            else if (substate == recoverySpeedeieos)nextState = RcvrSpeedeieos1;
 
             else nextState = start;
         end
@@ -780,7 +786,7 @@ begin
         RcvrSpeed1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid &&((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[15:8]==idle))))
+            if(valid &&((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[31:8]=={3{idle}}))))
             begin
             nextState = RcvrSpeed2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -794,7 +800,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if(((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[15:8]==idle))))
+                    if(((gen==3'd3&&(|orderedset == 8'h66))||(gen!=3'd3&&orderedset[7:0]==COM &&(|orderedset[31:8]=={3{idle}}))))
                     begin
                         countup = 1'b1;
                         nextState =  RcvrSpeed2;
@@ -803,6 +809,34 @@ begin
                     else nextState =  RcvrSpeed1;
                 end
             else nextState =  RcvrSpeed2;
+        end
+
+        RcvrSpeedeieos1:
+        begin
+            resetcounter = 1'b0; countup = 1'b0;
+            if(valid &&((gen==3'd3&&orderedset=={8{16'hFF00}})||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[119:8]=={14{gen1eieos}}))))
+            begin
+            nextState = RcvrSpeedeieos2;
+            resetcounter = 1'b1; countup = 1'b1;
+            RcvrCfgToidle = 1'b0;
+            end
+            else nextState = RcvrSpeedeieos1;
+        end
+
+        RcvrSpeedeieos2:
+        begin
+            resetcounter = 1'b1; countup = 1'b0;
+            if(valid)
+                begin
+                    if((gen==3'd3&&orderedset=={8{16'hFF00}})||(gen!=3'd3&&orderedset[7:0]==COM &&(orderedset[119:8]=={14{gen1eieos}})))
+                    begin
+                        countup = 1'b1;
+                        nextState =  RcvrSpeedeieos2;
+                        RcvrCfgToidle = 1'b0;
+                    end
+                    else nextState =  RcvrSpeedeieos1;
+                end
+            else nextState =  RcvrSpeedeieos2;
         end
 
         RcvrIdle1:

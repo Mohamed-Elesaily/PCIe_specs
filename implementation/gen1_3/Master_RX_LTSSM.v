@@ -46,7 +46,9 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
         phase1 = 5'd15,
         phase2 = 5'd16,
         phase3 =5'd17,
-        recoveryIdle = 5'd18;
+        recoveryIdle = 5'd18,
+        recoverySpeedeieos = 5'd19,
+        recoverywait = 5'd20;
 
     
 
@@ -160,23 +162,13 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
         
             end
 
-        else if (substate==recoverySpeed)
+        else if ((substate == L0 && DEVICETYPE) || substate==recoverySpeed || substate==recoverySpeedeieos) 
             begin
                 comparatorsCount=5'd1;
-                timeToWait = t1ms;
+                timeToWait = t48ms;
                 nextState = counting;
                 startTimer = 1'b1;
                 enableTimer = 1'b1;
-		
-            end
-        
-        else if (substate == L0 && DEVICETYPE) 
-            begin
-                comparatorsCount=5'd1;
-                timeToWait = t1ms;
-                nextState = counting;
-                startTimer = 1'b0;
-                enableTimer = 1'b0;
 			end
 		
        end
@@ -221,7 +213,9 @@ parameter t0ms = 3'd0,t12ms= 3'd1,t24ms = 3'd2,t48ms = 3'd3,t2ms = 3'd4,t8ms = 3
         if(RcvrCfgToidle[0])exitTo = recoveryIdle;
         else if(substate == phase1 && detailedRecoverySubstates[0])exitTo = recoveryRcvrLock;
         else if(substate == recoveryIdle)exitTo = L0;
-        else if(substate==recoverySpeed && trainToGen!=3'd3)exitTo=recoveryRcvrLock;
+        else if(substate==recoverySpeed)exitTo = recoverywait;
+        else if(substate==recoverySpeedeieos && trainToGen<3'd3)exitTo=recoveryRcvrLock;
+        else if(substate==recoverySpeedeieos && trainToGen>=3'd3)exitTo=phase0;
         else exitTo = substate+1'b1;
         resetOsCheckers = 16'b0;
         enableTimer = 1'b0;

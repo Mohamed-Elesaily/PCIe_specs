@@ -1,3 +1,38 @@
+`define en(i) \
+else if(valid_reg[i]&&(STB_reg[i]||SDB_reg[i]||END_reg[i])) \
+begin \
+if(STB_reg[i]) \
+begin \
+data_reg<={data_reg[632-1:8*i],STB,data_reg[8*i-1:0]}; \
+STB_reg <={STB_reg[80-1-1:i+1],2'b00,STB_reg[i-1:0]}; \
+SDB_reg <={SDB_reg[80-1-1:i],1'b0,SDB_reg[i-1:0]}; \
+END_reg <={END_reg[80-1-1:i],1'b0,END_reg[i-1:0]}; \
+valid_reg<={valid_reg[80-1-1:i],1'b1,valid_reg[i-1:0]}; \
+DK <= {DK[80-1-1:i],1'b1,DK[i-1:0]};\
+end \
+else if(SDB_reg[i]) \
+begin \
+data_reg<={data_reg[632-1:8*i],SDB,data_reg[8*i-1:0]}; \
+SDB_reg <={SDB_reg[80-1-1:i+1],2'b00,SDB_reg[i-1:0]}; \
+STB_reg <={STB_reg[80-1-1:i],1'b0,STB_reg[i-1:0]}; \
+END_reg <={END_reg[80-1-1:i],1'b0,END_reg[i-1:0]}; \
+valid_reg<={valid_reg[80-1-1:i],1'b1,valid_reg[i-1:0]}; \
+DK <= {DK[80-1-1:i],1'b1,DK[i-1:0]};\
+end \
+else if(END_reg[i]) \
+begin \
+data_reg<={data_reg[632-1:8*(i+1)],END,data_reg[8*(i+1)-1:0]}; \
+STB_reg <={STB_reg[80-1-1:(i+1)],1'b0,STB_reg[(i+1)-1:0]}; \
+SDB_reg <={SDB_reg[80-1-1:(i+1)],1'b0,SDB_reg[(i+1)-1:0]}; \
+END_reg <={END_reg[80-1-1:(i+1)],2'b00,END_reg[i-1:0]}; \
+valid_reg<={valid_reg[80-1-1:(i+1)],1'b1,valid_reg[(i+1)-1:0]}; \
+DK <= {DK[80-1-1:(i+1)],1'b1,DK[(i+1)-1:0]}; \
+end \
+end \
+
+`define co(a)\
+else if (valid_reg[80-a]) count<= 80-a+1;\
+
 `define stp_sdp(i) \
 if (ValidIn_reg[i]==1)begin	\
  if (TLPStart_reg[i])begin	\
@@ -150,7 +185,7 @@ parameter MAXPIPEWIDTH =32,
 parameter LANESNUMBER = 16,
 parameter GEN1_PIPEWIDTH = 8 ,	
 parameter GEN2_PIPEWIDTH = 32 ,	
-parameter GEN3_PIPEWIDTH = 8 ,	
+parameter GEN3_PIPEWIDTH = 16 ,	
 parameter GEN4_PIPEWIDTH = 8 ,	
 parameter GEN5_PIPEWIDTH = 8 	
 )
@@ -171,10 +206,12 @@ output reg ReadEn;
 output reg[511:0]DataOut;
 output reg [63:0]ValidOut;
 output reg [63:0] DKOut;
+////GEN3
 reg[511:0]DataOut_reg;
 reg [63:0]ValidOut_reg;
 reg[63:0]TLPStart_reg;
 reg[63:0]DLLPStart_reg;
+reg [63:0]PEnd_reg;
 reg [63:0]ValidIn_reg;
 reg [95:0]Valid_reg;
 reg [95:0]Valid_comb;
@@ -210,6 +247,199 @@ reg flag_reg;
 reg flag_comb;
 reg [1023:0] temp_data;
 reg [127:0] temp_valid;
+//////////////GEN1
+reg [7:0] count;
+reg [MAXPIPEWIDTH/8*LANESNUMBER-1:0]DK;
+wire[MAXPIPEWIDTH/8*LANESNUMBER-1:0]flag1;
+reg [MAXPIPEWIDTH*LANESNUMBER-1:0] flag2; 
+reg [MAXPIPEWIDTH*LANESNUMBER-1:0]   ShiftLeftVaLueData;
+reg [MAXPIPEWIDTH/8*LANESNUMBER-1:0] ShiftLeftValueValid;
+reg [2:0] width;
+reg [MAXPIPEWIDTH*LANESNUMBER-1:0]   out_data_mask;
+reg [MAXPIPEWIDTH/8*LANESNUMBER-1:0] out_valid_mask;
+reg NoMoreData;
+reg finishprocessing;
+reg read_new;
+reg [512+16*8-1:0] data_reg;
+reg [64+16-1:0] STB_reg;
+reg [64+16-1:0] SDB_reg;
+reg [64+16-1:0] END_reg;
+reg [64+16-1:0] valid_reg;
+reg [MAXPIPEWIDTH*LANESNUMBER-1:0] data_temp;
+reg [MAXPIPEWIDTH/8*LANESNUMBER-1:0] valid_temp;
+reg [MAXPIPEWIDTH/8*LANESNUMBER-1:0] DK_temp;
+reg [7:0] count_temp;
+reg ConFlag ;
+parameter STB=8'hFB,
+			 SDB=8'h5C,
+			 END=8'hFD;
+//////////////////////////////////////
+always @ (posedge clk)
+begin 
+	if(~ResetN) begin width <= 0; end
+	else begin
+		if (Gen == 1)begin  
+			case(GEN1_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (Gen == 2)begin  
+			case(GEN2_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (Gen == 3)begin  
+			case(GEN3_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (Gen == 4)begin  
+			case(GEN4_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		else if (Gen == 5)begin  
+			case(GEN5_PIPEWIDTH)
+			8:width<=0;
+			16:width<=1;
+			32:width<=2;
+			endcase
+		end
+		
+	end
+end 
+always @ *
+begin
+out_data_mask<=0;
+		out_valid_mask<=0;
+		case(width)
+			0: //8 bit
+			begin 
+				out_data_mask[LANESNUMBER*8-1:0]<={LANESNUMBER{8'hFF}};
+				out_valid_mask [LANESNUMBER-1:0]<={LANESNUMBER{1'b1}};
+				ShiftLeftVaLueData<=LANESNUMBER << 3; //multiply by 8 is the same as shift left by 3
+				ShiftLeftValueValid<=LANESNUMBER<<0;
+			end
+			1:
+			begin
+				out_data_mask[LANESNUMBER*16-1:0]<={LANESNUMBER{16'hFFFF}};
+				out_valid_mask [LANESNUMBER*2-1:0]<={LANESNUMBER{2'b11}};
+				ShiftLeftVaLueData<=LANESNUMBER << 4; //multiply by 16 is the same as shift left by 4
+				ShiftLeftValueValid<=LANESNUMBER<<1;
+			end
+			2:
+			begin
+				out_data_mask[LANESNUMBER*32-1:0]<={LANESNUMBER{32'hFFFF_FFFF}};
+				out_valid_mask [LANESNUMBER*4-1:0]<={LANESNUMBER{4'b1111}};
+				ShiftLeftVaLueData<=LANESNUMBER << 5; //multiply by 32 is the same as shift left by 4
+				ShiftLeftValueValid<=LANESNUMBER<<2;
+			end
+		endcase
+end 
+assign flag1 = valid_reg[MAXPIPEWIDTH/8*LANESNUMBER-1:0];
+
+integer i;
+integer j;
+always @ *
+begin
+if(finishprocessing && |valid_reg)
+begin
+ for(i=0 ; i<80 ; i=i+1)
+begin
+   j=i*8;
+	if(!valid_reg[i]) data_reg[j+:8]<=8'h00;
+end
+end
+if(valid_reg[79]) count<=80;
+`co(2)
+`co(3)
+`co(4)
+`co(5)
+`co(6)
+`co(7)
+`co(8)
+`co(9)
+`co(10)
+`co(11)
+`co(12)
+`co(13)
+`co(14)
+`co(15)
+`co(16)
+`co(17)
+`co(18)
+`co(19)
+`co(20)
+`co(21)
+`co(22)
+`co(23)
+`co(24)
+`co(25)
+`co(26)
+`co(27)
+`co(28)
+`co(29)
+`co(30)
+`co(31)
+`co(32)
+`co(33)
+`co(34)
+`co(35)
+`co(36)
+`co(37)
+`co(38)
+`co(39)
+`co(40)
+`co(41)
+`co(42)
+`co(43)
+`co(44)
+`co(45)
+`co(46)
+`co(47)
+`co(48)
+`co(49)
+`co(50)
+`co(51)
+`co(52)
+`co(53)
+`co(54)
+`co(55)
+`co(56)
+`co(57)
+`co(58)
+`co(59)
+`co(60)
+`co(61)
+`co(62)
+`co(63)
+`co(64)
+`co(65)
+`co(66)
+`co(67)
+`co(68)
+`co(69)
+`co(70)
+`co(71)
+`co(72)
+`co(73)
+`co(74)
+`co(75)
+`co(76)
+`co(77)
+`co(78)
+`co(79)
+`co(80)
+end
+
 always @(negedge clk)begin
  if(ResetN==0)begin
    TLPStart_reg<=0;
@@ -245,6 +475,15 @@ always @(negedge clk)begin
    flag_reg<=0;
    temp_data<=0;
    temp_valid<=0;
+   /////GEN1
+   data_reg<=0;
+   STB_reg<=0;
+   SDB_reg<=0;
+   END_reg<=0;
+   DK<=0;
+   valid_reg<=0;
+  NoMoreData<=1;
+  finishprocessing<=0;
    end  
   else begin
    if (Gen==3'b011)
@@ -261,15 +500,161 @@ always @(negedge clk)begin
   Valid_reg<=Valid_comb;
   out_reg<=out_comb;
   flag_reg<=flag_comb;
-  if(~Hold && ~Empty && finish)begin
+  if((~Hold && ~Empty && finish) || (~Hold && ~Empty && NoMoreData))begin
    ReadEn<=1;
    start<=1;
    finish<=0;
+   finishprocessing <=0;
+   NoMoreData<=0;
+   end
+   else if (Gen==3'b001)begin
+   if(valid_reg[0]&&(STB_reg[0]||SDB_reg[0]||END_reg[0]))
+		begin
+			if(STB_reg[0])
+			begin
+				data_reg<={data_reg[632-1:0],STB};
+				STB_reg <={STB_reg[80-1-1:1],2'b00};
+				SDB_reg <={SDB_reg[80-1-1:0],1'b0};
+				END_reg <={END_reg[80-1-1:0],1'b0};
+				valid_reg<={valid_reg[80-1-1:0],1'b1};
+				DK<={DK[80-1-1:0],1'b1};
+			end
+			else if(SDB_reg[0])
+			begin
+				data_reg<={data_reg[632-1:0],SDB};
+				SDB_reg <={SDB_reg[80-1-1:1],2'b00};
+				STB_reg <={STB_reg[80-1-1:0],1'b0};
+				END_reg <={END_reg[80-1-1:0],1'b0};
+				valid_reg<={valid_reg[80-1-1:0],1'b1};
+				DK<={DK[80-1-1:0],1'b1};
+			end
+			else if(END_reg[0])
+			begin 
+				data_reg<={data_reg[632-1:8],END,data_reg[7:0]};
+				STB_reg <={STB_reg[80-1-1:1],1'b0,STB_reg[0:0]};
+				SDB_reg <={SDB_reg[80-1-1:1],1'b0,SDB_reg[0:0]};
+				END_reg <={END_reg[80-1-1:1],2'b00};
+				valid_reg<={valid_reg[80-1-1:1],1'b1,valid_reg[0:0]};
+				DK={DK[80-1-1:1],1'b1,DK[0:0]};
+			end
+		end
+		`en(1)
+		`en(2)
+		`en(3)
+		`en(4)
+		`en(5)
+		`en(6)
+		`en(7)
+		`en(8)
+		`en(9)
+		`en(10)
+		`en(11)
+		`en(12)
+		`en(13)
+		`en(14)
+		`en(15)
+		`en(16)
+		`en(17)
+		`en(18)
+		`en(19)
+		`en(20)
+		`en(21)
+		`en(22)
+		`en(23)
+		`en(24)
+		`en(25)
+		`en(26)
+		`en(27)
+		`en(28)
+		`en(29)
+		`en(30)
+		`en(31)
+		`en(32)
+		`en(33)
+		`en(34)
+		`en(35)
+		`en(36)
+		`en(37)
+		`en(38)
+		`en(39)
+		`en(40)
+		`en(41)
+		`en(42)
+		`en(43)
+		`en(44)
+		`en(45)
+		`en(46)
+		`en(47)
+		`en(48)
+		`en(49)
+		`en(50)
+		`en(51)
+		`en(52)
+		`en(53)
+		`en(54)
+		`en(55)
+		`en(56)
+		`en(57)
+		`en(58)
+		`en(59)
+		`en(60)
+		`en(61)
+		`en(62)
+		`en(63)
+		`en(64)
+		`en(65)
+		`en(66)
+		`en(67)
+		`en(68)
+		`en(69)
+		`en(70)
+		`en(71)
+		`en(72)
+		`en(73)
+		`en(74)
+		`en(75)
+		`en(76)
+		`en(77)
+//		`en(78)
+		else if(valid_reg[78]&&(STB_reg[78]||SDB_reg[78]||END_reg[78])) 
+		begin 
+			if(STB_reg[78]) 
+			begin 
+				data_reg<={data_reg[632-1:624],STB,data_reg[623:0]}; 
+				STB_reg <={2'b00,STB_reg[77:0]}; 
+				SDB_reg <={SDB_reg[78:78],1'b0,SDB_reg[77:0]}; 
+				END_reg <={END_reg[78:78],1'b0,END_reg[77:0]}; 
+				valid_reg<={valid_reg[78:78],1'b1,valid_reg[77:0]};
+				DK<={DK[78:78],1'b1,DK[77:0]};	
+			end 
+			else if(SDB_reg[78]) 
+			begin 
+				data_reg<={data_reg[632-1:624],SDB,data_reg[623:0]}; 
+				SDB_reg <={2'b00,SDB_reg[77:0]}; 
+				STB_reg <={STB_reg[78:78],1'b0,STB_reg[77:0]}; 
+				END_reg <={END_reg[78:78],1'b0,END_reg[77:0]}; 
+				valid_reg<={valid_reg[78:78],1'b1,valid_reg[77:0]}; 
+				valid_reg<={valid_reg[78:78],1'b1,valid_reg[77:0]};
+				DK={DK[78:78],1'b1,DK[77:0]};
+			end 
+			else if(END_reg[78]) 
+			begin 
+				data_reg<={END,data_reg[632-1:0]}; 
+				STB_reg <={1'b0,STB_reg[78:0]}; 
+				SDB_reg <={1'b0,SDB_reg[78:0]}; 
+				END_reg <={2'b00,END_reg[77:0]}; 
+				valid_reg<={1'b1,SDB_reg[78:0]}; 
+				DK<={1'b1,DK[78:0]};
+			end 
+		end
+	//end
+	if( (~|SDB_reg && ~|SDB_reg && ~|END_reg)&& |valid_reg) begin finishprocessing <=1; end
    end
    
    if (start)begin
 	 TLPStart_reg <= TLPStart;
 	 DLLPStart_reg <= DLLPStart;
+	 PEnd_reg<=PEnd;
 	 DataIn_reg <= DataIn;
 	 ValidIn_reg<=ValidIn;
 	 STP1<={23'b0,length[4:0],4'b1111};
@@ -549,11 +934,79 @@ always @(negedge clk)begin
     end*/
   end
   always@(posedge clk) begin
+   if (Gen == 3'b011) begin
     DataOut<=DataOut_reg;
 	ValidOut<=ValidOut_reg;
 	DKOut<=64'b0;
     end
-	
+  else if (Gen == 3'b001) begin
+    DataOut<=0;
+ValidOut<=0;
+if(~Hold && finishprocessing && |valid_reg )
+	begin
+		flag2<=0;
+		if (ConFlag)
+	   begin
+			if(((flag1 & (out_valid_mask >>count_temp))==(out_valid_mask >>count_temp) )|| Empty)
+			begin 
+				ValidOut<=valid_temp|((valid_reg[MAXPIPEWIDTH/8*LANESNUMBER-1:0] & (out_valid_mask >>count_temp)) << count_temp );
+				DataOut <= data_temp |((data_reg[MAXPIPEWIDTH*LANESNUMBER-1:0] & (out_data_mask >>(count_temp<<3))) << (count_temp<<3) ); 
+				DKOut<=DK_temp|((DK[MAXPIPEWIDTH/8*LANESNUMBER-1:0] & (out_valid_mask >>count_temp)) << count_temp );
+				data_reg <=data_reg>>(ShiftLeftVaLueData-(count_temp<<3));
+				valid_reg<=valid_reg>>(ShiftLeftValueValid-count_temp);
+				DK<=DK>>(ShiftLeftValueValid-count_temp);
+				ConFlag<=0; 
+			end
+			else 
+			begin
+				valid_temp<=valid_temp|((valid_reg[MAXPIPEWIDTH/8*LANESNUMBER-1:0] & (out_valid_mask >>count_temp)) << count_temp );
+				data_temp <= data_temp |((data_reg[MAXPIPEWIDTH*LANESNUMBER-1:0] & (out_data_mask >>(count_temp<<3))) <<(count_temp<<3) ); 
+				DK_temp<=DK_temp|((DK[MAXPIPEWIDTH/8*LANESNUMBER-1:0] & (out_valid_mask >>count_temp)) << count_temp );
+				count_temp<=count_temp + count;
+				ConFlag<=1;
+				data_reg <=0;
+				valid_reg<=0;
+				DK<=0;
+				NoMoreData<=1;
+			end
+	   end
+		else if( (flag1&out_valid_mask) == out_valid_mask)//there is enough data to send now
+		begin
+			flag2<=data_reg[MAXPIPEWIDTH*LANESNUMBER-1:0] & out_data_mask;
+			DataOut <=data_reg[MAXPIPEWIDTH*LANESNUMBER-1:0] & out_data_mask;
+			ValidOut<=valid_reg[MAXPIPEWIDTH/8*LANESNUMBER-1:0] & out_valid_mask;
+			DKOut<=DK[MAXPIPEWIDTH/8*LANESNUMBER-1:0] & out_valid_mask;
+			data_reg <=data_reg>>ShiftLeftVaLueData;
+			valid_reg<=valid_reg>>ShiftLeftValueValid;
+			DK<=DK>>ShiftLeftValueValid;
+			
+		end
+		else if (|(flag1&out_valid_mask) & ~Empty)
+		begin
+			data_temp <=data_reg[MAXPIPEWIDTH*LANESNUMBER-1:0];
+			valid_temp<=valid_reg[MAXPIPEWIDTH/8*LANESNUMBER-1:0];
+			DK_temp<=DK[MAXPIPEWIDTH/8*LANESNUMBER-1:0]; 
+			count_temp<=count;
+			ConFlag<=1;
+			data_reg <=0;
+			valid_reg<=0;
+			DK<=0;
+			NoMoreData<=1;
+		end
+		
+		
+		else
+		begin
+		   DataOut <=data_reg[MAXPIPEWIDTH*LANESNUMBER-1:0] ;
+			ValidOut<=valid_reg[MAXPIPEWIDTH/8*LANESNUMBER-1:0] ;
+			DKOut<=DK[MAXPIPEWIDTH/8*LANESNUMBER-1:0];
+			data_reg <=0;
+			valid_reg<=0;
+			DK<=0;
+		end
+	end
+  end
+end
  always@(*)begin
   TLP_count=0;
   if (length[4:0]!=5'b0)
@@ -593,6 +1046,22 @@ always @(negedge clk)begin
   Valid_comb=Valid_reg;
   flag_comb=flag_reg;
   if (write_data)begin
+      data_reg[640-1:512] = {128{1'b0}};
+     data_reg[512-1:0] = DataIn_reg;
+
+    STB_reg[80-1:64] = {16{1'b0}};
+    STB_reg[64-1:0] = TLPStart_reg;
+
+  SDB_reg[80-1:64] = {16{1'b0}};
+  SDB_reg[64-1:0] = DLLPStart_reg;
+
+ END_reg[80-1:64] = {16{1'b0}};
+ END_reg[64-1:0]= PEnd_reg;
+
+  valid_reg[80-1:64]= {16{1'b0}};
+  valid_reg[64-1:0]= ValidIn_reg;
+
+ DK=0;
         `stp_sdp(63)
         `stp_sdp(62)
 		`stp_sdp(61)

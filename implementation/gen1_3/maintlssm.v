@@ -113,32 +113,19 @@ parameter LANESNUMBER = 16)
         phase1 = 5'd15,
         phase2 = 5'd16,
         phase3 =5'd17,
-        recoveryIdle = 5'd18;
+        recoveryIdle = 5'd18,
+        recoverySpeedeieos = 5'd19,
+        recoverywait = 5'd20;
 
-    //Data resgiter handling
-   /* always@(posedge clk)
-    begin
-        if(writeNumberOfDetectedLanes)numberOfDetectedLanes<=numberOfDetectedLanesIn;
-        if(writeLinkNumberTx)linkNumber<=linkNumberInTx;
-        else if(writeLinkNumberRx)linkNumber<=linkNumberInRx;
-        if(writeUpconfigureCapability)upConfigureCapability<=upConfigureCapabilityIn;
-        if(writeReceiverpresetHintDSP)ReceiverpresetHintDSP <=ReceiverpresetHintDSPIn;
-        if(writeReceiverpresetHintUSP)ReceiverpresetHintUSP <=ReceiverpresetHintUSPIn;
-        if(writeTransmitterPresetHintUSP) TransmitterPresetHintUSP<=TransmitterPresetHintUSPIn;
-        if(writeTransmitterPresetHintDSP)TransmitterPresetHintDSP <=TransmitterPresetHintDSPIn;
-        if(write_directed_speed_change) directed_speed_change <= directed_speed_change_In;
-        if(writeRateId)rateId <= rateIdIn;
-    end
-    */
     always @(posedge clk or negedge reset)
     begin
         if(!reset || forceDetect)
         begin
             currentState <= reset_;
-            ReceiverpresetHintDSP<={48{1'b0}};
-            TransmitterPresetHintDSP<={64{1'b0}};
-            ReceiverpresetHintUSP<={48{1'b0}};
-            TransmitterPresetHintUSP<={64{1'b0}};
+            ReceiverpresetHintDSP<=48'hAABBCCDD1122;
+            TransmitterPresetHintDSP<=64'h11AA22BB33CC44DD;
+            ReceiverpresetHintUSP<=48'h2211DDCCBBAA;
+            TransmitterPresetHintUSP<=64'h11AA22BB33CC44DD;
             GEN <= 3'd1;
             
         end
@@ -393,7 +380,7 @@ end
             disableScrambler = 1'b0;
             lpifStateStatus = active_;
             linkUp = 1'b1;
-            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b100)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
+            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
             begin
                 directed_speed_change = 1'b1;
                 trainToGen = 3'd3;
@@ -430,14 +417,34 @@ end
                 end
                 {recoverySpeed,recoverySpeed}:
                 begin
-                    if((finishTx&&gotoTx==phase0)&& (finishRx&&gotoRx==phase0))
+                    if((finishRx&&gotoRx==recoverywait))
+                    begin
+                        {substateTxnext,substateRxnext}= {recoverywait,recoverywait};
+                        directed_speed_change = 1'b0;
+                    end                       
+
+                end
+                {recoverywait,recoverywait}:
+                begin
+                    if((finishTx&&gotoTx==recoverySpeedeieos))
+                    begin
+                        {substateTxnext,substateRxnext}= {recoverySpeedeieos,recoverySpeedeieos};
+                        GEN = trainToGen;
+                        directed_speed_change = 1'b0;
+                    end                       
+
+                end
+
+                {recoverySpeedeieos,recoverySpeedeieos}:
+                begin
+                    if(finishRx&&gotoRx==phase0)
                     begin
                         {substateTxnext,substateRxnext}= {phase0,phase0};
-                        directed_speed_change = 1'b0;
-                        GEN = 3'd3;
-                        //pl_speedmode = 3'd2; //GEN 3
                     end
-                        
+                    else if(finishRx&&gotoRx==recoveryRcvrLock)
+                    begin
+                        {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
+                    end                       
 
                 end
                 {phase0,phase0}:

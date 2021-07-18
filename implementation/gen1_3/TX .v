@@ -20,7 +20,7 @@ TransmitterPresetHintUSP,LF_register,FS_register,CursorCoff_register,PreCursorCo
 TxSyncHeader1,TxSyncHeader2,TxSyncHeader3,TxSyncHeader4,TxSyncHeader5,TxSyncHeader6,TxSyncHeader7,TxSyncHeader8,TxSyncHeader9,TxSyncHeader10,TxSyncHeader11,
 TxSyncHeader12,TxSyncHeader13,TxSyncHeader14,TxSyncHeader15,TxSyncHeader16,
 TxStartBlock1,TxStartBlock2,TxStartBlock3,TxStartBlock4,TxStartBlock5,TxStartBlock6,TxStartBlock7,TxStartBlock8,TxStartBlock9,
-TxStartBlock10,TxStartBlock11,TxStartBlock12,TxStartBlock13,TxStartBlock14,TxStartBlock15,TxStartBlock16,turnOff);
+TxStartBlock10,TxStartBlock11,TxStartBlock12,TxStartBlock13,TxStartBlock14,TxStartBlock15,TxStartBlock16,turnOff,RxStandby);
 
 //lane number 
 input [7:0] rateIdIn;
@@ -47,7 +47,7 @@ TxSyncHeader12,TxSyncHeader13,TxSyncHeader14,TxSyncHeader15,TxSyncHeader16;
 
 output TxStartBlock1,TxStartBlock2,TxStartBlock3,TxStartBlock4,TxStartBlock5,TxStartBlock6,TxStartBlock7,TxStartBlock8,TxStartBlock9,
 TxStartBlock10,TxStartBlock11,TxStartBlock12,TxStartBlock13,TxStartBlock14,TxStartBlock15,TxStartBlock16;
-
+output [15:0] RxStandby;
 wire [1:0]scramblerSyncHeader1,scramblerSyncHeader2,scramblerSyncHeader3,scramblerSyncHeader4,scramblerSyncHeader5,scramblerSyncHeader6,
 scramblerSyncHeader7,scramblerSyncHeader8,scramblerSyncHeader9,scramblerSyncHeader10,scramblerSyncHeader11,scramblerSyncHeader12,
 scramblerSyncHeader13,scramblerSyncHeader14,scramblerSyncHeader15,scramblerSyncHeader16;
@@ -78,6 +78,7 @@ wire loopback;
 wire start;
 wire finish;
 wire busy;
+wire [15:0]RxStandbyRequest;
 //Gen3 
 wire [1:0] EC;
 wire ResetEIEOSCount;
@@ -159,7 +160,8 @@ for(i=0;i<LANESNUMBER;i=i+1)
 begin
 PIPE_Control PIPE_CTL(.substate(SetTXState),.generation(gen), .pclk(pclk), .reset_n(reset_n), .RxStatus(RxStatus[3*i+:3]),
  .ElecIdle_req(ElecIdleReq[i]), .Detect_req(DetectReq[i]), .PhyStatus(PhyStatus[i]), .TxDetectRx_Loopback(TxDetectRx_Loopback[i]),
- .PowerDown(PowerDown[4*i+:4]), .Detect_status(DetectStatus[i]), .TxElecIdle(TxElecIdle[i]));
+ .PowerDown(PowerDown[4*i+:4]), .Detect_status(DetectStatus[i]), .TxElecIdle(TxElecIdle[i]),.RxStandbyRequest(RxStandbyRequest[i])
+ ,.RxStandby(RxStandby[i]));
 end
 
 endgenerate
@@ -172,11 +174,12 @@ TX_LTSSM #(.DEVICETYPE(DEVICETYPE),.MAXPIPEWIDTH(MAXPIPEWIDTH),.LANESNUMBER(LANE
 .ElecIdleReq(ElecIdleReq),.DetectStatus(DetectStatus),
 .NumberDetectLanes(NumberDetectLanes),.TrainToGen(TrainToGen),.ReadDirectSpeedChange(ReadDirectSpeedChange),.ReceiverpresetHintDSP(ReceiverpresetHintDSP),.TransmitterPresetHintDSP(TransmitterPresetHintDSP),.ReceiverpresetHintUSP(ReceiverpresetHintUSP),
 .TransmitterPresetHintUSP(TransmitterPresetHintUSP),.LF_register(LF_register),.FS_register(FS_register),.CursorCoff_register(CursorCoff_register),.PreCursorCoff_register(PreCursorCoff_register),.PostCursorCoff_register(PostCursorCoff_register),
-.MainLTSSMGen(MainLTSSMGen)
+.MainLTSSMGen(MainLTSSMGen),.RxStandby(RxStandbyRequest)
 );
 
 
-OS_GENERATOR #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.no_of_lanes(LANESNUMBER))
+OS_GENERATOR #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),
+.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH),.no_of_lanes(LANESNUMBER))
 block1 (pclk, reset_n, os_type, lane_number, link_number, rate, loopback , detected_lanes, gen, start,EQTS2,EC,ResetEIEOSCount  ,TXPreset ,RXPreset ,UsePresetCoff   ,FS,LF,PreCursorCoff   ,CursorCoff  ,PostCursorCoff   ,RejectCoff,ReqEq,SpeedChange, finish, os_data, os_datak, busy, os_datavalid);
 MUX block2 (sel,FIFO_datavalid, os_datavalid, FIFO_dataIN, os_data, FIFO_datak, os_datak,data_muxout,datak_muxout,datavalid_muxout,MuxSyncHeader);
 LMC  #(.pipe_width_gen1(GEN1_PIPEWIDTH),

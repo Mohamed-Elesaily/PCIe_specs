@@ -15,6 +15,7 @@ input [511:0]data,
 input validFromLMC,	
 input linkUp,
 input [4:0] substate,
+input [2*16-1:0] syncHeader,
 output reg valid,
 output reg [2047:0]outOs);
 
@@ -27,12 +28,14 @@ reg [3:0] lane_iter;
 reg [6:0] index_iter;
 reg [11:0]capacity,capacitynext;
 integer i,j;
-
 parameter[7:0]
 COM = 	8'b10111100, //BC
 gen3TS1 = 8'h1E,
 gen3TS2 = 8'h2D,
-gen3SKIP =8'hAA, 
+gen3SKIP =8'hAA,
+gen3EIOS = 8'h66,
+gen3EIEOSsymb1 = 8'h00,
+gen3EIEOSsymb2 = 8'hFF, 
 STP = 8'b11111011,
 SDP = 8'b01011100,
 SDS = 8'hE1;
@@ -57,7 +60,9 @@ localparam [4:0]
 	phase1 = 5'd15,
 	phase2 = 5'd16,
 	phase3 =5'd17,
-	recoveryIdle = 5'd18;
+	recoveryIdle = 5'd18,
+	recoverySpeedeieos = 5'd19,
+	recoverywait = 5'd20;
 
 
 
@@ -89,12 +94,37 @@ begin
 		if(substate==5'd9 || substate==5'd18){out,valid} = {data,1'b1};
 		else
 		begin
-			for(i=504;i>=0;i=i-8)
-			begin	
-				if((data[i+:8]==COM||data[i+:8]==gen3TS1||data[i+:8]==gen3TS2||data[i+:8]==gen3SKIP)&&!found)
+
+
+			if (substate == recoverySpeedeieos) begin
+				for(i=0;i<=504;i=i+8)
+				begin	
+				if(substate == recoverySpeedeieos&&syncHeader == {8{4'hA}}&&data[i+:8]==gen3EIEOSsymb1&&!found)
 				begin
 				found = 1'b1;
-				if((substate !=recoverySpeed && capacity+i-((numberOfDetectedLanes-1)<<3) >= 128<<numberOfShifts)||(substate==recoverySpeed &&capacity+i-((numberOfDetectedLanes-1)<<3) >= 32<<numberOfShifts))
+				if((substate !=recoverySpeed && capacity+i>= 128<<numberOfShifts)
+					||(substate==recoverySpeed&&gen<3'd3&&capacity+i >= 32<<numberOfShifts))
+				begin
+				validnext = 1'b1;
+				out = orderedSets|(data)<<capacity;
+				end
+				orderedSetsnext = data>>i;
+				capacitynext = width-i;
+				end
+
+				end
+				
+			end
+			else 
+			begin
+				for(i=504;i>=0;i=i-8)
+				begin	
+				if((data[i+:8]==COM||data[i+:8]==gen3TS1||data[i+:8]==gen3TS2||data[i+:8]==gen3SKIP||
+					data[i+:8]==gen3EIOS) && !found)
+				begin
+				found = 1'b1;
+				if((substate !=recoverySpeed && capacity+i-((numberOfDetectedLanes-1)<<3) >= 128<<numberOfShifts)
+					||(substate==recoverySpeed&&gen<3'd3&&capacity+i-((numberOfDetectedLanes-1)<<3) >= 32<<numberOfShifts))
 				begin
 				validnext = 1'b1;
 				out = orderedSets|(data)<<capacity;
@@ -103,12 +133,15 @@ begin
 				capacitynext = width-i+((numberOfDetectedLanes-1)<<3);
 				end
 
+				end
 			end
+			
 			if(!found)
 			begin
 				orderedSetsnext = orderedSets|((2048'b0|data) << capacity);
 				capacitynext = capacity + width;
-				if((substate==recoverySpeed && capacity>= (32<<numberOfShifts))||(substate !=recoverySpeed && capacity>= (128<<numberOfShifts)))
+				if((substate==recoverySpeed&&gen<3'd3&&capacity>= (32<<numberOfShifts))
+				||(substate !=recoverySpeed && capacity>= (128<<numberOfShifts)))
 				begin
 				validnext = 1'b1;
 				out = orderedSets;

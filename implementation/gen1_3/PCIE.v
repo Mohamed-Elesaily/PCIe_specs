@@ -35,7 +35,7 @@ input	[3*LANESNUMBER -1:0]RxStatus,
 input   [15:0]RxElectricalIdle,
 //commands and status signals
 output  [4*LANESNUMBER-1:0]PowerDown,
-output  [3:0]Rate,
+output  [3:0] Rate,
 input   [LANESNUMBER-1:0]PhyStatus,
 
 //pclkcontrolsignal
@@ -79,7 +79,8 @@ output [64-1:0]pl_tlpedb,
 output pl_linkUp,
 //optional Message bus
 output [7:0] M2P_MessageBus,
-input  [7:0] P2M_MessageBus
+input  [7:0] P2M_MessageBus,
+output  [15:0] RxStandby
 );
 
 wire WriteDetectLanesFlag;
@@ -386,7 +387,8 @@ TX
  .PostCursorCoff_register(PostCursorCoff),
  .TrainToGen(trainToGen),
  .ReadDirectSpeedChange(directed_speed_change),
- .turnOff(disableScrambler)
+ .turnOff(disableScrambler),
+ .RxStandby(RxStandby)
  );
 
 assign phy_reset = lpreset;
@@ -427,6 +429,7 @@ wire[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
 wire[LANESNUMBER-1:0]RxStartBlock;
 wire[2*LANESNUMBER -1:0]RxSyncHeader;
 wire[LANESNUMBER-1:0]RxValid;
+wire [15:0]RxStandby;
 reg	[3*LANESNUMBER -1:0]RxStatus;
 reg [15:0]RxElectricalIdle;
 //commands and status signals
@@ -519,7 +522,7 @@ begin
 	end
 	lp_valid={2'b00, {62{1'b1}}};
 	lp_tlpstart[0]=1;
-	lp_tlpend[7]=1;
+	lp_tlpend[61]=1;
     // lp_dlpstart[0]=1;
     // lp_dlpend[5]=1;
 	#10
@@ -611,7 +614,8 @@ pl_tlpedb,
 pl_linkUp,
 //optional Message bus
 M2P_MessageBus,
-P2M_MessageBus
+P2M_MessageBus,
+RxStandby
 );
 assign {RxData,RxDataValid,RxDataK,RxValid,RxSyncHeader,RxStartBlock} = {TxData,TxDataValid,TxDataK,TxDataValid,TxSyncHeader,TxStartBlock}; 
 endmodule

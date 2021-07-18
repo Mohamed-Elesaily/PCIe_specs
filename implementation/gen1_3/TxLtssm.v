@@ -67,6 +67,7 @@ output reg [ LANESNUMBER-1:0] RejectCoff,
 output reg SpeedChange,
 output reg ReqEq,
 output reg EQTS2,
+output reg[15:0] RxStandby,
 //mux
 output reg MuxSel,
 //Lane Management control 
@@ -80,7 +81,8 @@ input  [ LANESNUMBER-1:0]DetectStatus
  parameter  DetectQuiet = 5'd0, DetectActive = 5'd1, PollingActive = 5'd2,
 	    PollingConfigration = 5'd3, ConfigrationLinkWidthStart = 5'd4, ConfigrationLinkWidthAccept= 5'd5,
             ConfigrationLaneNumWait = 5'd6,  ConfigrationLaneNumActive = 5'd7, ConfigrationComplete = 5'd8,
-            ConfigrationIdle = 5'd9,L0=5'd10,RecoveryRcvrLock=5'd11,RecoveryRcvrCfg=5'd12, RecoverySpeed=5'd13,Ph0=5'd14,Ph1=5'd15,Ph2=5'd16,Ph3=5'd17,RecoveryIdle= 5'd18, Idle=5'd31;
+            ConfigrationIdle = 5'd9,L0=5'd10,RecoveryRcvrLock=5'd11,RecoveryRcvrCfg=5'd12, RecoverySpeed=5'd13,Ph0=5'd14,Ph1=5'd15,Ph2=5'd16,Ph3=5'd17,RecoveryIdle= 5'd18, Idle=5'd31,recoverySpeedeieos = 5'd19,
+        recoverywait = 5'd20;
 //Device type 
 parameter DownStream = 0 ,UpStream = 1;
 //time 
@@ -220,8 +222,17 @@ always @ * begin
 		if( OSCount >= 16)begin
 					ExitToState<=L0;
 					ExitToFlag<=1;
+		end		
 		end
+
+		recoverywait:begin
+			if(RxStandby)
+			begin
+				ExitToState<=recoverySpeedeieos;
+				ExitToFlag<=1;
+			end
 		end
+
 	endcase
 end
 assign Gen = MainLTSSMGen;
@@ -238,6 +249,7 @@ UsePresetCoff<=1'b0;
 ResetEIEOSCount<=1'b0;
 RejectCoff<=1'b0;
 ReqEq <= 1'b0;
+RxStandby<=16'b0;
 	case(State)
 		DetectQuiet:begin
 			HoldFIFOData <= 1;
@@ -358,6 +370,7 @@ ReqEq <= 1'b0;
 				OSType<=3'b000; //TS1
 				LinkNumber<=ReadLinkNum;
 				Rate<=MAX_GEN;
+				EQTS2<=0;
 				LaneNumber<=2'b01; //num_seq
 				SpeedChange<=ReadDirectSpeedChange;
 				EC<=2'b00;
@@ -365,17 +378,7 @@ ReqEq <= 1'b0;
 			end
 		end
 		
-		/*
-		input  [47:0] ReceiverpresetHintDSP,
-input [63:0] TransmitterPresetHintDSP,
-input  [47:0] ReceiverpresetHintUSP,
-input  [63:0] TransmitterPresetHintUSP,
-input  LF_register,
-input  FS_register,
-input  CursorCoff,
-input  PreCursorCoff,
-input  PostCursorCoff,
-		*/
+		
 		RecoveryRcvrCfg:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset			
@@ -400,12 +403,42 @@ input  PostCursorCoff,
 		RecoverySpeed:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			ElecIdleReq <= {LANESNUMBER{1'b1}};
+			//ElecIdleReq <= {LANESNUMBER{1'b1}};
 			if(!OSGeneratorBusy)begin 
 				OSType<=3'b011; //eios
 				OSGeneratorStart<=1;
 			end
 		end
+//3'b101
+		recoverySpeedeieos:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			//ElecIdleReq <= {LANESNUMBER{1'b1}};
+			if(!OSGeneratorBusy)begin 
+				OSType<=3'b101; //eieos
+				OSGeneratorStart<=1;
+			end
+		end
+
+		recoverySpeedeieos:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			//ElecIdleReq <= {LANESNUMBER{1'b1}};
+			if(!OSGeneratorBusy)begin 
+				OSType<=3'b101; //eieos
+				OSGeneratorStart<=1;
+			end
+		end
+
+		recoverywait:begin
+			HoldFIFOData<=1;
+			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
+			if(!OSGeneratorBusy)begin
+			ElecIdleReq <= {LANESNUMBER{1'b1}};
+			RxStandby <= {LANESNUMBER{1'b1}};
+			end
+		end
+
 		Ph0:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
