@@ -14,10 +14,8 @@ input [2047:0] orderedSets,
 input [4:0]numberOfDetectedLanes,
 input [4:0]substate,
 input [7:0]linkNumber,
-input directed_speed_change,   ///////////new
-input [63:0] TxpresetHintofUS,//////////new
-input [2:0] trainToGen,////////////new
-//input forceDetect,
+input directed_speed_change,
+input [2:0] trainToGen,
 input rxElectricalIdle,
 input validOrderedSets,
 output [7:0] rateId,
@@ -25,18 +23,27 @@ output [7:0] linkNumberOut,
 output upConfigureCapability,
 output finish,
 output [4:0]exitTo,
-//output linkUp,
 output witeUpconfigureCapability,
 output writerateid,
 output writeLinkNumber,
-output disableDescrambler,
 output [3:0]lpifStatus,
-output [47:0] ReceiverpresetHintofOtherDevice,///////////new
-output [63:0] TransmitterPresetofOtherDevice,///////////new
-output writeReceiverpresetHint,///////////new
-output writeTransmitterPresetHint,///////////new
-output [16*6-1:0]LFOfOtherDevice,
-output [16*6-1:0]FSOfOtherDevice
+output [3*16-1:0] ReceiverpresetHintDSPout,
+output [4*16-1:0] TransmitterPresetHintDSPout,
+output [3*16-1:0] ReceiverpresetHintUSPout,
+output [4*16-1:0] TransmitterPresetHintUSPout,
+input [3*16-1:0] ReceiverpresetHintDSP,
+input [4*16-1:0] TransmitterPresetHintDSP,
+input [3*16-1:0] ReceiverpresetHintUSP,
+input [4*16-1:0] TransmitterPresetHintUSP,
+output writeReceiverpresetHintDSP,
+output writeTransmitterPresetHintDSP,
+output writeReceiverpresetHintUSP,
+output writeTransmitterPresetHintUSP,
+output [16*6-1:0]LFDSP,
+output [16*6-1:0]FSDSP,
+input  [6*16-1:0]CursorCoff,
+input  [6*16-1:0]PreCursorCoff,
+input  [6*16-1:0]PostCursorCoff
 );
 
 wire [15:0]resetOsCheckers;
@@ -50,6 +57,7 @@ wire [15:0]comparisonValues;
 wire  enableTimer,startTimer,resetTimer,timeOut;
 wire [2:0]setTimer;
 wire [15:0]RcvrCfgToidle;
+wire [15:0]detailedRecoverySubstates;
 
 
 genvar i;
@@ -57,29 +65,37 @@ generate
    for (i=0; i <= 15; i=i+1) 
    begin
      osChecker #(.DEVICETYPE(DEVICETYPE))osChecker( 
-     .clk(clk),
-     .linkNumber(linkNumber),
-     .laneNumber(i[7:0]),
-     .orderedset(orderedSets[(i*128)+127:i*128]),
-     .valid(validOrderedSets),
-     .substate(substate),
-     .reset(resetOsCheckers[i]),
-     .directed_speed_change(directed_speed_change),
-     .gen(Gen),
-     .countup(countUp[i]),
-     .resetcounter(resetCounters[i]),
-     .rateid(rateIds[(i*8)+7:i*8]),
-     .linkNumberOut(linkNumbers[(i*8)+7:i*8]),
-     .upconfigure_capability(upConfigurebits[i]),
-     .RcvrCfgToidle(RcvrCfgToidle[i]),
-     .TxpresetHintofUS(TxpresetHintofUS[(i*4)+3:i*4]), //input to each os checker to compare in phase0 as downstream
-     .ReceiverpresetHintofOtherDevice(ReceiverpresetHintofOtherDevice[(i*3)+2:i*3]),
-     .TransmitterPresetofOtherDevice(TransmitterPresetofOtherDevice[(i*4)+3:i*4]), 
-     .LFOfOtherDevice(LFOfOtherDevice[(i*6)+5:i*6]),
-     .FSOfOtherDevice(LFOfOtherDevice[(i*6)+5:i*6])    
+      .clk(clk),
+      .linkNumber(linkNumber),
+      .laneNumber(i[7:0]),
+      .orderedset(orderedSets[(i*128)+127:i*128]),
+      .valid(validOrderedSets),
+      .substate(substate),
+      .reset(resetOsCheckers[i]),
+      .directed_speed_change(directed_speed_change),
+      .detailedRecoverySubstates(detailedRecoverySubstates[i]),
+      .gen(Gen),
+      .countup(countUp[i]),
+      .resetcounter(resetCounters[i]),
+      .rateid(rateIds[(i*8)+7:i*8]),
+      .linkNumberOut(linkNumbers[(i*8)+7:i*8]),
+      .upconfigure_capability(upConfigurebits[i]),
+      .RcvrCfgToidle(RcvrCfgToidle[i]),
+      .ReceiverpresetHintDSPout(ReceiverpresetHintDSPout[(i*3)+2:i*3]),
+      .TransmitterPresetHintDSPout(TransmitterPresetHintDSPout[(i*4)+3:i*4]),
+      .ReceiverpresetHintUSPout(ReceiverpresetHintUSPout[(i*3)+2:i*3]),
+      .TransmitterPresetHintUSPout(TransmitterPresetHintUSPout[(i*4)+3:i*4]),
+      .ReceiverpresetHintDSP(ReceiverpresetHintDSP[(i*3)+2:i*3]),
+      .TransmitterPresetHintDSP(TransmitterPresetHintDSP[(i*4)+3:i*4]),
+      .ReceiverpresetHintUSP(ReceiverpresetHintUSP[(i*3)+2:i*3]),
+      .TransmitterPresetHintUSP(TransmitterPresetHintUSP[(i*4)+3:i*4]),
+      .FSDSP(FSDSP[(i*6)+5:i*6]),
+      .LFDSP(LFDSP[(i*6)+5:i*6]),
+      .CursorCoff(CursorCoff[(i*6)+5:i*6]),
+      .PreCursorCoff(PreCursorCoff[(i*6)+5:i*6]),
+      .PostCursorCoff(PostCursorCoff[(i*6)+5:i*6])
      );
 
-    
      counter counter(
      resetCounters[i],
      clk,
@@ -96,7 +112,7 @@ generate
 endgenerate
 
 
-masterRxLTSSM masterRxLTSSM(
+masterRxLTSSM#(.DEVICETYPE(DEVICETYPE)) masterRxLTSSM(
     .clk(clk),
     .numberOfDetectedLanes(numberOfDetectedLanes),
     .substate(substate),
@@ -105,10 +121,10 @@ masterRxLTSSM masterRxLTSSM(
     .timeOut(timeOut),
     .reset(reset),
     .RcvrCfgToidle(RcvrCfgToidle),
+    .detailedRecoverySubstates(detailedRecoverySubstates),
     .finish(finish),
     .exitTo(exitTo),
     .resetOsCheckers(resetOsCheckers),
-    .disableDescrambler(disableDescrambler),
     .lpifStatus(lpifStatus),
     .timeToWait(setTimer),
     .enableTimer(enableTimer),
@@ -116,8 +132,7 @@ masterRxLTSSM masterRxLTSSM(
     .resetTimer(resetTimer),
     .comparatorsCount(checkValues),
     .trainToGen(trainToGen));
-    
-
+ 
 Timer #(
 Width,
 GEN1_PIPEWIDTH,	
@@ -141,6 +156,7 @@ assign writerateid= (finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign witeUpconfigureCapability=(finish &&(exitTo == 4'd4|| exitTo == 4'd9))? 1'b1 : 1'b0;
 assign writeLinkNumber = (finish && (exitTo == 4'd5) && DEVICETYPE)? 1'b1:1'b0;
 assign {rateId,upConfigureCapability,linkNumberOut} = {rateIds[7:0],upConfigurebits[0],linkNumbers[7:0]};
-assign {writeReceiverpresetHint,writeTransmitterPresetHint} = (substate ==4'd13&&finish&&exitTo == 4'd12)? 2'b11:2'b00;//when in recoveryCfg and exit to recovery speed
-//assign linkUp = (substate == 4'd10)? 1'b1 : 1'b0;
+assign {writeReceiverpresetHintDSP,writeTransmitterPresetHintDSP} = (DEVICETYPE&&substate ==4'd12&&finish&&exitTo == 4'd13)? 2'b11:2'b00;
+assign {writeReceiverpresetHintUSP,writeTransmitterPresetHintUSP} = (!DEVICETYPE&&substate ==4'd12&&finish&&exitTo == 4'd13)? 2'b11:2'b00;
+
 endmodule

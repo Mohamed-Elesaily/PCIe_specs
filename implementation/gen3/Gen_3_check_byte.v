@@ -17,7 +17,7 @@ module Gen_3_check_byte(
     localparam STP = 4'b1111 ;
 
     localparam SDP_byte1 = 8'b1111_0000;
-    localparam SDP_byte2 = 8'b0101_0011 ;
+    localparam SDP_byte2 = 8'b1010_1100 ;
     
     // localparam END_byte1 = 8'b0001_1111 ;
     // localparam END_byte2 = 8'b0000_0000 ;
@@ -67,7 +67,7 @@ always @(*) begin
     else
     begin
      
-        if(valid  & (syncHeader == 2'b10))
+        if(valid  & (syncHeader == 2'b01))
         begin
            if(data_in == SDP_byte1 & byte_header_in == 2'b00)
         begin
@@ -76,7 +76,7 @@ always @(*) begin
         else if ((data_in == SDP_byte2) & (byte_header_in == sdp1) ) 
         begin
             // count = 0
-            count_limit_in_reg = 12'd8;
+            count_limit_in_reg = 12'd6;
             byte_count_in_reg = 12'd0;
             // type SDP
             type_reg = dllpstart;
@@ -134,7 +134,7 @@ always @(*) begin
             byte_count_in_reg = byte_count_in_reg + 1;
             type_reg = data;
         end
-        else if((byte_count_in == 8) & (byte_header_in == sdp2))
+        else if((byte_count_in == 6) & (byte_header_in == sdp2))
         begin
 
             count_limit_in_reg = 0;

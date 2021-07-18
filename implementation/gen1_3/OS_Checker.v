@@ -474,7 +474,7 @@ begin
         configIdle1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
-            if(valid && (|orderedset==1'b0))
+            if(valid && (|orderedset[63:0]==1'b0))
             begin
             nextState = configIdle2;
             resetcounter = 1'b1; countup = 1'b1;
@@ -487,7 +487,7 @@ begin
             resetcounter = 1'b1; countup = 1'b0;
             if(valid)
                 begin
-                    if((|orderedset==1'b0))
+                    if((|orderedset[63:0]==1'b0))
                     begin
                         countup = 1'b1;
                         nextState =  configIdle2;

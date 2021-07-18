@@ -45,6 +45,7 @@ parameter LANESNUMBER = 16)
     input [6*16 -1:0]LinkEvaluationFeedbackDirectionChange,
     input [16*6-1:0]FSDSP,
     input [16*6-1:0]LFDSP,
+    input turnOffScrambler_flag,
     output	reg[18*16 -1:0]TxDeemph,
     output  reg[4*16 -1:0]LocalPresetIndex,
     output 	reg[16 -1:0]GetLocalPresetCoeffcients,
@@ -76,7 +77,8 @@ parameter LANESNUMBER = 16)
     output reg[1:0] width,
     output reg[2:0] trainToGen,
     output reg disableScrambler,
-    output reg [4:0] PCLKRate);
+    output reg [4:0] PCLKRate,
+    output reg startSend16);
 //local signals
     reg [4:0] numberOfDetectedLanes;
     reg [7:0] linkNumber;
@@ -117,6 +119,13 @@ parameter LANESNUMBER = 16)
         recoverySpeedeieos = 5'd19,
         recoverywait = 5'd20;
 
+
+    always @(posedge clk) 
+    begin
+        if(turnOffScrambler_flag)disableScrambler<=1'b1;
+        else disableScrambler<=1'b0;      
+    end
+
     always @(posedge clk or negedge reset)
     begin
         if(!reset || forceDetect)
@@ -153,7 +162,7 @@ parameter LANESNUMBER = 16)
        case (currentState)
         reset_:
         begin
-            if(finishRx&&gotoRx==L0&&lpifStateRequest==active_)
+            if(finishTx&&gotoTx==L0&&finishRx&&gotoRx==L0&&lpifStateRequest==active_)
             begin
                 nextState <= active_;
             end
@@ -171,7 +180,7 @@ parameter LANESNUMBER = 16)
         end
         retrain_:
         begin
-            if(gotoRx == L0 && gotoTx == L0)
+            if(finishTx&&gotoTx==L0&&finishRx&&gotoRx==L0)
             begin
                nextState <= active_; 
             end
@@ -229,7 +238,7 @@ end
 //output handling block
     always @(*)
     begin
-        disableScrambler = 1'b1;
+        //disableScrambler = 1'b1;
        case (currentState)
         reset_:
         begin
@@ -349,10 +358,12 @@ end
                         end
                 {configurationIdle,configurationIdle}:
                 begin
-                    disableScrambler = 1'b0;
-                    if (finishRx&&gotoRx==L0) 
+                    //disableScrambler = 1'b0;
+                    if (finishRx&&gotoRx==L0)startSend16<= 1'b1;
+                    if (finishTx&&gotoTx==L0) 
                         begin
                             linkUp = 1'b1;
+                            startSend16 <= 1'b0;
                             lpifStateStatus = reset_;
                             {substateTx,substateRx} <= {L0,L0};//ERASE THE COMMENT IF I CAN GOT TO L0 WITHOUT LPIF PERMISSION
                         end
@@ -377,7 +388,7 @@ end
         active_:
         begin
             {substateTxnext,substateRxnext}= {L0,L0};
-            disableScrambler = 1'b0;
+            //disableScrambler = 1'b0;
             lpifStateStatus = active_;
             linkUp = 1'b1;
             if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
@@ -449,7 +460,7 @@ end
                 end
                 {phase0,phase0}:
                 begin
-                    disableScrambler = 1'b0;
+                    //disableScrambler = 1'b0;
                     //mapping tx preset to coeff.
                     GetLocalPresetCoeffcients={16{1'b1}};
 				    for(i=0;i<16;i=i+1)
@@ -478,7 +489,7 @@ end
                 end
                 {phase1,phase1}:
                 begin
-                    disableScrambler = 1'b0;
+                    //disableScrambler = 1'b0;
                     LF = LocalLF;
                     FS = LocalFS;
                     if(finishRx && gotoRx == phase2)
@@ -487,7 +498,7 @@ end
 
                 {recoveryIdle,recoveryIdle}:
                 begin
-                    disableScrambler = 1'b0;
+                    //disableScrambler = 1'b0;
                     if((finishRx && gotoRx == L0) && (finishTx && gotoTx == L0))
                          {substateTxnext,substateRxnext}= {L0,L0};
                 end

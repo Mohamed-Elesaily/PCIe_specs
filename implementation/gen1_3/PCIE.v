@@ -123,6 +123,8 @@ wire write_directed_speed_chang;
 wire [2:0] trainToGen;
 wire [16*6-1:0] FSDSP,LFDSP;
 wire disableScrambler;
+wire turnOffScrambler_flag;
+wire startSend16;
 
 mainLTSSM #(
 .Width(MAXPIPEWIDTH),
@@ -200,7 +202,9 @@ mainLTSSM #(
     .LFDSP(LFDSP),
     .FSDSP(FSDSP),
     .disableScrambler(disableScrambler),
-    .PCLKRate(PCLKRate)
+    .PCLKRate(PCLKRate),
+    .startSend16(startSend16),
+    .turnOffScrambler_flag(turnOffScrambler_flag)
 );
 
 RX #(.DEVICETYPE(DEVICETYPE),.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
@@ -388,7 +392,9 @@ TX
  .TrainToGen(trainToGen),
  .ReadDirectSpeedChange(directed_speed_change),
  .turnOff(disableScrambler),
- .RxStandby(RxStandby)
+ .RxStandby(RxStandby),
+ .startSend16(startSend16),
+ .turnOffScrambler_flag(turnOffScrambler_flag)
  );
 
 assign phy_reset = lpreset;

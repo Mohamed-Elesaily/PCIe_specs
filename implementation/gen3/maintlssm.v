@@ -1,12 +1,13 @@
 module mainLTSSM  #(
-parameter MAX_GEN = 5;
+parameter MAX_GEN = 5,
 parameter DEVICETYPE=0,
 parameter Width = 32,
 parameter GEN1_PIPEWIDTH = 8 ,	
 parameter GEN2_PIPEWIDTH = 8 ,	
 parameter GEN3_PIPEWIDTH = 8 ,	
 parameter GEN4_PIPEWIDTH = 8 ,	
-parameter GEN5_PIPEWIDTH = 8)
+parameter GEN5_PIPEWIDTH = 8 ,
+parameter LANESNUMBER = 16)
 (
     input clk,
     input reset,
@@ -37,28 +38,31 @@ parameter GEN5_PIPEWIDTH = 8)
     input writeTransmitterPresetHintUSP,
     input directed_speed_change_In,
     input write_directed_speed_change,
-    input 	[18*16 -1:0]LocalTxPresetCoefficients,
-    input 	[6*16 -1:0]LocalFS,
-    input 	[6*16 -1:0]LocalLF,
-    input 	[16 -1:0]LocalTxCoefficientsValid,
-    input 	[6*16 -1:0]LinkEvaluationFeedbackDirectionChange,
-    output 	[18*16 -1:0]TxDeemph,
-    output 	[4*16 -1:0]LocalPresetIndex,
-    output 	[16 -1:0]GetLocalPresetCoeffcients,
-    output 	[6*16 -1:0]LF,
-    output 	[6*16 -1:0]FS,
-    output 	[16 -1:0]RxEqEval,
-    output 	[16 -1:0]InvalidRequest,
-    output directed_speed_change,
-    output  [47:0] ReceiverpresetHintDSP,
-    output  [63:0] TransmitterPresetHintDSP,
-    output  [47:0] ReceiverpresetHintUSP,
-    output  [63:0] TransmitterPresetHintUSP,
-    output  LF_register,
-    output  FS_register,
-    output  CursorCoff,
-    output PreCursorCoff,
-    output PostCursorCoff, 
+    input [18*16 -1:0]LocalTxPresetCoefficients,
+    input [6*16 -1:0]LocalFS,
+    input [6*16 -1:0]LocalLF,
+    input [16 -1:0]LocalTxCoefficientsValid,
+    input [6*16 -1:0]LinkEvaluationFeedbackDirectionChange,
+    input [16*6-1:0]FSDSP,
+    input [16*6-1:0]LFDSP,
+    input turnOffScrambler_flag,
+    output	reg[18*16 -1:0]TxDeemph,
+    output  reg[4*16 -1:0]LocalPresetIndex,
+    output 	reg[16 -1:0]GetLocalPresetCoeffcients,
+    output 	reg[6*16 -1:0]LF,
+    output 	reg[6*16 -1:0]FS,
+    output 	reg[16 -1:0]RxEqEval,
+    output 	reg[16 -1:0]InvalidRequest,
+    output  reg directed_speed_change,
+    output  reg[47:0] ReceiverpresetHintDSP,
+    output  reg[63:0] TransmitterPresetHintDSP,
+    output  reg[47:0] ReceiverpresetHintUSP,
+    output  reg[63:0] TransmitterPresetHintUSP,
+    output  reg[6*16-1:0]LF_register,
+    output  reg[6*16-1:0]FS_register,
+    output  reg[6*16-1:0]CursorCoff,
+    output  reg[6*16-1:0]PreCursorCoff,
+    output  reg[6*16-1:0]PostCursorCoff, 
     /***************eq****************/
     output reg linkUp,
     output reg[2:0] GEN,
@@ -71,39 +75,22 @@ parameter GEN5_PIPEWIDTH = 8)
     output reg[4:0] substateTx,
     output reg[4:0] substateRx,
     output reg[1:0] width,
-    output reg[2:0] trainToGen
-    output reg pl_speedmode;    
-);
-
-/*
-input directed_speed_change,   ///////////new
-input [63:0] TxpresetHintofUS,//////////new
-input [2:0] trainToGen,////////////new
-output [47:0] ReceiverpresetHintofOtherDevice,///////////new
-output [63:0] TransmitterPresetofOtherDevice,///////////new
-output writeReceiverpresetHint,///////////new
-output writeTransmitterPresetHint,///////////new
-
-
-*/
-
+    output reg[2:0] trainToGen,
+    output reg disableScrambler,
+    output reg [4:0] PCLKRate,
+    output reg startSend16);
 //local signals
     reg [4:0] numberOfDetectedLanes;
     reg [7:0] linkNumber;
     reg [7:0] rateId;
     reg upConfigureCapability;
-    reg [1:0]currentState,nextState;
-    reg [3:0] substateTxnext,substateRxnext;
-    reg directed_speed_change;
-    reg [47:0] ReceiverpresetHintDSP;
-    reg [63:0] TransmitterPresetHintDSP;
-    reg [47:0] ReceiverpresetHintUSP;
-    reg [63:0] TransmitterPresetHintUSP;
-    reg [6*16-1:0] CursorCoff,PreCursorCoff,PostCursorCoff,LF_register,FS_register;
+    reg [3:0]currentState,nextState;
+    reg [4:0] substateTxnext,substateRxnext;
+    integer i;
     
 //Local parameters
     //LPIF STATES
-    localparam[1:0]
+    localparam[3:0]
         reset_   = 4'd0,
         active_  = 4'd1,
         retrain_ = 4'd11;
@@ -128,20 +115,15 @@ output writeTransmitterPresetHint,///////////new
         phase1 = 5'd15,
         phase2 = 5'd16,
         phase3 =5'd17,
-        recoveryIdle = 5'd18;
+        recoveryIdle = 5'd18,
+        recoverySpeedeieos = 5'd19,
+        recoverywait = 5'd20;
 
-    //Data resgiter handling
-    always@(posedge clk)
+
+    always @(posedge clk) 
     begin
-        if(writeNumberOfDetectedLanes)numberOfDetectedLanes<=numberOfDetectedLanesIn;
-        if(writeLinkNumberTx)linkNumber<=linkNumberInTx;
-        else if(writeLinkNumberRx)linkNumber<=linkNumberInRx;
-        if(writeUpconfigureCapability)upConfigureCapability<=upConfigureCapabilityIn;
-        if(writeReceiverpresetHintDSP)ReceiverpresetHintDSP <=ReceiverpresetHintDSPIn;
-        if(writeReceiverpresetHintUSP)ReceiverpresetHintUSP <=ReceiverpresetHintUSPIn;
-        if(writeTransmitterPresetHintUSP) TransmitterPresetHintUSP<=TransmitterPresetHintUSPIn;
-        if(writeTransmitterPresetHintDSP)TransmitterPresetHintDSP <=TransmitterPresetHintDSPIn;
-        if(write_directed_speed_change) directed_speed_change <= directed_speed_change_In;
+        if(turnOffScrambler_flag)disableScrambler<=1'b1;
+        else disableScrambler<=1'b0;      
     end
 
     always @(posedge clk or negedge reset)
@@ -149,8 +131,10 @@ output writeTransmitterPresetHint,///////////new
         if(!reset || forceDetect)
         begin
             currentState <= reset_;
-            //substateTx <= detectQuiet;
-            //substateRx <= detectQuiet;
+            ReceiverpresetHintDSP<=48'hAABBCCDD1122;
+            TransmitterPresetHintDSP<=64'h11AA22BB33CC44DD;
+            ReceiverpresetHintUSP<=48'h2211DDCCBBAA;
+            TransmitterPresetHintUSP<=64'h11AA22BB33CC44DD;
             GEN <= 3'd1;
             
         end
@@ -159,6 +143,16 @@ output writeTransmitterPresetHint,///////////new
             currentState <= nextState;
             substateTx <= substateTxnext;
             substateRx <= substateRxnext;
+            if(writeNumberOfDetectedLanes)numberOfDetectedLanes<=numberOfDetectedLanesIn;
+            if(writeLinkNumberTx)linkNumber<=linkNumberInTx;
+            else if(writeLinkNumberRx)linkNumber<=linkNumberInRx;
+            if(writeUpconfigureCapability)upConfigureCapability<=upConfigureCapabilityIn;
+            if(writeReceiverpresetHintDSP)ReceiverpresetHintDSP <=ReceiverpresetHintDSPIn;
+            if(writeReceiverpresetHintUSP)ReceiverpresetHintUSP <=ReceiverpresetHintUSPIn;
+            if(writeTransmitterPresetHintUSP) TransmitterPresetHintUSP<=TransmitterPresetHintUSPIn;
+            if(writeTransmitterPresetHintDSP)TransmitterPresetHintDSP <=TransmitterPresetHintDSPIn;
+            if(write_directed_speed_change) directed_speed_change <= directed_speed_change_In;
+            if(writeRateId)rateId <= rateIdIn;
         end    
     end
 
@@ -168,7 +162,7 @@ output writeTransmitterPresetHint,///////////new
        case (currentState)
         reset_:
         begin
-            if(finishRx&&gotoRx==L0&&lpifStateRequest==active_)
+            if(finishTx&&gotoTx==L0&&finishRx&&gotoRx==L0&&lpifStateRequest==active_)
             begin
                 nextState <= active_;
             end
@@ -186,7 +180,7 @@ output writeTransmitterPresetHint,///////////new
         end
         retrain_:
         begin
-            if(gotoRx == L0 && gotoTx == L0)
+            if(finishTx&&gotoTx==L0&&finishRx&&gotoRx==L0)
             begin
                nextState <= active_; 
             end
@@ -244,13 +238,14 @@ end
 //output handling block
     always @(*)
     begin
+        //disableScrambler = 1'b1;
        case (currentState)
         reset_:
         begin
             case ({substateTx,substateRx})
                 {detectQuiet,detectQuiet}:
                 begin
-                   if (finishTx&&finishRx&&gotoTx==detectActive&&gotoRx==detectActive) 
+                   if (/*finishTx&&*/finishRx&&/*gotoTx==detectActive&&*/gotoRx==detectActive) 
                     begin
                         {substateTxnext,substateRxnext} = {detectActive,detectActive};
                         lpifStateStatus = reset_;
@@ -362,24 +357,30 @@ end
                             lpifStateStatus = reset_;
                         end
                 {configurationIdle,configurationIdle}:
-                    if (finishRx&&gotoRx==L0) 
+                begin
+                    //disableScrambler = 1'b0;
+                    if (finishRx&&gotoRx==L0)startSend16<= 1'b1;
+                    if (finishTx&&gotoTx==L0) 
                         begin
                             linkUp = 1'b1;
+                            startSend16 <= 1'b0;
                             lpifStateStatus = reset_;
-                            //{substateTx,substateRx} <= {L0,L0};//ERASE THE COMMENT IF I CAN GOT TO L0 WITHOUT LPIF PERMISSION
+                            {substateTx,substateRx} <= {L0,L0};//ERASE THE COMMENT IF I CAN GOT TO L0 WITHOUT LPIF PERMISSION
                         end
                     else if((finishTx&&gotoTx==detectQuiet)||(finishRx&&gotoRx==detectQuiet))
                         begin
                             {substateTxnext,substateRxnext}= {detectQuiet,detectQuiet};
                             lpifStateStatus = reset_;
                         end
+                end
+                    
 
                 default:
                     begin
                         {substateTxnext,substateRxnext}= {detectQuiet,detectQuiet};
                         lpifStateStatus = reset_;
                         linkUp = 1'b0;
-                        pl_speedmode = 3'd0;
+                        //pl_speedmode = 3'd0;
                     end
             
             endcase
@@ -387,36 +388,37 @@ end
         active_:
         begin
             {substateTxnext,substateRxnext}= {L0,L0};
+            //disableScrambler = 1'b0;
             lpifStateStatus = active_;
             linkUp = 1'b1;
-            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111) && (!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
-            {
+            if((MAX_GEN==3'd3 && rateId[3:1] == 3'b111)&&(GEN<3'd3)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
+            begin
                 directed_speed_change = 1'b1;
                 trainToGen = 3'd3;
                 {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
                 
-            }
-            else if((MAX_GEN==3'd2 && rateId[3:1] == 3'b011) && (!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
-            {
+            end
+            else if((MAX_GEN==3'd2 && rateId[3:1] == 3'b011)&&(GEN<3'd2)&&(!DEVICETYPE || (DEVICETYPE && finishRx &&gotoRx== recoveryRcvrLock)))
+            begin
                 directed_speed_change = 1'b1;
                 trainToGen = 3'd2;
                 {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
+            end             
                 
                 
-            }
-           
+                       
         end
         retrain_:
         begin
            lpifStateStatus = retrain_;
            linkUp = 1'b1;
-           case({substateRx,substateTx}):
+           case({substateRx,substateTx})
                 {recoveryRcvrLock,recoveryRcvrLock}:
                 begin
                     if(finishRx && gotoRx == recoveryRcvrCfg)
                         {substateTxnext,substateRxnext}= {recoveryRcvrCfg,recoveryRcvrCfg};
                 end
-                {recoveryCfg,recoveryCfg}:
+                {recoveryRcvrCfg,recoveryRcvrCfg}:
                 begin
                     if(finishRx && gotoRx == recoverySpeed)
                         {substateTxnext,substateRxnext}= {recoverySpeed,recoverySpeed};
@@ -426,18 +428,39 @@ end
                 end
                 {recoverySpeed,recoverySpeed}:
                 begin
-                    if((finishTx&&gotoTx==phase0)&& (finishRx&&gotoRx==phase0))
+                    if((finishRx&&gotoRx==recoverywait))
+                    begin
+                        {substateTxnext,substateRxnext}= {recoverywait,recoverywait};
+                        directed_speed_change = 1'b0;
+                    end                       
+
+                end
+                {recoverywait,recoverywait}:
+                begin
+                    if((finishTx&&gotoTx==recoverySpeedeieos))
+                    begin
+                        {substateTxnext,substateRxnext}= {recoverySpeedeieos,recoverySpeedeieos};
+                        GEN = trainToGen;
+                        directed_speed_change = 1'b0;
+                    end                       
+
+                end
+
+                {recoverySpeedeieos,recoverySpeedeieos}:
+                begin
+                    if(finishRx&&gotoRx==phase0)
                     begin
                         {substateTxnext,substateRxnext}= {phase0,phase0};
-                        directed_speed_change = 1'b0;
-                        GEN = 3'd3;
-                        pl_speedmode = 3'd2; //GEN 3
                     end
-                        
+                    else if(finishRx&&gotoRx==recoveryRcvrLock)
+                    begin
+                        {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
+                    end                       
 
                 end
                 {phase0,phase0}:
                 begin
+                    //disableScrambler = 1'b0;
                     //mapping tx preset to coeff.
                     GetLocalPresetCoeffcients={16{1'b1}};
 				    for(i=0;i<16;i=i+1)
@@ -466,14 +489,16 @@ end
                 end
                 {phase1,phase1}:
                 begin
+                    //disableScrambler = 1'b0;
                     LF = LocalLF;
                     FS = LocalFS;
-                    if(finishRx && gotoRx == recoveryRcvrLock)
+                    if(finishRx && gotoRx == phase2)
                          {substateTxnext,substateRxnext}= {recoveryRcvrLock,recoveryRcvrLock};
                 end
 
                 {recoveryIdle,recoveryIdle}:
                 begin
+                    //disableScrambler = 1'b0;
                     if((finishRx && gotoRx == L0) && (finishTx && gotoTx == L0))
                          {substateTxnext,substateRxnext}= {L0,L0};
                 end
@@ -486,6 +511,51 @@ end
         
     end
 
+always @ (posedge clk)
+begin
+    if(~reset) 
+    begin 
+        PCLKRate <= 0; 
+    end
+    else begin
+    if (GEN == 1)begin
+        case(GEN1_PIPEWIDTH)
+            8:PCLKRate<=2; //250
+            16:PCLKRate<=1; //125
+            32:PCLKRate<=0; //62.5
+        endcase
+    end
+    else if (GEN == 2)
+    begin
+        case(GEN2_PIPEWIDTH)
+            8:PCLKRate<=3; //500
+            16:PCLKRate<=2; //250
+            32:PCLKRate<=1; //125
+    endcase
+    end
+    else if (GEN == 3)begin
+        case(GEN3_PIPEWIDTH)
+            8:PCLKRate<=4; //1000
+            16:PCLKRate<=3; //500
+            32:PCLKRate<=2; //250
+        endcase
+    end
+    else if (GEN == 4)begin
+        case(GEN4_PIPEWIDTH)
+            8:PCLKRate<=5; //2000
+            16:PCLKRate<=4; //1000
+            32:PCLKRate<=3; //500
+        endcase
+    end
+    else if (GEN == 5)begin
+        case(GEN5_PIPEWIDTH)
+            8:PCLKRate<=6; //4000
+            16:PCLKRate<=5; //2000
+            32:PCLKRate<=4; //1000
+        endcase
+    end
+    end
+end
 
 
 

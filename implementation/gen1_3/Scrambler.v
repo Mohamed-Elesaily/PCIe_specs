@@ -56,7 +56,7 @@ module Scrambler (input wire pclk, input wire reset_n, input wire turnOff, input
 	end
 
 
-	always@(posedge pclk or negedge reset_n)
+	always@(*)
 		if(!reset_n)
 			begin
 			reg1 <= 0;

@@ -32,11 +32,11 @@ input	[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK,
 input	[LANESNUMBER-1:0]RxStartBlock,
 input	[2*LANESNUMBER -1:0]RxSyncHeader,
 input	[3*LANESNUMBER -1:0]RxStatus,
-input [15:0]RxElectricalIdle,
+input   [15:0]RxElectricalIdle,
 //commands and status signals
-output [4*LANESNUMBER-1:0]PowerDown,
-output  [3:0]Rate,
-input [LANESNUMBER-1:0]PhyStatus,
+output  [4*LANESNUMBER-1:0]PowerDown,
+output  [3:0] Rate,
+input   [LANESNUMBER-1:0]PhyStatus,
 
 //pclkcontrolsignal
 output [4:0]PCLKRate,
@@ -76,29 +76,55 @@ output [64-1:0]pl_dlpend,
 output [64-1:0]pl_tlpstart,
 output [64-1:0]pl_tlpend,
 output [64-1:0]pl_tlpedb,
-output linkUp,
+output pl_linkUp,
 //optional Message bus
 output [7:0] M2P_MessageBus,
-input  [7:0] P2M_MessageBus
+input  [7:0] P2M_MessageBus,
+output  [15:0] RxStandby
 );
 
 wire WriteDetectLanesFlag;
-wire [3:0] SetTXState;
+wire [4:0] SetTXState;
 wire TXFinishFlag;
-wire [3:0]TXExitTo;
+wire [4:0]TXExitTo;
 wire WriteLinkNumFlagTx,WriteLinkNumFlagRx;
 wire [4:0] NumberDetectLanesfromtx;
 wire [2:0]GEN; 
 wire [4:0]numberOfDetectedLanes;
-wire [3:0]RXsubstate;
+wire [4:0]RXsubstate;
 wire [7:0]linkNumberRxInput,linkNumberTxInput,linkNumberRxOutput,linkNumberTxOutput;
 wire [7:0] rateid,rateIdInTx;
 wire upConfigureCapability,upConfigureCapabilityInTX;
 wire RXfinish;
-wire [3:0]RXexitTo;
-///////////output linkUp,////////////
+wire [4:0]RXexitTo;
+///////////output pl_linkUp,////////////
 wire witeUpconfigureCapability;
 wire writerateid;
+wire  directed_speed_change;
+wire  [47:0] ReceiverpresetHintDSP;
+wire  [63:0] TransmitterPresetHintDSP;
+wire  [47:0] ReceiverpresetHintUSP;
+wire  [63:0] TransmitterPresetHintUSP;
+wire  [6*16-1:0]LF_register;
+wire  [6*16-1:0]FS_register;
+wire  [6*16-1:0]CursorCoff;
+wire  [6*16-1:0]PreCursorCoff;
+wire  [6*16-1:0]PostCursorCoff;
+wire  [47:0] ReceiverpresetHintDSPIn;
+wire  [63:0] TransmitterPresetHintDSPIn;
+wire  [47:0] ReceiverpresetHintUSPIn;
+wire  [63:0] TransmitterPresetHintUSPIn;
+wire writeReceiverpresetHintDSP;
+wire writeTransmitterPresetHintDSP;
+wire writeReceiverpresetHintUSP;
+wire writeTransmitterPresetHintUSP;
+wire directed_speed_change_In;
+wire write_directed_speed_chang;
+wire [2:0] trainToGen;
+wire [16*6-1:0] FSDSP,LFDSP;
+wire disableScrambler;
+wire turnOffScrambler_flag;
+wire startSend16;
 
 mainLTSSM #(
 .Width(MAXPIPEWIDTH),
@@ -107,7 +133,9 @@ mainLTSSM #(
 .GEN2_PIPEWIDTH (GEN2_PIPEWIDTH) ,	
 .GEN3_PIPEWIDTH (GEN3_PIPEWIDTH),	
 .GEN4_PIPEWIDTH (GEN4_PIPEWIDTH) ,	
-.GEN5_PIPEWIDTH (GEN5_PIPEWIDTH)	
+.GEN5_PIPEWIDTH (GEN5_PIPEWIDTH),
+.LANESNUMBER(LANESNUMBER),
+.MAX_GEN(MAX_GEN)
 ) mainltssm(
     .clk(CLK),
     .reset(lpreset),
@@ -116,7 +144,6 @@ mainLTSSM #(
     .rateIdIn(rateid),
     .upConfigureCapabilityIn(upConfigureCapability),
     .writeNumberOfDetectedLanes(WriteDetectLanesFlag),
-    //.writeLinkNumber(WriteLinkNumFlag),
     .writeUpconfigureCapability(witeUpconfigureCapability),
     .writeRateId(writerateid),
     .finishTx(TXFinishFlag),
@@ -124,10 +151,9 @@ mainLTSSM #(
     .gotoTx(TXExitTo),
     .gotoRx(RXexitTo),
     .forceDetect(lp_force_detect),
-    .linkUp(linkUp),
+    .linkUp(pl_linkUp),
     .GEN(GEN),
     .numberOfDetectedLanesOut(numberOfDetectedLanes),
-    //.linkNumberOut(linkNumber),
     .rateIdOut(rateIdInTx),
     .upConfigureCapabilityOut(upConfigureCapabilityInTX),//////not used in tx
     .lpifStateStatus(pl_state_sts),
@@ -139,13 +165,49 @@ mainLTSSM #(
     .writeLinkNumberRx(WriteLinkNumFlagRx),
     .linkNumberOutTx(linkNumberTxInput),
     .linkNumberOutRx(linkNumberRxInput),
-    .width(width)
+    .width(width),
+    .ReceiverpresetHintDSPIn(ReceiverpresetHintDSPIn),
+    .TransmitterPresetHintDSPIn(TransmitterPresetHintDSPIn),
+    .ReceiverpresetHintUSPIn(ReceiverpresetHintUSPIn),
+    .TransmitterPresetHintUSPIn(TransmitterPresetHintUSPIn),
+    .writeReceiverpresetHintDSP(writeReceiverpresetHintDSP),
+    .writeTransmitterPresetHintDSP(writeTransmitterPresetHintDSP),
+    .writeReceiverpresetHintUSP(writeReceiverpresetHintUSP),
+    .writeTransmitterPresetHintUSP(writeTransmitterPresetHintUSP),
+    .directed_speed_change_In(directed_speed_change_In),
+    .write_directed_speed_change(write_directed_speed_change),
+    .LocalTxPresetCoefficients(LocalTxPresetCoefficients),
+    .LocalFS(LocalFS),
+    .LocalLF(LocalLF),
+    .LocalTxCoefficientsValid(LocalTxCoefficientsValid),
+    .LinkEvaluationFeedbackDirectionChange(LinkEvaluationFeedbackDirectionChange),
+    .TxDeemph(TxDeemph),
+    .LocalPresetIndex(LocalPresetIndex),
+    .GetLocalPresetCoeffcients(GetLocalPresetCoeffcients),
+    .LF(LF),
+    .FS(FS),
+    .RxEqEval(RxEqEval),
+    .InvalidRequest(InvalidRequest),
+    .directed_speed_change(directed_speed_change),
+    .ReceiverpresetHintDSP(ReceiverpresetHintDSP),
+    .TransmitterPresetHintDSP(TransmitterPresetHintDSP),
+    .ReceiverpresetHintUSP(ReceiverpresetHintUSP),
+    .TransmitterPresetHintUSP(TransmitterPresetHintUSP),
+    .LF_register(LF_register),
+    .FS_register(FS_register),
+    .CursorCoff(CursorCoff),
+    .PreCursorCoff(PreCursorCoff),
+    .PostCursorCoff(PostCursorCoff),
+    .trainToGen(trainToGen),
+    .LFDSP(LFDSP),
+    .FSDSP(FSDSP),
+    .disableScrambler(disableScrambler),
+    .PCLKRate(PCLKRate),
+    .startSend16(startSend16),
+    .turnOffScrambler_flag(turnOffScrambler_flag)
 );
 
- 
-
-
-RX #(.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
+RX #(.DEVICETYPE(DEVICETYPE),.GEN1_PIPEWIDTH(GEN1_PIPEWIDTH),.GEN2_PIPEWIDTH(GEN2_PIPEWIDTH),.GEN3_PIPEWIDTH(GEN3_PIPEWIDTH),.GEN4_PIPEWIDTH(GEN4_PIPEWIDTH),.GEN5_PIPEWIDTH(GEN5_PIPEWIDTH))
 rx
 ( .reset(lpreset), 
 .clk(CLK), 
@@ -161,7 +223,6 @@ rx
 .numberOfDetectedLanes(numberOfDetectedLanes),
 .substate(RXsubstate),
 .linkNumber(linkNumberRxInput),
-//.lp_force_detect(lp_force_detect),
 .pl_tlpstart(pl_tlpstart), 
 .pl_dllpstart(pl_dlpstart), 
 .pl_tlpend(pl_tlpend),
@@ -170,20 +231,35 @@ rx
 .pl_valid(pl_valid), 
 .pl_data(pl_data),
 .pl_speedmode(pl_speedmode), 
-//.pl_state_sts(),
 .rateid(rateid),
 .upConfigureCapability(upConfigureCapability),
 .finish( RXfinish),
 .exitTo(RXexitTo),
-//.linkUp(),/////////////////////////////////////////////output from RX
 .witeUpconfigureCapability(witeUpconfigureCapability),
 .writerateid(writerateid),
 .linkNumberOut(linkNumberRxOutput),
-.writeLinkNumber(WriteLinkNumFlagRx));
-
-
-
-
+.writeLinkNumber(WriteLinkNumFlagRx),
+.ReceiverpresetHintDSPout(ReceiverpresetHintDSPIn),
+.TransmitterPresetHintDSPout(TransmitterPresetHintDSPIn),
+.ReceiverpresetHintUSPout(ReceiverpresetHintUSPIn),
+.TransmitterPresetHintUSPout(TransmitterPresetHintUSPIn),
+.ReceiverpresetHintDSP(ReceiverpresetHintDSP),
+.TransmitterPresetHintDSP(TransmitterPresetHintDSP),
+.ReceiverpresetHintUSP(ReceiverpresetHintUSP),
+.TransmitterPresetHintUSP(TransmitterPresetHintUSP),
+.writeReceiverpresetHintDSP(writeReceiverpresetHintDSP),
+.writeTransmitterPresetHintDSP(writeTransmitterPresetHintDSP),
+.writeReceiverpresetHintUSP(writeReceiverpresetHintUSP),
+.writeTransmitterPresetHintUSP(writeTransmitterPresetHintUSP),
+.LFDSP(LFDSP),
+.FSDSP(FSDSP),
+.CursorCoff(CursorCoff),
+.PreCursorCoff(PreCursorCoff),
+.PostCursorCoff(PostCursorCoff),
+.directed_speed_change(directed_speed_change),
+.trainToGen(trainToGen),
+.disableScrambler(disableScrambler)
+);
 
 TOP_MODULE #
 (
@@ -223,6 +299,7 @@ TX
 .ReadLinkNum(linkNumberTxInput),
 .rateIdIn(rateIdInTx),
 .upConfigureCapabilityIn(upConfigureCapabilityInTX),
+.MainLTSSMGen(GEN),
 .TxData16(TxData[31:0]),
 .TxData15(TxData[63:32]),
 .TxData14(TxData[95:64]),
@@ -271,7 +348,7 @@ TX
 .TxDataK3(TxDataK[55:52]),
 .TxDataK2(TxDataK[59:56]),
  .TxDataK1(TxDataK[63:60]),
- .TxSyncHeader1(TxSyncHeader[1:0]),
+.TxSyncHeader1(TxSyncHeader[1:0]),
  .TxSyncHeader2(TxSyncHeader[3:2]),
  .TxSyncHeader3(TxSyncHeader[5:4]),
  .TxSyncHeader4(TxSyncHeader[7:6]),
@@ -302,7 +379,23 @@ TX
  .TxStartBlock13(TxStartBlock[12]), 
  .TxStartBlock14(TxStartBlock[13]), 
  .TxStartBlock15(TxStartBlock[14]), 
- .TxStartBlock16(TxStartBlock[15]));
+ .TxStartBlock16(TxStartBlock[15]),
+ .ReceiverpresetHintDSP(ReceiverpresetHintDSP), 
+ .TransmitterPresetHintDSP(TransmitterPresetHintDSP),
+ .ReceiverpresetHintUSP(ReceiverpresetHintUSP),
+ .TransmitterPresetHintUSP(TransmitterPresetHintUSP),
+ .LF_register(LF_register),
+ .FS_register(FS_register),
+ .CursorCoff_register(CursorCoff),
+ .PreCursorCoff_register(PreCursorCoff),
+ .PostCursorCoff_register(PostCursorCoff),
+ .TrainToGen(trainToGen),
+ .ReadDirectSpeedChange(directed_speed_change),
+ .turnOff(disableScrambler),
+ .RxStandby(RxStandby),
+ .startSend16(startSend16),
+ .turnOffScrambler_flag(turnOffScrambler_flag)
+ );
 
 assign phy_reset = lpreset;
 
@@ -336,12 +429,13 @@ wire [(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]TxDataK;
 wire [2*LANESNUMBER -1:0]TxSyncHeader;
 wire [LANESNUMBER-1:0]TxDetectRx_Loopback;
 //RX_signals
-reg [MAXPIPEWIDTH*LANESNUMBER-1:0]RxData;
-reg [LANESNUMBER-1:0]RxDataValid;////////////////////////////////////////
-reg	[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
-reg	[LANESNUMBER-1:0]RxStartBlock;
-reg	[2*LANESNUMBER -1:0]RxSyncHeader;
-reg	[LANESNUMBER-1:0]RxValid;
+wire [MAXPIPEWIDTH*LANESNUMBER-1:0]RxData;
+wire [LANESNUMBER-1:0]RxDataValid;////////////////////////////////////////
+wire[(MAXPIPEWIDTH/8)*LANESNUMBER-1:0]RxDataK;
+wire[LANESNUMBER-1:0]RxStartBlock;
+wire[2*LANESNUMBER -1:0]RxSyncHeader;
+wire[LANESNUMBER-1:0]RxValid;
+wire [15:0]RxStandby;
 reg	[3*LANESNUMBER -1:0]RxStatus;
 reg [15:0]RxElectricalIdle;
 //commands and status signals
@@ -386,7 +480,7 @@ wire [64-1:0]pl_dlpend;
 wire [64-1:0]pl_tlpstart;
 wire [64-1:0]pl_tlpend;
 wire [64-1:0]pl_tlpedb;
-wire linkUp;
+wire pl_linkUp;
 //optional Message bus
 wire [7:0] M2P_MessageBus;
 reg  [7:0] P2M_MessageBus;
@@ -395,23 +489,50 @@ localparam[1:0]
         reset_   = 2'd0,
         active_  = 2'd1,
         retrain_ = 2'd2;
+integer i;
 
 initial
 begin
     CLK = 0;
     reset = 0;
-    #8
+    #20
     reset = 1;
     #10
     lp_state_req = reset_;
     #10
     wait(TxDetectRx_Loopback);
+    #10
     PhyStatus={16{1'b1}};
     RxStatus={16{3'b011}};
-    #100
+    #10
     RxStatus=16'd0;
-
-
+    lp_state_req = active_;
+    //wait(pl_state_sts == 3)
+    //lp_state_req = retrain_;
+    wait(GetLocalPresetCoeffcients == {16{1'b1}});
+    LocalTxCoefficientsValid = {16{1'b1}};
+    LocalTxPresetCoefficients={16*18{1'b1}};
+    LocalLF={16*6{1'b1}};
+    LocalFS={16*6{1'b1}};
+	wait(pl_linkUp && pl_speedmode==2'b10 && pl_state_sts==active_);
+	lp_state_req = active_;
+	@(negedge CLK);
+	lp_irdy=1;
+	for (i=0;i<512;i=i+1) 
+	begin
+		lp_data[i]=$random;
+		lp_tlpstart[i]=0;
+		lp_tlpend[i]=0;
+		lp_dlpend[i]=0;
+		lp_dlpstart[i]=0;
+	end
+	lp_valid={2'b00, {62{1'b1}}};
+	lp_tlpstart[0]=1;
+	lp_tlpend[61]=1;
+    // lp_dlpstart[0]=1;
+    // lp_dlpend[5]=1;
+	#10
+	lp_irdy=0;
 end
 always #5 CLK = ~CLK;
 
@@ -428,7 +549,7 @@ PCIe #(
 	. GEN3_PIPEWIDTH (8) ,								
 	. GEN4_PIPEWIDTH (8) ,	
 	. GEN5_PIPEWIDTH (8) ,	
-	. MAX_GEN (1)
+	. MAX_GEN (3)
 )
 pcie
 (
@@ -476,7 +597,6 @@ FS,
 RxEqEval,
 InvalidRequest,
 LinkEvaluationFeedbackDirectionChange,
-
 pl_trdy,
 lp_irdy,
 lp_data,
@@ -497,11 +617,11 @@ pl_dlpend,
 pl_tlpstart,
 pl_tlpend,
 pl_tlpedb,
-linkUp,
+pl_linkUp,
 //optional Message bus
 M2P_MessageBus,
-P2M_MessageBus
+P2M_MessageBus,
+RxStandby
 );
-
-//assign {RxData,RxDataValid,RxDataK,RxValid} = {TxData,TxDataValid,TxDataK,TxDataValid}; 
+assign {RxData,RxDataValid,RxDataK,RxValid,RxSyncHeader,RxStartBlock} = {TxData,TxDataValid,TxDataK,TxDataValid,TxSyncHeader,TxStartBlock}; 
 endmodule
