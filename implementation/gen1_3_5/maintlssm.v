@@ -173,7 +173,7 @@ parameter LANESNUMBER = 16)
             begin
                nextState <= reset_; 
             end
-            else if(lpifStateRequest==retrain_ || trainToGen == 3'd2 || trainToGen == 3'd3)
+            else if(lpifStateRequest==retrain_ || trainToGen >= 3'd2)
             begin
                nextState <= retrain_; 
             end
