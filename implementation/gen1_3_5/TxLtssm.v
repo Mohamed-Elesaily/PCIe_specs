@@ -211,7 +211,7 @@ always @ * begin
 		end
 		RecoverySpeed:begin
 			if(TimeOut && OSCount >= 2)begin
-				if(TrainToGen==Gen3)begin
+				if(TrainToGen>=Gen3)begin
 					ExitToState<=Ph0;
 					ExitToFlag<=1;
 				end
@@ -403,7 +403,7 @@ RxStandby<=16'b0;
 				LaneNumber<=2'b01; //num_seq
 				SpeedChange<=ReadDirectSpeedChange;
 				EC<=2'b00;
-				if (TrainToGen == Gen3 && DEVICETYPE ==DownStream && ReadDirectSpeedChange )
+				if (TrainToGen >= Gen3 && DEVICETYPE ==DownStream && ReadDirectSpeedChange )
 				begin 
 					EQTS2<=1;
 					for(i=0;i<LANESNUMBER;i=i+1)begin
@@ -456,7 +456,7 @@ RxStandby<=16'b0;
 		Ph0:begin
 			HoldFIFOData<=1;
 			MuxSel <=0; //TODO : check is it 1 or 0 for orderset
-			if(DEVICETYPE==DownStream)begin/////////////////****************************************************************////////
+			if(DEVICETYPE==UpStream)begin/////////////////****************************************************************////////
 				if(!OSGeneratorBusy)begin //it is supposed that
 					OSType<=3'b000; //TS1
 					LinkNumber<=ReadLinkNum;

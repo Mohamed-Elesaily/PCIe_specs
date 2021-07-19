@@ -529,7 +529,7 @@ begin
             else nextState =  RcvrLock2;
         end
 
-         L0up1:
+        L0up1:
         begin
             resetcounter = 1'b0; countup = 1'b0;
             if(valid &&DEVICETYPE&&ts1CorrectStart&& orderedset[15:8]==linkNumber && orderedset[23:16]==laneNumber 
